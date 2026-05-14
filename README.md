@@ -120,9 +120,7 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 </table>
 
 
-### Baked-in decisions
-
-Choices that make the output a coherent design-system page:
+### Other baked-in decisions
 
 - **Sidebar:** fixed left, 248px, scrollspy active highlight, hamburger on mobile
 - **Default theme:** matches the source site's detected default
