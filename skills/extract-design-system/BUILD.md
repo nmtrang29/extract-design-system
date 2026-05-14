@@ -324,3 +324,134 @@ background-image: repeating-linear-gradient(
 - **Scrollspy** with the IntersectionObserver settings above
 - **Smooth scroll** (`html { scroll-behavior: smooth }`) + `scroll-margin-top: 80px` on every section
 - **Mobile drawer** with hamburger + scrim, auto-close on link tap
+
+---
+
+## 15. Comprehensive DESIGN.md (companion reference)
+
+Alongside the HTML, the skill writes `./design-extract-output/<site>/DESIGN.md` — a markdown reference that captures **every token, every heading, every weight, every pattern** in the extraction. The HTML is curated for review; DESIGN.md is exhaustive for handoff and AI context.
+
+**Hard rule: if it's in the extraction, it must be in DESIGN.md.** Organize hierarchically (`In use` → `Available but unused`) rather than filtering.
+
+### Required sections (in this order)
+
+#### YAML frontmatter
+
+```yaml
+---
+site: <Site Name>
+url: <source URL>
+extracted_at: <ISO date>
+generator: designlang v<version>
+elements_analyzed: <count>
+intent: <type> (<confidence>)
+library: <name> (<confidence>)
+material: <flat | depth | …>
+imagery: <flat-illustration | photography | …>
+---
+```
+
+#### 1. Overview
+- Tagline / one-liner derived from page title or hero H1
+- Confidence summary: which detections were strong (>0.8) vs weak (<0.5)
+
+#### 2. Voice
+- Tone, pronoun posture, heading case, heading length class
+- **Sample headings — list ALL detected headings** (not 5 — every one in `voice.json` sampleHeadings + intent.json section headings). Show with detected size/weight/section.
+- **CTA verbs — full table** with counts (every entry in `voice.json` ctaVerbs)
+- **Button labels — full table** with counts (every entry in `voice.json` buttonPatterns)
+
+#### 3. Colors
+
+Multi-tier organization. Surface everything from `*-variables.css` (often 60+ colors), not just the 16 most-used.
+
+- **3a. Brand** (primary, secondary, accent — large emphasis)
+- **3b. Semantic tokens** (the 6 Carbon-style groups: Surface, Text, Border & line, Status, Code syntax, Shadcn primitives) — list every token in each group with hex + role description
+- **3c. Tailwind palette** — if `variables.css` contains `--color-{gray,slate,blue,red,green,yellow,orange,purple,rose,pink,emerald,teal,indigo,amber}-{50..900}`, list them all (these come from a Tailwind layer underneath, often unused in DOM but available to developers)
+- **3d. Fumadocs / framework-specific vars** — if present (`--color-fd-*`), list them
+- **3e. Full color inventory** — every unique hex detected in the DOM with usage count and detected role (text / border / background)
+- **3f. Gradients** — every detected gradient (linear, radial, repeating) with the full value string
+
+#### 4. Typography
+
+- **Families — all detected**, with usage counts and font fallback chains from `variables.css` (e.g., `--font-sans`, `--font-mono`, `--font-analog`)
+- **Type scale — full table**: every detected size, with weight, line-height, letter-spacing, inferred family, and example use. Group by role (display / heading / body / UI / caption / eyebrow / mono).
+- **All weights detected** — list every numeric weight in use
+- **All line-heights detected** — explicit values from `*-variables.css` (`--text-*--line-height`) plus computed leading multipliers
+- **All letter-spacing values** — from `--tracking-*` variables if present
+- **All headings on the actual page** — every detected heading (h1..h6) with text + size + section context (from intent.json's section headings)
+
+#### 5. Spacing
+- Base unit + full scale from `design-tokens.json`
+- Tailwind spacing base (`--spacing`) if different
+- Container widths (`--container-{xs,sm,md,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl}`)
+
+#### 6. Layout
+- Grid containers count + flex containers count (from `design-language.md`)
+- **Breakpoints** — parse from `variables.css` (`--breakpoint-*`). If designlang's `DESIGN.md` shows `[object Object]px`, the data is in the CSS — extract the real values.
+- Reading order: full list of detected sections in order with role + confidence (from `intent.json`)
+- Section roles tally (cta, nav, hero, feature-grid, testimonial, faq, footer, etc.)
+
+#### 7. Shape
+- Full radius scale (every value detected)
+- Pill use (boolean from `visual-dna.json`)
+
+#### 8. Elevation
+- Every shadow token with full `box-shadow` value
+- Z-index layers count
+- Shadow profile classification (soft / sharp / directional)
+
+#### 9. Motion
+- Every duration token (xs / sm / md / lg / xl if detected)
+- Every easing function with cubic-bezier values
+- Springs (if any)
+- Feel classification (mixed / snappy / bouncy / smooth)
+- Scroll-linked animations: yes / no
+- Named keyframes detected (`@keyframes` listed in CSS — pulse, spin, fade, slide, etc.)
+
+#### 10. Components
+- Every detected pattern from `DESIGN.md`'s "Detected patterns" line
+- For each: anatomy block (variants, sizes, instance count) if present in `anatomy.tsx`
+- Mark patterns without anatomy data as "detected but not anatomized"
+
+#### 11. Icons
+- Library detection + confidence
+- Stats: total, stroke-only, fill-only, mixed, avg stroke width, grid distribution, rounded-caps fraction
+- Full named icon list (e.g., every Lucide name) with grid + stroke-width + style per icon
+- Unidentified icons list with their detected attributes
+
+#### 12. Forms & inputs
+- Form count, families
+- Input types detected
+- Modals, toast libraries
+- Loading states (skeleton/spinner counts)
+- Empty states, error states
+
+#### 13. Accessibility
+- WCAG score
+- Passing / failing pair counts
+- **Full pair table** (not top 2): every detected fg/bg combination with contrast ratio, WCAG tag (AAA/AA/fail), and DOM usage count
+
+#### 14. SEO & brand surface
+- Favicons (every size from `seo.json`)
+- OG image, Twitter card
+- Description, theme color, manifest
+- Apple touch icons
+
+#### 15. Audit findings
+- **Full "Do's"** list from `*-design-language.md` (not just the 4 we surfaced in flags)
+- **Full "Don'ts"** list with severity inferred from counts (e.g., 127 !important = high; 4 fonts = medium; 2 unused tokens = low)
+- Strengths (high WCAG score, etc.)
+
+#### 16. Frameworks & integrations
+- Detected library (shadcn confidence + evidence)
+- Tailwind class density (from `library.json` signals)
+- Tech stack (from `stack-intel.json` if present)
+- LLM prompts available (count from `*-prompts/`)
+
+#### 17. Generated artifacts
+- Full list of every file in the per-site folder with one-line purpose
+
+### Length expectation
+
+For a typical marketing site, DESIGN.md should land in the **400–800 line range**. The langfuse extraction produces ~600 lines. If your output is under 200 lines, you're filtering too aggressively — re-read `*-variables.css` and surface what you missed.

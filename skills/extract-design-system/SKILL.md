@@ -40,7 +40,11 @@ Add `--depth 3` for multi-page crawling. Add `--dark` for dark-mode parity.
 
 The full page structure, token mapping, snapping rules, and copy decisions are in **[BUILD.md](./BUILD.md)** — read it before populating the template.
 
-**4. Write an optional `CHANGELOG.md`** alongside the review (at `./design-extract-output/<site>/CHANGELOG.md`) documenting which choices were derived from the extraction and which had to fall back (e.g., custom display fonts that aren't free-to-host). No `<site>-` prefix needed — the folder already names the site.
+**4. Write a comprehensive `DESIGN.md`** at `./design-extract-output/<site>/DESIGN.md` (no `<site>-` prefix — the folder names the site). This is the canonical, machine-readable design-system reference. It must be **exhaustive** — surface every token from the extraction, not just curated highlights. designlang's `<slug>-DESIGN.md` is a short summary; ours is the full reference. See **[BUILD.md §15](./BUILD.md)** for the complete content spec.
+
+The general rule: **if the extraction contains a token, color, heading, weight, breakpoint, or pattern, it must appear in DESIGN.md** — organized so "in use" data leads and "available but unused" data follows. Don't filter for top-N. The HTML page can curate; DESIGN.md cannot.
+
+**5. Write an optional `CHANGELOG.md`** alongside (at `./design-extract-output/<site>/CHANGELOG.md`) documenting which choices were derived from the extraction and which had to fall back (e.g., custom display fonts that aren't free-to-host).
 
 ## Core decisions (baked in — do not re-ask)
 
@@ -73,8 +77,9 @@ All output lives inside a per-site folder so multiple extractions never mix:
 ```
 ./design-extract-output/
 └── <site>/                              ← brand name, no TLD
-    ├── <site>-design-system.html        ← Primary output
-    ├── <slug>-DESIGN.md                 ← designlang summary
+    ├── <site>-design-system.html        ← Primary visual output (curated)
+    ├── DESIGN.md                        ← Comprehensive reference (every token)
+    ├── <slug>-DESIGN.md                 ← designlang's short summary (kept)
     ├── <slug>-design-tokens.json
     ├── <slug>-variables.css
     ├── <slug>-preview.html              ← basic preview (untouched)
