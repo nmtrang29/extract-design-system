@@ -1,0 +1,550 @@
+<!--
+  TEMPLATE.html for extract-design-system
+  ------------------------------------------------------
+  Copy to <site-slug>-review.html, then:
+    1. Replace every {{PLACEHOLDER}} with values from the extracted artifacts
+    2. Populate each <!-- INSERT_*_HERE --> region per BUILD.md
+  See SKILL.md for the overall process and BUILD.md for the detailed spec.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Design Review — {{SITE_NAME}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- Replace Geist+Mono with the detected mono family if different -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family={{MONO_FAMILY_URL}}:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* =========================================================
+     THEME — values come from *-variables.css
+     ========================================================= */
+  :root {
+    /* surfaces */
+    --bg:        {{BG}};        /* --surface-1 */
+    --panel:     {{PANEL}};     /* --surface-bg */
+    --panel-2:   {{PANEL_2}};   /* --surface-2 */
+    /* lines */
+    --line:      {{LINE}};      /* --line-structure */
+    --line-2:    {{LINE_2}};    /* --line-divider-dash */
+    /* text */
+    --ink:       {{INK}};       /* --text-primary */
+    --ink-2:     {{INK_2}};     /* --text-secondary */
+    --ink-3:     {{INK_3}};     /* --text-tertiary */
+    --ink-4:     {{INK_4}};     /* --text-disabled */
+    /* brand */
+    --accent:    {{ACCENT}};    /* brand secondary / --surface-cta-primary */
+    --link:      {{LINK}};      /* --text-links */
+    /* status (callouts) */
+    --good:      {{GOOD}};
+    --warn:      {{WARN}};
+    --bad:       {{BAD}};
+    --info:      {{INFO}};
+    --idea:      {{IDEA}};
+    /* radii — typically only 2 values in modern systems */
+    --radius-card:    {{RADIUS_CARD}};     /* --radius-md, typically 6px */
+    --radius-control: {{RADIUS_CONTROL}};  /* --radius-xs, typically 2px */
+  }
+  [data-theme="dark"] {
+    /* Built from code-block surfaces when source has no native dark theme */
+    --bg:    {{DARK_BG}};
+    --panel: {{DARK_PANEL}};
+    --panel-2: {{DARK_PANEL_2}};
+    --line:  {{DARK_LINE}};
+    --line-2: {{DARK_LINE_2}};
+    --ink:   {{DARK_INK}};
+    --ink-2: {{DARK_INK_2}};
+    --ink-3: {{DARK_INK_3}};
+    --ink-4: {{DARK_INK_4}};
+    --link:  {{DARK_LINK}};
+  }
+
+  /* =========================================================
+     BASE
+     ========================================================= */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: '{{MONO_FAMILY}}', ui-monospace, Menlo, monospace; }
+
+  /* =========================================================
+     LAYOUT
+     ========================================================= */
+  :root { --sidebar-w: 248px; }
+  .shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 28px 96px;
+    padding-left: calc(var(--sidebar-w) + 40px);
+  }
+
+  /* =========================================================
+     SIDEBAR
+     ========================================================= */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    display: flex; flex-direction: column;
+    z-index: 40;
+    transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sidebar-head { padding: 22px 22px 14px; border-bottom: 1px solid var(--line-2); }
+  .sidebar-head .brand { font-weight: 500; font-size: 14px; letter-spacing: -0.01em; }
+  .sidebar-head .sub { color: var(--ink-3); font-size: 11px; margin-top: 6px; line-height: 1.45; }
+
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 14px 12px 20px; }
+  .sidebar-nav::-webkit-scrollbar { width: 6px; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+
+  .nav-group { margin-top: 14px; }
+  .nav-group:first-child { margin-top: 0; }
+  .nav-group .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-4);
+    font-weight: 600;
+    line-height: 1.5;
+    padding: 6px 12px;
+  }
+  .sidebar-nav a {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--ink-2); text-decoration: none;
+    font-size: 13px; font-weight: 400; line-height: 1.5;
+    padding: 7px 12px; border-radius: var(--radius-card);
+    transition: 120ms;
+    position: relative;
+  }
+  .sidebar-nav a:hover, .sidebar-nav a.active { color: var(--ink); background: var(--panel-2); }
+  .sidebar-nav a.active::before {
+    content: ''; position: absolute; left: -12px; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 16px; border-radius: 0 2px 2px 0;
+    background: var(--accent);
+  }
+
+  .sidebar-foot {
+    border-top: 1px solid var(--line-2);
+    padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .sidebar-foot .ver { font-family: '{{MONO_FAMILY}}', monospace; font-size: 11px; color: var(--ink-4); }
+  .toggle {
+    background: var(--bg); border: 1px solid var(--line); color: var(--ink);
+    padding: 6px 10px; border-radius: var(--radius-control); cursor: pointer; font-size: 12px;
+    font-family: inherit; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .toggle:hover { background: var(--panel-2); border-color: var(--ink-2); }
+
+  /* Mobile menu button + scrim */
+  .menu-btn {
+    display: none;
+    position: fixed; top: 16px; left: 16px; z-index: 50;
+    width: 40px; height: 40px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius-card); cursor: pointer; color: var(--ink);
+    align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .scrim {
+    display: none;
+    position: fixed; inset: 0; z-index: 35;
+    background: rgba(0,0,0,0.45);
+  }
+  body.nav-open .scrim { display: block; }
+
+  /* =========================================================
+     HERO
+     ========================================================= */
+  .hero {
+    margin-top: 28px;
+    padding: 36px 32px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    background:
+      radial-gradient(900px 200px at 100% 0%, color-mix(in oklab, var(--accent) 28%, transparent) 0%, transparent 60%),
+      var(--panel)
+      repeating-linear-gradient(315deg, var(--panel), var(--panel) 2px, rgba(108, 103, 96, 0.08) 4px, var(--panel) 4px);
+    position: relative; overflow: hidden;
+  }
+  .hero .eyebrow { color: var(--ink-3); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+  .hero h1 {
+    font-size: clamp(38px, 6vw, {{HERO_FONT_SIZE_MAX}});
+    line-height: 1.05; font-weight: 500; letter-spacing: -0.03em;
+    margin: 10px 0 18px;
+  }
+  .hero h1 em { font-style: normal; background: var(--accent); padding: 0 6px; border-radius: var(--radius-control); color: var(--ink); }
+  .hero .source { color: var(--ink-2); font-size: 13px; font-family: '{{MONO_FAMILY}}', ui-monospace, monospace; }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--panel); border: 1px solid var(--line);
+    color: var(--ink-2); padding: 4px 10px; border-radius: var(--radius-control); font-size: 12px;
+  }
+  .badge b { color: var(--ink); font-weight: 500; }
+  .badge .pip { width: 6px; height: 6px; border-radius: var(--radius-control); background: var(--accent); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 18px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-card); padding: 14px 16px; }
+  .stat .v { font-size: 32px; font-weight: 500; letter-spacing: -0.02em; line-height: 1; }
+  .stat .l { color: var(--ink-3); font-size: 10px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+  .stat .v.good { color: var(--good); }
+
+  /* =========================================================
+     SECTIONS
+     ========================================================= */
+  section { margin-top: 64px; scroll-margin-top: 80px; }
+  .section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 32px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; }
+  .section-head .sub { color: var(--ink-3); font-size: 13px; max-width: 540px; line-height: 1.5; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-card); padding: 22px; }
+  .panel + .panel { margin-top: 12px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .grid-6 { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+
+  /* =========================================================
+     COMPONENT CLASSES — for the live preview frame and tables
+     (Full CSS — copy these as-is)
+     ========================================================= */
+  /* See BUILD.md sections 4–8 for usage. The classes below cover:
+     - .swatch (color tiles)        - .lf-btn (buttons)        - .lf-input (form input)
+     - .type-row (type scale row)   - .lf-card (card)          - .lf-badge (badge)
+     - .space-row (spacing bar)     - .lf-link (link)          - .lf-tabs (tabs)
+     - .shadow-card (shadow demo)   - .lf-acc (accordion)      - .lf-tooltip
+     - .radius-item (radius demo)   - .lf-dropdown             - .lf-nav (top nav)
+     - .motion-card, .motion-demo   - .lf-footer (page footer) - .icon-card, .icon-grid
+     - .tg-* (token-group: tokens by context)
+     - .a11y-* (accessibility row)  - .file (file index tile)  - .layout-bar (page anatomy)
+     - .verb-tag (CTA verb pill)    - .quote (voice samples)   - .font-pill (font family pill)
+     For the full class definitions, see the reference langfuse-com-review.html in examples/. */
+
+  /* (Component CSS omitted from this scaffold for brevity — copy the full block
+     from examples/langfuse-com-review.html lines 200–900 when populating.) */
+
+  /* =========================================================
+     RESPONSIVE
+     ========================================================= */
+  @media (max-width: 960px) {
+    .shell { padding-left: 28px; }
+    .menu-btn { display: inline-flex; }
+    .sidebar { transform: translateX(-100%); box-shadow: 0 0 40px rgba(0,0,0,0.4); }
+    body.nav-open .sidebar { transform: translateX(0); }
+  }
+  @media (max-width: 720px) {
+    .shell { padding: 72px 16px 64px; }
+    .hero { padding: 26px 22px; }
+  }
+</style>
+</head>
+
+<body data-theme="{{DEFAULT_THEME}}"><!-- typically "light" for marketing sites -->
+
+<button class="menu-btn" onclick="toggleNav()" aria-label="Toggle navigation">≡</button>
+<div class="scrim" onclick="toggleNav(false)"></div>
+
+<!-- =========================================================
+     SIDEBAR
+     ========================================================= -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="brand">{{SITE_NAME}} Design System</div>
+    <div class="sub">{{SCOPE_LABEL}}</div>
+  </div>
+
+  <nav class="sidebar-nav" id="sidebar-nav">
+    <div class="nav-group">
+      <div class="label">Overview</div>
+      <a href="#top">At a glance</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Foundations</div>
+      <a href="#colors">Colors</a>
+      <a href="#typography">Typography</a>
+      <a href="#spacing">Spacing</a>
+      <a href="#shadows">Shadows &amp; radii</a>
+      <a href="#motion">Motion</a>
+      <a href="#icons">Icons</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Components</div>
+      <!-- INSERT_PATTERN_SUBLINKS_HERE
+           One <a> per detected pattern, e.g.:
+           <a href="#comp-buttons">Buttons</a> ... -->
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Voice &amp; structure</div>
+      <a href="#voice">Voice &amp; content</a>
+      <a href="#layout">Page anatomy</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Audit</div>
+      <a href="#a11y">Accessibility</a>
+      <a href="#flags">Audit flags</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Resources</div>
+      <a href="#files">Generated files</a>
+    </div>
+  </nav>
+
+  <div class="sidebar-foot">
+    <span class="ver">v{{DESIGNLANG_VERSION}}</span>
+    <button class="toggle" onclick="toggleTheme()">◐ Theme</button>
+  </div>
+</aside>
+
+<!-- =========================================================
+     MAIN CONTENT
+     ========================================================= -->
+<div class="shell" id="top">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Design language extracted</div>
+    <h1>{{HERO_HEADING_BEFORE_EM}}<em>{{HERO_EMPHASIS}}</em>{{HERO_HEADING_AFTER_EM}}</h1>
+    <div class="source">{{SOURCE_URL}} · {{ELEMENT_COUNT}} elements · {{EXTRACTION_DATE}}</div>
+    <div class="badges">
+      <span class="badge"><span class="pip"></span> Intent: <b>{{INTENT}}</b> · {{INTENT_CONFIDENCE}}</span>
+      <span class="badge"><span class="pip"></span> Library: <b>{{LIBRARY}}</b> · {{LIBRARY_CONFIDENCE}}</span>
+      <span class="badge"><span class="pip"></span> Material: <b>{{MATERIAL}}</b></span>
+      <span class="badge"><span class="pip"></span> Imagery: <b>{{IMAGERY}}</b></span>
+      <span class="badge"><span class="pip"></span> Voice: <b>{{VOICE_TONE}} · {{PRONOUN}}</b></span>
+      <span class="badge"><span class="pip"></span> Headings: <b>{{HEADING_CASE}}</b></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">{{N_COLORS}}</div><div class="l">Colors</div></div>
+      <div class="stat"><div class="v">{{N_FONTS}}</div><div class="l">Font families</div></div>
+      <div class="stat"><div class="v">{{N_SPACING}}</div><div class="l">Spacing</div></div>
+      <div class="stat"><div class="v">{{N_SHADOWS}}</div><div class="l">Shadows</div></div>
+      <div class="stat"><div class="v">{{N_RADII}}</div><div class="l">Radii</div></div>
+      <div class="stat"><div class="v">{{N_COMPONENTS}}</div><div class="l">Components</div></div>
+      <div class="stat"><div class="v">{{N_ICONS}}</div><div class="l">Icons</div></div>
+      <div class="stat"><div class="v good">{{WCAG_SCORE}}</div><div class="l">WCAG score</div></div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       COLORS — primitive palette + tokens by context
+       See BUILD.md §4
+       ========================================================= -->
+  <section id="colors">
+    <div class="section-head">
+      <h2>Color palette</h2>
+      <div class="sub">{{COLORS_INTRO}}</div>
+    </div>
+    <!-- INSERT_BRAND_NEUTRALS_PATTERNS_PANELS_HERE -->
+    <!-- INSERT_TOKENS_BY_CONTEXT_PANELS_HERE (6 groups: surface, text, line, status, code, shadcn) -->
+  </section>
+
+  <!-- =========================================================
+       TYPOGRAPHY — families + type scale (with font column)
+       See BUILD.md §5
+       ========================================================= -->
+  <section id="typography">
+    <div class="section-head"><h2>Typography</h2><div class="sub">{{TYPOGRAPHY_INTRO}}</div></div>
+    <!-- INSERT_FONT_FAMILIES_PANEL_HERE -->
+    <!-- INSERT_TYPE_SCALE_PANEL_HERE -->
+  </section>
+
+  <!-- =========================================================
+       SPACING — BUILD.md §6
+       ========================================================= -->
+  <section id="spacing">
+    <div class="section-head"><h2>Spacing scale (base: {{SPACING_BASE}})</h2><div class="sub">{{SPACING_INTRO}}</div></div>
+    <div class="panel"><!-- INSERT_SPACING_ROWS_HERE --></div>
+  </section>
+
+  <!-- =========================================================
+       SHADOWS & RADII — BUILD.md §6
+       ========================================================= -->
+  <section id="shadows">
+    <div class="section-head"><h2>Elevation</h2><div class="sub">{{SHADOWS_INTRO}}</div></div>
+    <div class="panel shadow-wrap"><div class="grid-3"><!-- INSERT_SHADOW_CARDS_HERE --></div></div>
+    <div class="section-head" style="margin-top:32px"><h2 id="radii">Border radii</h2><div class="sub">{{RADII_INTRO}}</div></div>
+    <div class="panel"><div style="display:flex;gap:18px;flex-wrap:wrap;align-items:end"><!-- INSERT_RADIUS_ITEMS_HERE --></div></div>
+  </section>
+
+  <!-- =========================================================
+       MOTION — BUILD.md §6
+       ========================================================= -->
+  <section id="motion">
+    <div class="section-head"><h2>Motion</h2><div class="sub">{{MOTION_INTRO}}</div></div>
+    <div class="panel"><div class="motion-grid"><!-- INSERT_MOTION_CARDS_HERE --></div></div>
+  </section>
+
+  <!-- =========================================================
+       ICONS — Lucide CDN, real SVGs
+       See BUILD.md §7
+       ========================================================= -->
+  <section id="icons">
+    <div class="section-head"><h2>Icon system</h2><div class="sub">{{ICONS_INTRO}}</div></div>
+    <div class="panel">
+      <div class="icon-summary"><!-- INSERT_ICON_STATS_HERE --></div>
+      <div style="margin-top:18px">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;font-weight:600">{{ICONS_LIBRARY_LABEL}}</div>
+        <div class="icon-grid"><!-- INSERT_LUCIDE_ICONS_HERE --></div>
+        <!-- Optional: INSERT_UNIDENTIFIED_ICONS_HERE -->
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       COMPONENTS — live render every detected pattern
+       See BUILD.md §8
+       ========================================================= -->
+  <section id="components">
+    <div class="section-head"><h2>Components</h2><div class="sub">{{COMPONENTS_INTRO}}</div></div>
+    <div class="preview-frame">
+      <!-- INSERT_COMP_BUTTONS_HERE -->
+      <!-- INSERT_COMP_CARDS_HERE -->
+      <!-- INSERT_COMP_INPUTS_HERE -->
+      <!-- INSERT_COMP_LINKS_HERE -->
+      <!-- INSERT_COMP_BADGES_HERE -->
+      <!-- INSERT_COMP_TABS_HERE -->
+      <!-- INSERT_COMP_ACCORDIONS_HERE -->
+      <!-- INSERT_COMP_TOOLTIPS_HERE -->
+      <!-- INSERT_COMP_DROPDOWNS_HERE -->
+      <!-- INSERT_COMP_NAVIGATION_HERE -->
+      <!-- INSERT_COMP_FOOTER_HERE -->
+    </div>
+  </section>
+
+  <!-- =========================================================
+       VOICE & CONTENT — BUILD.md §9
+       ========================================================= -->
+  <section id="voice">
+    <div class="section-head"><h2>Voice &amp; content</h2><div class="sub">{{VOICE_INTRO}}</div></div>
+    <div class="grid-2">
+      <div class="panel"><!-- INSERT_SAMPLE_HEADINGS_HERE --></div>
+      <div>
+        <div class="panel"><!-- INSERT_CTA_VERBS_HERE --></div>
+        <div class="panel"><!-- INSERT_BUTTON_LABELS_HERE --></div>
+        <div class="panel"><!-- INSERT_VOICE_KV_HERE --></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       PAGE ANATOMY — BUILD.md §10
+       ========================================================= -->
+  <section id="layout">
+    <div class="section-head"><h2>Page anatomy</h2><div class="sub">{{LAYOUT_INTRO}}</div></div>
+    <div class="panel"><div class="layout-map"><!-- INSERT_LAYOUT_BARS_HERE --></div></div>
+  </section>
+
+  <!-- =========================================================
+       ACCESSIBILITY — BUILD.md §11
+       ========================================================= -->
+  <section id="a11y">
+    <div class="section-head"><h2>Accessibility</h2><div class="sub">{{A11Y_INTRO}}</div></div>
+    <div class="panel">
+      <div class="a11y-hero">
+        <div class="a11y-score">{{WCAG_SCORE}}</div>
+        <div>
+          <div style="font-weight:500;font-size:15px">WCAG contrast score</div>
+          <div style="color:var(--ink-3);font-size:13px;margin-top:4px">{{WCAG_DETAIL}}</div>
+        </div>
+      </div>
+      <div style="margin-top:18px"><!-- INSERT_A11Y_PAIRS_HERE --></div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       AUDIT FLAGS — BUILD.md §12
+       ========================================================= -->
+  <section id="flags">
+    <div class="section-head"><h2>Audit flags</h2><div class="sub">{{FLAGS_INTRO}}</div></div>
+    <div class="grid-2"><!-- INSERT_FLAG_CARDS_HERE --></div>
+  </section>
+
+  <!-- =========================================================
+       GENERATED FILES — BUILD.md §13
+       ========================================================= -->
+  <section id="files">
+    <div class="section-head"><h2>Generated artifacts</h2><div class="sub">{{FILES_INTRO}}</div></div>
+    <div class="panel"><div class="file-grid"><!-- INSERT_FILE_TILES_HERE --></div></div>
+  </section>
+
+  <div style="margin-top:60px;color:var(--ink-4);font-size:11px;text-align:center" class="mono">
+    designlang v{{DESIGNLANG_VERSION}} · extracted {{EXTRACTION_DATE}} · review compiled {{COMPILE_DATE}}
+  </div>
+
+</div>
+
+<!-- =========================================================
+     SCRIPTS — keep these as-is
+     ========================================================= -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+  // Render Lucide icons
+  if (window.lucide && window.lucide.createIcons) { window.lucide.createIcons(); }
+
+  // Theme toggle
+  function toggleTheme() {
+    const body = document.body;
+    body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  }
+
+  // Mobile drawer toggle
+  function toggleNav(force) {
+    const open = typeof force === 'boolean' ? force : !document.body.classList.contains('nav-open');
+    document.body.classList.toggle('nav-open', open);
+  }
+  document.querySelectorAll('#sidebar-nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.matchMedia('(max-width: 960px)').matches) toggleNav(false);
+    });
+  });
+
+  // Click-to-copy hex on swatches
+  document.querySelectorAll('.swatch').forEach(el => {
+    el.addEventListener('click', () => {
+      const hex = el.querySelector('.hex')?.textContent?.trim();
+      if (!hex) return;
+      navigator.clipboard.writeText(hex).then(() => {
+        let tip = el.querySelector('.copy-tip');
+        if (!tip) { tip = document.createElement('div'); tip.className = 'copy-tip'; el.appendChild(tip); }
+        tip.textContent = 'Copied ' + hex;
+        tip.classList.add('show');
+        setTimeout(() => tip.classList.remove('show'), 1200);
+      });
+    });
+  });
+
+  // Scrollspy — highlight active sidebar link
+  const navLinks = Array.from(document.querySelectorAll('#sidebar-nav a[href^="#"]'));
+  const linkById = new Map(navLinks.map(a => [a.getAttribute('href').slice(1), a]));
+  const sections = navLinks
+    .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+    .filter(Boolean);
+  const setActive = (id) => {
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  };
+  const spy = new IntersectionObserver((entries) => {
+    const visible = entries.filter(e => e.isIntersecting)
+      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    if (visible[0]) setActive(visible[0].target.id);
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  sections.forEach(s => spy.observe(s));
+  if (linkById.has('top')) linkById.get('top').classList.add('active');
+</script>
+</body>
+</html>
