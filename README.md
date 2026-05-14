@@ -1,5 +1,3 @@
-# extract-design-system
-
 A Claude Code skill built on top of [`designlang`](https://www.npmjs.com/package/designlang) that turns any website URL into a polished, self-referential design system page.
 
 **Two additional outputs:**
@@ -8,7 +6,7 @@ A Claude Code skill built on top of [`designlang`](https://www.npmjs.com/package
 
 ---
 
-## Live demos
+### Live demos
 
 <table>
 <tr>
@@ -27,7 +25,7 @@ A Claude Code skill built on top of [`designlang`](https://www.npmjs.com/package
 
 ---
 
-## Installation
+### Installation
 
 Prerequisite [`designlang`](https://www.npmjs.com/package/designlang) `npm i -g designlang` 
 
@@ -42,7 +40,7 @@ Verify by typing `/extract-design-system`
 
 ---
 
-## Usage
+### Usage
 
 ```bash
 /extract-design-system https://yoursite.com/
@@ -58,9 +56,9 @@ This will:
 
 ---
 
-## What's new?
+### What's new?
 
-### Page styling
+#### Page styling
 
 On brand. The page chrome is built from the same tokens it documents. Fixed left sidebar with scrollspy. Mobile collapses to hamburger drawer.
 
@@ -72,7 +70,7 @@ On brand. The page chrome is built from the same tokens it documents. Fixed left
 </tr>
 </table>
 
-### Colors
+#### Colors
 
 Two-layer view: primitive palette + tokens shown in context. Each with live examples + reference table.
 
@@ -84,7 +82,7 @@ Two-layer view: primitive palette + tokens shown in context. Each with live exam
 </tr>
 </table>
 
-### Components
+#### Components
 
 Render *every* detected pattern with live examples that use the actual extracted tokens, not just the canonical 3.
 
@@ -96,7 +94,7 @@ Render *every* detected pattern with live examples that use the actual extracted
 </tr>
 </table>
 
-### Icons
+#### Icons
 
 Real rendered SVGs (Adapters for Lucide, Heroicons / Octicons / Material Symbols / Bootstrap / Tabler / Phosphor / Feather / Carbon / Spectrum / SLDS / Radix / Ant). Repeated icons get a usage-count badge.
 
@@ -108,7 +106,7 @@ Real rendered SVGs (Adapters for Lucide, Heroicons / Octicons / Material Symbols
 </tr>
 </table>
 
-### Typography
+#### Typography
 
 Each type-scale row labels which font is used (display vs body vs UI vs code).
 
@@ -127,7 +125,7 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 
 ---
 
-## Baked-in decisions
+### Baked-in decisions
 
 Choices that make the output a coherent design-system page:
 
