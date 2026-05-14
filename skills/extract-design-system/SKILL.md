@@ -1,6 +1,6 @@
 ---
 name: extract-design-system
-description: "Extract a website's design language AND turn it into a polished, self-referential design-system review page. Runs designlang on a URL, then builds a single-file HTML review that uses the extracted tokens to style itself (Carbon-style colors-by-context, live component examples for every detected pattern, rendered Lucide icons, scrollspy sidebar, type scale with font labels). Replaces the basic *-preview.html with a richer review artifact. Use when the user says 'extract design system', 'generate a design system review', 'design system audit', '/extract-design-system', or asks to produce review-grade design documentation from a URL."
+description: "Extract a website's design language AND turn it into a polished, self-referential design-system review page."
 allowed-tools: Bash, Read, Write, Edit, Glob
 ---
 
