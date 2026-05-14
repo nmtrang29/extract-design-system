@@ -4,9 +4,16 @@ A **Claude Code skill** that turns any website URL into a polished, self-referen
   + a single-file HTML review styled with the extracted tokens
   + `DESIGN.md` cataloguing every detected token, heading, weight, breakpoint, and pattern)
 
-![Langfuse](docs/before-after/langfuse/hero-after.png)
-
-![Claude](docs/before-after/claude/hero.png)
+<table>
+<tr>
+<td width="50%" align="center"><sub><b>Langfuse</b> — warm beige · yellow accent · shadcn/ui</sub></td>
+<td width="50%" align="center"><sub><b>Claude</b> — warm bone · Source Serif · clay-orange · Tailwind</sub></td>
+</tr>
+<tr>
+<td><img src="docs/before-after/langfuse/hero-after.png" alt="Langfuse design system page — hero with yellow highlight pill, sidebar nav, stats grid, color palette" /></td>
+<td><img src="docs/before-after/claude/tokens-by-context.png" alt="Claude design system page — tokens by context section showing surface, text, border, status, code, and Tailwind primitive groups with live examples and reference tables" /></td>
+</tr>
+</table>
 
 ---
 
