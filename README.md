@@ -1,14 +1,8 @@
-# extract-design-system
-
 A **Claude Code skill** that turns any website URL into a polished, self-referential design-system reference. Built on top of [`designlang`](https://www.npmjs.com/package/designlang) and produces two outputs:
   + a single-file HTML review styled with the extracted tokens
   + `DESIGN.md` cataloguing every detected token, heading, weight, breakpoint, and pattern)
 
-## Try the demos
-
-→ **[nmtrang29.github.io/extract-design-system](https://nmtrang29.github.io/extract-design-system/)** — landing page with all three demos
-
-Or open each directly:
+### Demos
 
 <table>
 <tr>
@@ -22,8 +16,6 @@ Or open each directly:
 <td><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html"><img src="docs/before-after/claude/tokens-by-context.png" alt="Claude demo — tokens by context section" /></a></td>
 </tr>
 </table>
-
-> The demo links require GitHub Pages to be enabled (Settings → Pages → Source: `main` / root). Until then, clone the repo and open the HTML files locally.
 
 ---
 
