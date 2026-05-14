@@ -43,7 +43,7 @@ This will:
 
 1. Run `npx designlang <url> --screenshots` to produce 22 raw extraction artifacts
 2. Read every relevant artifact (`*-variables.css`, `*-design-tokens.json`, `*-intent.json`, `*-voice.json`, etc.)
-3. Populate `skills/extract-design-system/TEMPLATE.html` with the extracted values
+3. Claude reads `SKILL.md`, follows the process, references `BUILD.md` for detailed rules, and populates `TEMPLATE.html` with the extracted values.
 4. Generate a design system preview: `./design-extract-output/<site>/<site>-design-system.html` 
 5. Write a comprehensive `DESIGN.md` (400–800 lines) into the same folder with every detected token, heading, weight, breakpoint, and pattern. Any inferred mappings or font fallbacks are noted inline.
 
@@ -115,23 +115,7 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 
 Default theme matches the source site, not Claude's preference.
 
----
-
-## How it works
-
-The skill is composed of three files in `skills/extract-design-system/`:
-
-| File | Role |
-|---|---|
-| [`SKILL.md`](skills/extract-design-system/SKILL.md) | Entry point. |
-| [`BUILD.md`](skills/extract-design-system/BUILD.md) | Detailed page-structure spec. Section-by-section content, token mapping table, snapping rules. |
-| [`TEMPLATE.html`](skills/extract-design-system/TEMPLATE.html) | Pre-built HTML scaffold|
-
-Claude reads `SKILL.md`, follows the process, references `BUILD.md` for detailed rules, and populates `TEMPLATE.html` with the extracted values.
-
----
-
-## Locked-in choices 
+### Baked-in decisions 
 
 These are decisions baked into the skill. Make changes as needed.
 
@@ -146,8 +130,6 @@ These are decisions baked into the skill. Make changes as needed.
 
 See [`SKILL.md`](skills/extract-design-system/SKILL.md) for the full list.
 
----
-
-## Known limitations
+### Known limitations
 
 - **Custom display fonts** (e.g., f37 Analog, GT America) aren't auto-loaded. Headings fall back to the primary body face. 
