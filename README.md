@@ -1,6 +1,6 @@
 # extract-design-system
 
-Extract the design system from any website, turn raw materaials into a **polished, self-referential design system page**.
+Extract design system from any website, turn raw materials into a **polished, self-referential design system page**.
 
 ![Hero screenshot](docs/before-after/langfuse/hero-after.png)
 
