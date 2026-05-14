@@ -13,9 +13,9 @@ Map directly from `*-variables.css`. The placeholders in `TEMPLATE.html` are:
 | `{{BG}}` | `--surface-1` | lightest neutral |
 | `{{PANEL}}` | `--surface-bg` | `--background` (shadcn) |
 | `{{PANEL_2}}` | `--surface-2` | mid neutral |
-| `{{LINE}}` | `--line-structure` | `--border` (shadcn) |
+| `{{LINE}}` | `--line-structure` | `--border` (shadcn). **If no semantic line token exists, fall through to DOM-observed `<hr>` / divider border-colors before defaulting to ink.** See §4 DOM-frequency tiebreaker. |
 | `{{LINE_2}}` | `--line-divider-dash` | `--line-structure` |
-| `{{INK}}` | `--text-primary` | `--foreground` (shadcn) |
+| `{{INK}}` | `--text-primary` | `--foreground` (shadcn). **Override with the most-used DOM `color:` if it disagrees with the named token.** See §4 DOM-frequency tiebreaker. |
 | `{{INK_2}}` | `--text-secondary` | mid-dark neutral |
 | `{{INK_3}}` | `--text-tertiary` | mid neutral |
 | `{{INK_4}}` | `--text-disabled` | light neutral |
@@ -149,6 +149,25 @@ After stripping the system prefix, the role-matchers below apply to the remainde
 | **Library primitives** | `primary*`, `secondary*`, `accent*`, `muted*`, `destructive*`, `card*`, `popover*`, `input*`, `ring*` (shadcn idiom). Also surface `interactive*` (Carbon), `cta-*` (general). Detect by checking `library.json` for the system or by presence of these names. | Paired fg/bg cards showing each combination. Label captions with the raw value (HSL, hex, OKLCH — whatever the source uses). |
 
 **Value-based fallback:** If a token's name doesn't match any role pattern but its *value* clearly fits a role (e.g., a near-white hex `#fafafa` used 100+ times as a background in the DOM), classify by value. This handles systems where token names don't match any naming convention we know.
+
+**DOM-frequency tiebreaker (named token disagrees with what's painted):** When a named token value **conflicts with the most-used DOM color for that role**, prefer the DOM-most-used.
+
+This handles a common failure mode where designlang's extraction names a token from somewhere in the CSS cascade that **doesn't reflect what the user actually sees**. Concrete example: on `utrecht.jp`, designlang reports `--color-text: #000000` because some upstream rule defines it that way — but the *computed* body color is `#db0000` (red), used on **411 elements** (vs. only 149 for black). The skill must prefer red.
+
+The rule, applied per role:
+
+- **For `--ink` / `{{INK}}`:** Collect computed `color:` from a representative sample of text-bearing elements (`<p>`, `<a>`, `<h1>`–`<h6>`, `<li>`, `<span>` with text content). The hex with the highest count is `--ink` — even if it disagrees with the named `--text-primary` / `--color-text` / `--fgColor-default` token.
+
+- **For `--line` / `{{LINE}}`:** Collect computed `border-top-color` / `border-color` from `<hr>`, `[role="separator"]`, and elements where `border-width > 0`. The hex with the highest count (excluding `rgba(0,0,0,0)` / `transparent`) is `--line`. **Crucially: do NOT default `--line` to `--ink` when no `--line-*` token is detected** — fall through to DOM-observed borders first, only inherit ink as a last resort.
+
+- **For `--bg` / `{{BG}}`:** Body / `<html>` computed `background-color`. Usually unambiguous, but if a site uses a hero-section bg override, prefer body bg.
+
+When the named token and DOM-most-used disagree, **annotate the decision inline in DESIGN.md** so reviewers can see the trade-off:
+
+```
+- `--ink` → `#db0000` (DOM-frequency: 411 elements; named --color-text was #000000 with 149 elements)
+- `--line` → `#808080` (DOM-frequency: 10 <hr> borders; no semantic --line-* token detected)
+```
 
 **Reference table column headers:** keep the original variable name with its full system prefix (e.g., `--cds-ui-background`, not stripped to `ui-background`). The prefix-strip is only for *matching*, not for display.
 
