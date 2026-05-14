@@ -120,8 +120,9 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 </table>
 
 
-### Other baked-in decisions
+### Summary of baked-in decisions
 
+- **Copy**: Analysed and taken from the source site.
 - **Sidebar:** fixed left, 248px, scrollspy active highlight, hamburger on mobile
 - **Default theme:** matches the source site's detected default
 - **Pattern depth:** render every detected component pattern with live examples (not a fixed list)
@@ -132,7 +133,7 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 - **Typography:** snap to detected scale
 - **Theme**: Default theme matches the source site.
 
-See [`SKILL.md`](skills/extract-design-system/SKILL.md) for the full list.
+See [`SKILL.md`](skills/extract-design-system/SKILL.md) & [`BUILD.md`](skills/extract-design-system/BUILD.md)  for the full list.
 
 
 ### Known limitations
