@@ -58,7 +58,7 @@ These are the choices that make the output a coherent design-system page rather 
 - **Type scale:** show font family per row, inferred from family usage counts. Mark the mapping as inferred.
 - **Radii:** snap every chrome radius to the nearest value in the **detected** scale — don't hardcode 2/6. Replace 999px pills with the largest detected radius *only if* `visual-dna.json` reports `hasPill: false`.
 - **Typography snap:** every font size must be in the detected scale. No half-pixel sizes. Map review-chrome by role (hero = largest, section h2 = 3rd-largest, eyebrow = smallest) rather than by absolute number.
-- **Accent treatment:** decide by **luminance**. Near-white accents (luminance ≥ 0.75) → background highlight pill. Saturated accents → use as text color directly.
+- **Accent treatment:** decide by **WCAG contrast ratio** against both the bg and the ink, not by luminance bucket. Whichever pairing (`accent on bg` or `ink on accent`) passes AA wins; if both pass, prefer text color (smaller footprint); if neither passes, pick the higher-contrast option and flag it.
 
 ## Trigger phrases
 

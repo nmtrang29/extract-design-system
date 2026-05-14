@@ -90,16 +90,7 @@ RESOURCES
 ## 3. Hero
 
 - **H1:** `font-size: clamp(38px, 6vw, <largest-detected-size>); font-weight: <detected H1 weight>;`
-- Optionally wrap a 1–2 word emphasis (the site's product noun, derived from the most-repeated noun across detected headings) in `<em>`. **Choose the emphasis treatment based on the accent's luminance:**
-  - **Low-contrast accent** (near-white: yellow, lime, pale cyan — luminance > 0.75): style as a background pill so it reads against the page bg.
-    ```css
-    em { background: var(--accent); padding: 0 6px; border-radius: var(--radius-control); color: var(--ink); }
-    ```
-  - **Saturated / dark accent** (blue, red, purple, deep teal — luminance < 0.75): use directly as text color.
-    ```css
-    em { color: var(--accent); font-style: normal; }
-    ```
-  If unsure, default to the safer pill treatment (works for both).
+- Optionally wrap a 1–2 word emphasis (the site's product noun, derived from the most-repeated noun across detected headings) in `<em>`. **Apply the accent treatment rule** (see the "Accent treatment" section under Snapping rules below) — it picks between `color: var(--accent)` and `background: var(--accent)` based on WCAG contrast against the surrounding `--bg` and `--ink`. Use the chosen treatment for the `<em>` and any other accent-emphasized text in the page (voice quote highlights, icon count badges, file-extension chips).
 - Source line in the detected mono family, body-small: `<url> · <element-count> elements · <date>`
 - Badge row: one outlined pill per detection that's present in the extraction. Skip any whose source data is missing (e.g., no `imagery` detection → no imagery pill).
 - Stats grid: one cell per non-empty category. Auto-populate from `{Colors, Font families, Spacing, Shadows, Radii, Components, Icons, WCAG score}` — drop any with count 0. WCAG cell uses `--good` if ≥90%, `--warn` 70–90%, `--bad` <70%.
@@ -376,25 +367,56 @@ Small `<div>` with designlang version + extraction date in Geist Mono, ink-muted
 
 ### Accent treatment
 
-**Decide by accent luminance:**
+The accent (`--accent`) is the brand's signature highlight color. Two viable treatments exist:
 
-```
-luminance(accent) = 0.2126·R + 0.7152·G + 0.0722·B   (normalized 0–1)
-```
+- **Text color**: `color: var(--accent)`
+- **Background pill**: `background: var(--accent); color: var(--ink); padding: 0 6px; border-radius: var(--radius-control)`
 
-- **Low-contrast accent** (luminance ≥ 0.75 — yellow, lime, pale cyan, etc.): use as a **background highlight pill**.
-  ```css
-  .emphasis { background: var(--accent); color: var(--ink); padding: 0 6px; border-radius: var(--radius-control); }
-  ```
-  Apply to: hero H1 `<em>`, voice quote highlights, icon count badges, file extension chips.
+**Decide by WCAG contrast ratio, not by luminance bucket.** Luminance alone misclassifies saturated mid-tones like salmon (`#ff8389`, lum ~0.66) and peach — they look "below the threshold" but fail AA as text on a light bg.
 
-- **High-contrast accent** (luminance < 0.75 — saturated blue/red/purple/teal, dark accents): use **directly as text color**.
-  ```css
-  .emphasis { color: var(--accent); }
-  ```
-  Apply to the same elements, but as text not background.
+#### The algorithm
 
-If unsure (e.g., medium luminance ~0.5), default to background pill — it's safer because it always has a contrasting `--ink` text on top.
+1. Compute the WCAG contrast ratio for both pairings:
+   ```
+   C_text = contrastRatio(--accent, --bg)    // accent as text on the page bg
+   C_pill = contrastRatio(--ink, --accent)   // ink text inside a pill of accent color
+   ```
+   Use the standard WCAG formula:
+   ```
+   contrastRatio(fg, bg) = (L1 + 0.05) / (L2 + 0.05)
+   ```
+   where L is **sRGB-relative luminance** (gamma-corrected per WCAG):
+   ```
+   srgb(c) = c <= 0.03928 ? c/12.92 : ((c + 0.055)/1.055)^2.4   for each R, G, B in [0,1]
+   L = 0.2126·srgb(R) + 0.7152·srgb(G) + 0.0722·srgb(B)
+   ```
+
+2. **Pick the treatment:**
+   - If both ≥ **4.5** (WCAG AA for normal text): prefer **text color** (smaller visual footprint, less attention-grabbing per use).
+   - If only one ≥ 4.5: pick that treatment.
+   - If both < 4.5 but at least one ≥ **3.0**: pick the higher-contrast option, restrict to large text only, and flag in DESIGN.md ("⚠ accent fails AA for normal text").
+   - If both < 3.0: pick the higher-contrast option, flag as inaccessible in DESIGN.md.
+
+3. **Recompute independently for the dark theme** — `--bg` and `--ink` flip, so the chosen treatment may differ.
+
+#### Why this generalizes
+
+| Site | Accent | Bg | C_text | C_pill | Chosen | Old rule said |
+|---|---|---|---|---|---|---|
+| Langfuse | `#fbff7a` | `#edede8` | **1.4 ✗** | **16.7 ✓** | **Pill** | Pill (lum 0.96) ✓ |
+| Ableton | `#ff8389` | `#f3f3f3` | **2.7 ✗** | **7.8 ✓** | **Pill** | Text color (lum 0.66) ✗ |
+| Claude | `#ce4a2c` | `#f8f6f0` | **4.7 ✓** | **5.6 ✓** | **Text** (smaller wins) | Text (lum 0.31) ✓ |
+| Utrecht | `#db0000` | `#ffffff` | **5.1 ✓** | **4.1 ✗** | **Text** | Text (lum 0.19) ✓ |
+
+The old luminance bucket misclassified Ableton's salmon — saturated mid-tones are the failure mode. The contrast rule handles them by measuring what actually matters.
+
+#### Where to apply the chosen treatment
+
+- Hero H1 `<em>` (the noun emphasis)
+- Voice section quote highlights
+- Icon usage-count badges (when accent-pill works for them, otherwise use ink/inverse)
+- File-extension chips
+- Status dots inside badges (use whichever pairing has the better contrast)
 
 ### Pattern background
 
