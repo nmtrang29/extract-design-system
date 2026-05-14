@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>extract-design-system · Live demos</title>
+<meta name="description" content="Three live demos of a Claude Code skill that turns any website URL into a polished, self-referential design-system reference." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:     #f5f5f1;
+    --panel:  #ffffff;
+    --line:   #e0e0d8;
+    --line-2: #ececea;
+    --ink:    #1a1a1c;
+    --ink-2:  #44444a;
+    --ink-3:  #7a7a7e;
+    --ink-4:  #b3b3b8;
+    --accent: #fbff7a;
+    --link:   #4f39f6;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'Geist Mono', ui-monospace, Menlo, monospace; }
+
+  .shell { max-width: 980px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  header { margin-bottom: 56px; }
+  header .eyebrow {
+    color: var(--ink-3); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600;
+    margin-bottom: 12px;
+  }
+  header h1 {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 600; letter-spacing: -0.025em; line-height: 1.05;
+    margin-bottom: 18px;
+  }
+  header h1 em { font-style: normal; background: var(--accent); padding: 0 8px; border-radius: 3px; }
+  header .lede { color: var(--ink-2); font-size: 18px; max-width: 640px; }
+  header .meta {
+    margin-top: 22px;
+    display: flex; flex-wrap: wrap; gap: 8px;
+    font-size: 13px;
+  }
+  header .meta a {
+    color: var(--ink-2);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 6px 12px;
+    border-radius: 2px;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: 120ms;
+  }
+  header .meta a:hover { border-color: var(--ink-3); color: var(--ink); }
+
+  section h2 {
+    font-size: 14px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--ink-3); margin-bottom: 16px;
+  }
+  section + section { margin-top: 56px; }
+
+  .demos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .demo {
+    display: block;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px;
+    color: inherit;
+    text-decoration: none;
+    transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  .demo:hover {
+    border-color: var(--ink-3);
+    transform: translateY(-2px);
+    box-shadow: rgba(0,0,0,0.04) 0px 8px 16px -2px, rgba(0,0,0,0.02) 0px 4px 8px -2px;
+  }
+  .demo .swatch {
+    height: 6px;
+    border-radius: 2px;
+    margin-bottom: 18px;
+    display: flex;
+    overflow: hidden;
+  }
+  .demo .swatch span { flex: 1; }
+  .demo h3 {
+    font-size: 22px; font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .demo .brand-line { color: var(--ink-3); font-size: 13px; margin-bottom: 14px; }
+  .demo .stats { display: flex; flex-wrap: wrap; gap: 6px; }
+  .demo .stat {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-2);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 2px 7px;
+    border-radius: 2px;
+  }
+  .demo .links {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line-2);
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+  }
+  .demo .links span { color: var(--ink-3); }
+  .demo .links .arrow { color: var(--ink-3); font-family: 'Geist Mono', monospace; }
+  .demo:hover .links .arrow { color: var(--link); }
+
+  .companion-link {
+    color: var(--link);
+    text-decoration: none;
+    font-size: 12px;
+    font-family: 'Geist Mono', monospace;
+  }
+  .companion-link:hover { text-decoration: underline; }
+
+  .principle {
+    background: var(--panel);
+    border-left: 3px solid var(--ink);
+    padding: 20px 24px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin-bottom: 56px;
+    color: var(--ink-2);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .principle b { color: var(--ink); }
+
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line-2);
+    color: var(--ink-3);
+    font-size: 13px;
+    display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;
+  }
+  footer a { color: var(--ink-2); text-decoration: none; border-bottom: 1px solid var(--line); }
+  footer a:hover { color: var(--ink); border-bottom-color: var(--ink-3); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="eyebrow">Claude Code skill</div>
+    <h1>Extract a website's <em>design system</em>.</h1>
+    <p class="lede">A Claude Code skill that turns any website URL into a polished, self-referential design-system reference page — plus a 400–800 line markdown spec cataloguing every detected token.</p>
+    <div class="meta">
+      <a href="https://github.com/nmtrang29/extract-design-system">↗ GitHub repo</a>
+      <a href="https://github.com/nmtrang29/extract-design-system/blob/main/skills/extract-design-system/SKILL.md">SKILL.md</a>
+      <a href="https://www.npmjs.com/package/designlang">designlang npm</a>
+    </div>
+  </header>
+
+  <div class="principle">
+    <b>Principle:</b> a design-system page should be evidence of the system it documents. If the page uses 12px radii while documenting a 6px-only system, it contradicts itself. Snapping the chrome to the extracted tokens makes the page self-validating — every element you see is also a token in the reference table below it.
+  </div>
+
+  <section>
+    <h2>Live demos</h2>
+    <div class="demos">
+
+      <a class="demo" href="examples/langfuse/langfuse-design-system.html">
+        <div class="swatch">
+          <span style="background:#edede8"></span>
+          <span style="background:#f6f6f3"></span>
+          <span style="background:#fbff7a"></span>
+          <span style="background:#222220"></span>
+          <span style="background:#4f39f6"></span>
+        </div>
+        <h3>Langfuse</h3>
+        <div class="brand-line">Warm beige · yellow accent · shadcn/ui</div>
+        <div class="stats">
+          <span class="stat">16 colors</span>
+          <span class="stat">11 components</span>
+          <span class="stat">2/6 radii</span>
+          <span class="stat">100% WCAG</span>
+        </div>
+        <div class="links">
+          <span>Open demo</span>
+          <span class="arrow">→</span>
+        </div>
+      </a>
+
+      <a class="demo" href="examples/ableton/ableton-design-system.html">
+        <div class="swatch">
+          <span style="background:#f3f3f3"></span>
+          <span style="background:#ffffff"></span>
+          <span style="background:#ff8389"></span>
+          <span style="background:#0000ff"></span>
+          <span style="background:#000000"></span>
+        </div>
+        <h3>Ableton</h3>
+        <div class="brand-line">Brutalist · 0 radii · 0 shadows · custom CSS</div>
+        <div class="stats">
+          <span class="stat">7 colors</span>
+          <span class="stat">7 components</span>
+          <span class="stat">0 radii</span>
+          <span class="stat">100% WCAG</span>
+        </div>
+        <div class="links">
+          <span>Open demo</span>
+          <span class="arrow">→</span>
+        </div>
+      </a>
+
+      <a class="demo" href="examples/claude/claude-design-system.html">
+        <div class="swatch">
+          <span style="background:#f8f6f0"></span>
+          <span style="background:#ffffff"></span>
+          <span style="background:#ce4a2c"></span>
+          <span style="background:#191919"></span>
+          <span style="background:#445dff"></span>
+        </div>
+        <h3>Claude</h3>
+        <div class="brand-line">Warm bone · Source Serif · clay-orange · Tailwind</div>
+        <div class="stats">
+          <span class="stat">12 colors</span>
+          <span class="stat">7 components</span>
+          <span class="stat">4 radii</span>
+          <span class="stat">100% WCAG</span>
+        </div>
+        <div class="links">
+          <span>Open demo</span>
+          <span class="arrow">→</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Comprehensive references</h2>
+    <p style="color:var(--ink-2);font-size:14px;margin-bottom:16px;max-width:640px">Each demo ships with a <span class="mono">DESIGN.md</span> file — a 400–800 line markdown spec capturing every detected token, heading, weight, breakpoint, and pattern. Useful as AI context or handoff documentation.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:14px">
+      <a class="companion-link" href="https://github.com/nmtrang29/extract-design-system/blob/main/examples/langfuse/DESIGN.md">langfuse/DESIGN.md →</a>
+      <a class="companion-link" href="https://github.com/nmtrang29/extract-design-system/blob/main/examples/ableton/DESIGN.md">ableton/DESIGN.md →</a>
+      <a class="companion-link" href="https://github.com/nmtrang29/extract-design-system/blob/main/examples/claude/DESIGN.md">claude/DESIGN.md →</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>Built on top of <a href="https://www.npmjs.com/package/designlang">designlang</a> by <a href="https://github.com/Manavarya09/design-extract">Manavarya09</a></span>
+    <span><a href="https://github.com/nmtrang29/extract-design-system">Source on GitHub</a></span>
+  </footer>
+
+</div>
+</body>
+</html>

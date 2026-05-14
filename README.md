@@ -4,16 +4,26 @@ A **Claude Code skill** that turns any website URL into a polished, self-referen
   + a single-file HTML review styled with the extracted tokens
   + `DESIGN.md` cataloguing every detected token, heading, weight, breakpoint, and pattern)
 
+## Try the demos
+
+→ **[nmtrang29.github.io/extract-design-system](https://nmtrang29.github.io/extract-design-system/)** — landing page with all three demos
+
+Or open each directly:
+
 <table>
 <tr>
-<td width="50%" align="center">Example: Langfuse</td>
-<td width="50%" align="center">Example: Claude</td>
+<td width="33%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html"><b>▶ Langfuse</b></a></td>
+<td width="33%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/ableton/ableton-design-system.html"><b>▶ Ableton</b></a></td>
+<td width="33%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html"><b>▶ Claude</b></a></td>
 </tr>
 <tr>
-<td><img src="docs/before-after/langfuse/hero-after.png" alt="Example: Langfuse" /></td>
-<td><img src="docs/before-after/claude/tokens-by-context.png" alt="Example: Claude" /></td>
+<td><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html"><img src="docs/before-after/langfuse/hero-after.png" alt="Langfuse demo — warm beige, yellow accent, shadcn" /></a></td>
+<td><a href="https://nmtrang29.github.io/extract-design-system/examples/ableton/ableton-design-system.html"><img src="docs/before-after/ableton/hero.png" alt="Ableton demo — brutalist, 0 radii, custom CSS" /></a></td>
+<td><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html"><img src="docs/before-after/claude/tokens-by-context.png" alt="Claude demo — tokens by context section" /></a></td>
 </tr>
 </table>
+
+> The demo links require GitHub Pages to be enabled (Settings → Pages → Source: `main` / root). Until then, clone the repo and open the HTML files locally.
 
 ---
 
