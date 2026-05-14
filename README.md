@@ -2,7 +2,7 @@
 
 A **Claude Code skill** that turns any website URL into a polished, self-referential design-system reference. Built on top of [`designlang`](https://www.npmjs.com/package/designlang) and produces two outputs:
   + a single-file HTML review styled with the extracted tokens
-  + a 400–800 line `DESIGN.md` cataloguing every detected token, heading, weight, breakpoint, and pattern)
+  + `DESIGN.md` cataloguing every detected token, heading, weight, breakpoint, and pattern)
 
 ![Hero screenshot](docs/before-after/langfuse/hero-after.png)
 
