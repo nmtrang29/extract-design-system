@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Branch 3: Icon library adapters</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f5f5f1; color: #1a1a1c; padding: 32px; line-height: 1.5; }
+  .mono { font-family: 'Geist Mono', monospace; }
+  .head { max-width: 1380px; margin: 0 auto 24px; }
+  .head h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.02em; }
+  .head .meta { color: #6a6a70; font-size: 13px; font-family: 'Geist Mono', monospace; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1380px; margin: 0 auto; }
+  .col { background: #fff; border: 1px solid #e0e0d8; border-radius: 8px; padding: 24px; }
+  .col .badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; padding: 4px 10px; border-radius: 2px; display: inline-block; margin-bottom: 12px; }
+  .col.before .badge { background: #cc331414; color: #cc3314; }
+  .col.after .badge { background: #538a2e14; color: #538a2e; }
+  .col h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .col .sub { color: #6a6a70; font-size: 13px; margin-bottom: 18px; }
+  .icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+  .icon-card { position: relative; background: #fff; border: 1px solid #e0e0d8; border-radius: 6px; padding: 18px 10px 12px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .icon-card svg { width: 24px; height: 24px; }
+  .icon-card .iname { font-family: 'Geist Mono', monospace; font-size: 10px; color: #44444a; text-align: center; word-break: break-word; line-height: 1.3; }
+  .icon-card.dimmed { background: #faf9f5; opacity: 0.7; }
+  .icon-card.dimmed .iname { color: #a0a0a8; font-style: italic; }
+  .icon-card.dimmed svg { stroke: #a0a0a8; color: #a0a0a8; }
+  .icon-card .placeholder { width: 24px; height: 24px; border: 1px dashed #b8b8b8; border-radius: 2px; }
+  .icon-card .lib { background: #538a2e; color: white; font-family: 'Geist Mono', monospace; font-size: 8.5px; padding: 1px 4px; border-radius: 2px; position: absolute; top: 4px; right: 4px; font-weight: 600; }
+  .icon-card .material-symbols-outlined { font-size: 24px; }
+  .icon-card .bi, .icon-card .ti { font-size: 24px; }
+  .scenario { margin-bottom: 18px; }
+  .scenario h3 { font-size: 13px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .scenario h3 .lib-tag { background: #f5f5f1; border: 1px solid #e0e0d8; padding: 1px 6px; border-radius: 2px; font-family: 'Geist Mono', monospace; font-size: 10px; color: #6a6a70; font-weight: 400; }
+  .annotation { margin-top: 16px; padding: 14px 16px; background: #faf9f5; border-radius: 6px; font-size: 12.5px; color: #44444a; line-height: 1.6; }
+  .annotation b { color: #1a1a1c; }
+  .annotation code { background: #fff; border: 1px solid #ececea; padding: 1px 5px; border-radius: 2px; font-family: 'Geist Mono', monospace; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>Icon library adapters · multi-system comparison</h1>
+  <div class="meta">Branch 3 · icon-library-adapters · before: Lucide-only with placeholder fallback. after: 14 adapters covering Open UI systems.</div>
+</div>
+
+<div class="grid">
+
+  <!-- BEFORE -->
+  <div class="col before">
+    <span class="badge">Before · Lucide-only</span>
+    <h2>Most icons render as dim placeholders</h2>
+    <p class="sub">Current spec branches on Lucide / Heroicons / Phosphor / Tabler / Feather only. Anything else — Octicons, Material Symbols, Carbon, SLDS, Bootstrap, Ant — falls back to placeholder cards.</p>
+
+    <div class="scenario">
+      <h3>Primer / GitHub <span class="lib-tag">octicons</span></h3>
+      <div class="icon-grid">
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">git-pull-request</div></div>
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">issue-opened</div></div>
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">repo</div></div>
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">star</div></div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <h3>Material UI <span class="lib-tag">material-symbols</span></h3>
+      <div class="icon-grid">
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">home</div></div>
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">settings</div></div>
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">person</div></div>
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">favorite</div></div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <h3>Bootstrap <span class="lib-tag">bootstrap-icons</span></h3>
+      <div class="icon-grid">
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">bi-house</div></div>
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">bi-gear</div></div>
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">bi-person</div></div>
+        <div class="icon-card dimmed"><div class="placeholder"></div><div class="iname">bi-heart</div></div>
+      </div>
+    </div>
+
+    <div class="annotation">
+      <b>What's lost:</b> the design system page shows that icons exist (count, grid, stroke width) but renders them as blank placeholders. Designers can't evaluate visual consistency, stroke weight feel, or compare across libraries.
+    </div>
+  </div>
+
+  <!-- AFTER -->
+  <div class="col after">
+    <span class="badge">After · 14 adapters</span>
+    <h2>Native rendering across all major libraries</h2>
+    <p class="sub">New spec adds adapters for Octicons, Material Symbols, Bootstrap Icons, Tabler Icons, Ant Design Icons, Carbon Icons, Spectrum Workflow, Salesforce SLDS, Radix Icons. Each branch picks the right CDN and rendering pattern.</p>
+
+    <div class="scenario">
+      <h3>Primer / GitHub <span class="lib-tag">octicons</span></h3>
+      <div class="icon-grid">
+        <div class="icon-card"><span class="lib">OC</span><svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><div class="iname">git-pull-request</div></div>
+        <div class="icon-card"><span class="lib">OC</span><svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"/></svg><div class="iname">issue-opened</div></div>
+        <div class="icon-card"><span class="lib">OC</span><svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"/></svg><div class="iname">repo</div></div>
+        <div class="icon-card"><span class="lib">OC</span><svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg><div class="iname">star</div></div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <h3>Material UI <span class="lib-tag">material-symbols</span></h3>
+      <div class="icon-grid">
+        <div class="icon-card"><span class="lib">MS</span><span class="material-symbols-outlined">home</span><div class="iname">home</div></div>
+        <div class="icon-card"><span class="lib">MS</span><span class="material-symbols-outlined">settings</span><div class="iname">settings</div></div>
+        <div class="icon-card"><span class="lib">MS</span><span class="material-symbols-outlined">person</span><div class="iname">person</div></div>
+        <div class="icon-card"><span class="lib">MS</span><span class="material-symbols-outlined">favorite</span><div class="iname">favorite</div></div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <h3>Bootstrap <span class="lib-tag">bootstrap-icons</span></h3>
+      <div class="icon-grid">
+        <div class="icon-card"><span class="lib">BI</span><i class="bi bi-house"></i><div class="iname">bi-house</div></div>
+        <div class="icon-card"><span class="lib">BI</span><i class="bi bi-gear"></i><div class="iname">bi-gear</div></div>
+        <div class="icon-card"><span class="lib">BI</span><i class="bi bi-person"></i><div class="iname">bi-person</div></div>
+        <div class="icon-card"><span class="lib">BI</span><i class="bi bi-heart"></i><div class="iname">bi-heart</div></div>
+      </div>
+    </div>
+
+    <div class="annotation">
+      <b>Now visible:</b> stroke weights compare cleanly across libraries (Octicons are filled/heavy, Material Symbols are airy outline, Bootstrap Icons sit between). Designers can immediately judge which library's aesthetic fits their system. Each card carries a corner tag identifying the library.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

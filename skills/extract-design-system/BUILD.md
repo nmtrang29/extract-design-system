@@ -167,13 +167,47 @@ Mark the mapping as **inferred** in the section description.
 ## 7. Icons
 
 - **Stats grid (6 mini-cards):** total · stroke-only · fill-only · avg stroke width · dominant grid · rounded-caps fraction. Omit any cell whose source data is zero.
-- **Render the actual icons.** Branch on `icon-system.json.library`:
-  - `lucide` → load Lucide via CDN (`https://unpkg.com/lucide@latest/dist/umd/lucide.min.js`) and render each as `<i data-lucide="<name>"></i>` inside an `.icon-card`. Map known Lucide renames (e.g., `circle-question-mark` → `circle-help`) but display the original detected name.
-  - `heroicons` → load Heroicons via the same pattern (CDN or inline SVG).
-  - `phosphor` / `tabler` / `feather` / other detected → use the matching CDN or inline SVGs.
-  - `unknown` / `null` → render dimmed placeholder cards labeled with each icon's detected attributes (grid, stroke width, style). No CDN call.
-- **Size and weight:** match the detected dominant grid (24px is common but not assumed) and `avgStrokeWidth`. Color with `--ink`.
-- **Repeated icons** get a count badge using the accent color (background pill if accent is low-contrast, solid swatch otherwise).
+- **Render the actual icons.** Branch on `icon-system.json.library` — every major icon library used by an Open UI design system has an adapter:
+
+| Detected library | Rendering method | Source / CDN |
+|---|---|---|
+| `lucide` | `<i data-lucide="NAME">` then `lucide.createIcons()` | `https://unpkg.com/lucide@latest/dist/umd/lucide.min.js` |
+| `heroicons` | inline SVG | `https://cdn.jsdelivr.net/npm/heroicons@2/24/{outline\|solid}/NAME.svg` |
+| `phosphor` | `<i class="ph ph-NAME">` web component | `https://unpkg.com/@phosphor-icons/web` |
+| `tabler` | `<i class="ti ti-NAME">` icon font | `https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css` |
+| `feather` | inline SVG | `https://cdn.jsdelivr.net/npm/feather-icons@latest/dist/icons/NAME.svg` |
+| `octicons` | inline SVG (GitHub) | `https://cdn.jsdelivr.net/npm/@primer/octicons@latest/build/svg/NAME-24.svg` |
+| `carbon` | inline SVG (IBM) | `https://cdn.jsdelivr.net/npm/@carbon/icons@latest/svg/24/NAME.svg` |
+| `material-symbols` | `<span class="material-symbols-outlined">NAME</span>` ligature | Google Fonts: `https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined` |
+| `material-icons` | `<span class="material-icons">NAME</span>` ligature (legacy) | `https://fonts.googleapis.com/icon?family=Material+Icons` |
+| `ant-design-icons` | inline SVG | `https://cdn.jsdelivr.net/npm/@ant-design/icons-svg@latest/inline-svg/outlined/NAME.svg` |
+| `bootstrap-icons` | `<i class="bi bi-NAME">` icon font | `https://cdn.jsdelivr.net/npm/bootstrap-icons@latest/font/bootstrap-icons.css` |
+| `spectrum-workflow` | inline SVG (Adobe) | `https://cdn.jsdelivr.net/npm/@spectrum-css/icon@latest/dist/spectrum-icon-workflow-NAME.svg` (varies) |
+| `salesforce-slds` | inline SVG | `https://cdn.jsdelivr.net/npm/@salesforce-ux/design-system@latest/assets/icons/utility-sprite/svg/symbols.svg#NAME` |
+| `radix-icons` | inline SVG | `https://cdn.jsdelivr.net/npm/@radix-ui/react-icons@latest/dist/icons/NAME.svg` (varies) |
+| `atlaskit` | inline SVG (Atlassian) | requires `@atlaskit/icon` npm — no public CDN; render placeholder + show classname |
+| `unknown` / `null` | dimmed placeholder cards labeled with each icon's detected grid, stroke width, and style | No CDN call. Surface the icon's CSS class so a developer can find it in the source. |
+
+**Detection cues** (set or augment `icon-system.json.library` from these):
+
+- `<i data-lucide="*">` → lucide
+- `<svg class="octicon">` or `<svg class="octicon-*">` → octicons
+- `<span class="material-symbols-*">` or `<span class="material-icons">` → material
+- `<i class="ti ti-*">` → tabler
+- `<i class="ph ph-*">` → phosphor
+- `<i class="bi bi-*">` → bootstrap-icons
+- `<span class="anticon">` → ant-design-icons
+- `<svg class="cds--*">` → carbon
+- `<svg class="spectrum-Icon">` → spectrum-workflow
+- `<svg class="slds-icon*">` → salesforce-slds
+
+When designlang reports `library: unknown` but one of these class patterns appears in the DOM, **upgrade the detection** to the matching adapter before rendering.
+
+**Size and weight:** match the detected dominant grid (24px is common but not assumed) and `avgStrokeWidth`. Color with `--ink`.
+
+**Repeated icons** get a count badge using the accent color (background pill if accent is low-contrast, solid swatch otherwise).
+
+**Renamed icons:** maintain a small per-library rename map for breaking changes (Lucide v0.x → v1.x renames, Material Icons → Symbols transitions, etc.). Map to the current name when rendering, display the original detected name as the label.
 
 ---
 
