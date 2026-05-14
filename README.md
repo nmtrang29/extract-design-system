@@ -8,17 +8,91 @@ Extract the design system from any website, turn raw materaials into a **polishe
 
 ---
 
-### What's different from [design-extract](https://github.com/Manavarya09/design-extract)
+## What's different from [design-extract](https://github.com/Manavarya09/design-extract)
 
-| Topic | Change | Before | After |
-|---|---|---|---|
-| **Page styling** | Self-referential. The page chrome (background, borders, radii, type scale, mono font, accent treatment) is built from the *same tokens* it documents. | <img src="docs/before-after/page-styling-before.png" width="300" /> | <img src="docs/before-after/page-styling-after.png" width="300" /> |
-| **Colors** | Two-layer view: primitive palette **+** tokens shown in context (surface, text, border, status...each with live examples + reference table). | <img src="docs/before-after/colors-before.png" width="300" /> | <img src="docs/before-after/colors-after.png" width="300" /> |
-| **Nav** | Fixed left sidebar. Active section highlighted. Mobile collapses to hamburger drawer.| <img src="docs/before-after/nav-before.png" width="300" /> | <img src="docs/before-after/nav-after.png" width="300" /> |
-| **Icons** | Repeated icons get a usage-count badge. Moved into the Foundations group.| <img src="docs/before-after/icons-before.png" width="300" /> | <img src="docs/before-after/icons-after.png" width="300" /> |
-| **Components** | Render *every* detected pattern, not just the 3 canonical ones. | <img src="docs/before-after/components-before.png" width="300" /> | <img src="docs/before-after/components-after.png" width="300" /> |
-| **Typography** | Each type-scale row labels which font is used (display vs body vs UI vs code). | <img src="docs/before-after/typography-before.png" width="300" /> | <img src="docs/before-after/typography-after.png" width="300" /> |
-| **Theme** | Default theme matches the source site, not Claude's preference. | <img src="docs/before-after/theme-before.png" width="300" /> | <img src="docs/before-after/theme-after.png" width="300" /> |
+### Page styling
+
+Self-referential. The page chrome (background, borders, radii, type scale, mono font, accent treatment) is built from the *same tokens* it documents.
+
+<table>
+<tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
+<tr>
+<td><img src="docs/before-after/page-styling-before.png" alt="Before — generic devtools dashboard styling" /></td>
+<td><img src="docs/before-after/page-styling-after.png" alt="After — styled with the extracted tokens" /></td>
+</tr>
+</table>
+
+### Colors
+
+Two-layer view: primitive palette **+** tokens shown in context (surface, text, border, status…each with live examples + reference table).
+
+<table>
+<tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
+<tr>
+<td><img src="docs/before-after/colors-before.png" alt="Before — flat swatch grid sorted by usage count" /></td>
+<td><img src="docs/before-after/colors-after.png" alt="After — primitive palette plus Carbon-style tokens-by-context" /></td>
+</tr>
+</table>
+
+### Nav
+
+Fixed left sidebar. Active section highlighted. Mobile collapses to hamburger drawer.
+
+<table>
+<tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
+<tr>
+<td><img src="docs/before-after/nav-before.png" alt="Before — no nav, content flows top to bottom" /></td>
+<td><img src="docs/before-after/nav-after.png" alt="After — fixed left sidebar with grouped section links and scrollspy" /></td>
+</tr>
+</table>
+
+### Icons
+
+Repeated icons get a usage-count badge. Moved into the Foundations group.
+
+<table>
+<tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
+<tr>
+<td><img src="docs/before-after/icons-before.png" alt="Before — no rendered icons section" /></td>
+<td><img src="docs/before-after/icons-after.png" alt="After — real Lucide SVGs with usage badges" /></td>
+</tr>
+</table>
+
+### Components
+
+Render *every* detected pattern, not just the 3 canonical ones.
+
+<table>
+<tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
+<tr>
+<td><img src="docs/before-after/components-before.png" alt="Before — empty components section" /></td>
+<td><img src="docs/before-after/components-after.png" alt="After — all 11 detected patterns rendered live with extracted tokens" /></td>
+</tr>
+</table>
+
+### Typography
+
+Each type-scale row labels which font is used (display vs body vs UI vs code).
+
+<table>
+<tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
+<tr>
+<td><img src="docs/before-after/typography-before.png" alt="Before — type scale without font column" /></td>
+<td><img src="docs/before-after/typography-after.png" alt="After — type scale with font family per row" /></td>
+</tr>
+</table>
+
+### Theme
+
+Default theme matches the source site, not Claude's preference.
+
+<table>
+<tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
+<tr>
+<td><img src="docs/before-after/theme-before.png" alt="Before — dark theme default" /></td>
+<td><img src="docs/before-after/theme-after.png" alt="After — light default matching langfuse.com" /></td>
+</tr>
+</table>
 
 ---
 
