@@ -1,6 +1,6 @@
 ---
 name: extract-design-system
-description: "Extract a website's design language AND turn it into a polished, self-referential design-system review page."
+description: "Extract a website's design language. Turn it into a polished, self-referential design system page"
 allowed-tools: Bash, Read, Write, Edit, Glob
 ---
 
