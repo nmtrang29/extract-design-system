@@ -4,7 +4,9 @@ A **Claude Code skill** that turns any website URL into a polished, self-referen
   + a single-file HTML review styled with the extracted tokens
   + `DESIGN.md` cataloguing every detected token, heading, weight, breakpoint, and pattern)
 
-![Hero screenshot](docs/before-after/langfuse/hero-after.png)
+![Langfuse design system page — warm beige + yellow accent, shadcn/ui base](docs/before-after/langfuse/hero-after.png)
+
+![Ableton design system page — brutalist, 0 radii + 0 shadows, custom CSS](docs/before-after/ableton/hero.png)
 
 ---
 
