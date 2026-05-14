@@ -151,10 +151,3 @@ See [`SKILL.md`](skills/extract-design-system/SKILL.md) for the full list.
 ## Known limitations
 
 - **Custom display fonts** (e.g., f37 Analog, GT America) aren't auto-loaded. Headings fall back to the primary body face. 
-
----
-
-## Credits
-
-- Built on top of [`designlang`](https://www.npmjs.com/package/designlang) by [Manavarya09](https://github.com/Manavarya09/design-extract) the upstream extractor that produces the 22 raw artifacts this skill reads.
-- Colors-by-context layout inspired by [IBM Carbon Design System](https://carbondesignsystem.com/elements/color/overview/).
