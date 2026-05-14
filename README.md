@@ -1,6 +1,6 @@
 ## Extract Design System
 
-A Claude Code skill that extract DESIGN.md from any URL, with a truthful preview of the design system.
+A Claude Code skill that extracts DESIGN.md from any URL, with a truthful preview of the design system.
 
 ---
 
