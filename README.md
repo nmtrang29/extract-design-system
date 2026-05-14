@@ -57,7 +57,13 @@ This will:
 2. Read every relevant artifact (`*-variables.css`, `*-design-tokens.json`, `*-intent.json`, `*-voice.json`, `*-anatomy.tsx`, `*-icon-system.json`, `*-visual-dna.json`, etc.)
 3. Read `SKILL.md`, follows the process, references `BUILD.md` for detailed rules, populates `TEMPLATE.html` with the extracted values.
 4. Save the page at `./design-extract-output/<site>/<site>-design-system.html`
-5. Write a comprehensive `DESIGN.md` 
+5. Write a comprehensive `DESIGN.md`
+
+Want inspirations of websites that are less generic? Browse some here
+
+- https://brutalistwebsites.com/
+- https://www.siteinspire.com/
+
 
 ---
 
