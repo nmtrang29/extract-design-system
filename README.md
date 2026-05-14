@@ -10,12 +10,12 @@ A Claude Code wrapper skill that turns any website URL into a polished, self-ref
 
 <table>
 <tr>
-<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html"><b>▶ Langfuse</b></a></td>
-<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/ableton/ableton-design-system.html"><b>▶ Ableton</b></a></td>
-<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html"><b>▶ Claude</b></a></td>
-<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/utrecht/utrecht-design-system.html"><b>▶ Utrecht</b></a></td>
-<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/cursor/cursor-design-system.html"><b>▶ Cursor</b></a></td>
-<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/mistral/mistral-design-system.html"><b>▶ Mistral</b></a></td>
+<td width="16%" align="center"><sub><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html">▶ Langfuse</a></sub></td>
+<td width="16%" align="center"><sub><a href="https://nmtrang29.github.io/extract-design-system/examples/ableton/ableton-design-system.html">▶ Ableton</a></sub></td>
+<td width="16%" align="center"><sub><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html">▶ Claude</a></sub></td>
+<td width="16%" align="center"><sub><a href="https://nmtrang29.github.io/extract-design-system/examples/utrecht/utrecht-design-system.html">▶ Utrecht</a></sub></td>
+<td width="16%" align="center"><sub><a href="https://nmtrang29.github.io/extract-design-system/examples/cursor/cursor-design-system.html">▶ Cursor</a></sub></td>
+<td width="16%" align="center"><sub><a href="https://nmtrang29.github.io/extract-design-system/examples/mistral/mistral-design-system.html">▶ Mistral</a></sub></td>
 </tr>
 <tr>
 <td><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html"><img src="docs/before-after/langfuse/hero-after.png" alt="Langfuse demo — warm beige, yellow accent, shadcn" /></a></td>
