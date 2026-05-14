@@ -4,7 +4,7 @@ A Claude Code skill that extracts DESIGN.md from any URL, with a truthful previe
 
 ---
 
-### Problem
+#### Problem
 
 Main issues I encounter with a couple of DESIGN.md / design system extraction tools 
 
@@ -50,7 +50,7 @@ Main issues I encounter with a couple of DESIGN.md / design system extraction to
   
 ---
 
-### Installation
+## Installation
 Install designlang
 ```
 npm i designlang
@@ -66,7 +66,7 @@ Verify by typing `/extract-design-system`
 
 ---
 
-### Usage
+## Usage
 
 ```bash
 /extract-design-system https://yoursite.com/
@@ -88,7 +88,7 @@ Want inspirations of websites that are less generic? Browse some here
 
 ---
 
-### What's new?
+## What's new?
 
 #### Page styling
 
