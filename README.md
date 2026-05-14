@@ -2,7 +2,7 @@
 
 Extract the design system from any website, turn raw materaials into a **polished, self-referential design system page**.
 
-![Hero screenshot](docs/before-after/hero-after.png)
+![Hero screenshot](docs/before-after/langfuse/hero-after.png)
 
 ---
 
@@ -34,8 +34,8 @@ Self-referential. The page chrome (background, borders, radii, type scale, mono 
 <table>
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
 <tr>
-<td><img src="docs/before-after/page-styling-before.png" alt="Before — generic devtools dashboard styling" /></td>
-<td><img src="docs/before-after/page-styling-after.png" alt="After — styled with the extracted tokens" /></td>
+<td><img src="docs/before-after/langfuse/page-styling-before.png" alt="Before — generic devtools dashboard styling" /></td>
+<td><img src="docs/before-after/langfuse/page-styling-after.png" alt="After — styled with the extracted tokens" /></td>
 </tr>
 </table>
 
@@ -46,8 +46,8 @@ Two-layer view: primitive palette **+** tokens shown in context (surface, text, 
 <table>
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
 <tr>
-<td><img src="docs/before-after/colors-before.png" alt="Before — flat swatch grid sorted by usage count" /></td>
-<td><img src="docs/before-after/colors-after.png" alt="After — primitive palette plus Carbon-style tokens-by-context" /></td>
+<td><img src="docs/before-after/langfuse/colors-before.png" alt="Before — flat swatch grid sorted by usage count" /></td>
+<td><img src="docs/before-after/langfuse/colors-after.png" alt="After — primitive palette plus Carbon-style tokens-by-context" /></td>
 </tr>
 </table>
 
@@ -58,8 +58,8 @@ Fixed left sidebar. Active section highlighted. Mobile collapses to hamburger dr
 <table>
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
 <tr>
-<td><img src="docs/before-after/nav-before.png" alt="Before — no nav, content flows top to bottom" /></td>
-<td><img src="docs/before-after/nav-after.png" alt="After — fixed left sidebar with grouped section links and scrollspy" /></td>
+<td><img src="docs/before-after/langfuse/nav-before.png" alt="Before — no nav, content flows top to bottom" /></td>
+<td><img src="docs/before-after/langfuse/nav-after.png" alt="After — fixed left sidebar with grouped section links and scrollspy" /></td>
 </tr>
 </table>
 
@@ -70,8 +70,8 @@ Repeated icons get a usage-count badge. Moved into the Foundations group.
 <table>
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
 <tr>
-<td><img src="docs/before-after/icons-before.png" alt="Before — no rendered icons section" /></td>
-<td><img src="docs/before-after/icons-after.png" alt="After — real Lucide SVGs with usage badges" /></td>
+<td><img src="docs/before-after/langfuse/icons-before.png" alt="Before — no rendered icons section" /></td>
+<td><img src="docs/before-after/langfuse/icons-after.png" alt="After — real Lucide SVGs with usage badges" /></td>
 </tr>
 </table>
 
@@ -82,8 +82,8 @@ Render *every* detected pattern, not just the 3 canonical ones.
 <table>
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
 <tr>
-<td><img src="docs/before-after/components-before.png" alt="Before — empty components section" /></td>
-<td><img src="docs/before-after/components-after.png" alt="After — all 11 detected patterns rendered live with extracted tokens" /></td>
+<td><img src="docs/before-after/langfuse/components-before.png" alt="Before — empty components section" /></td>
+<td><img src="docs/before-after/langfuse/components-after.png" alt="After — all 11 detected patterns rendered live with extracted tokens" /></td>
 </tr>
 </table>
 
@@ -94,8 +94,8 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 <table>
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
 <tr>
-<td><img src="docs/before-after/typography-before.png" alt="Before — type scale without font column" /></td>
-<td><img src="docs/before-after/typography-after.png" alt="After — type scale with font family per row" /></td>
+<td><img src="docs/before-after/langfuse/typography-before.png" alt="Before — type scale without font column" /></td>
+<td><img src="docs/before-after/langfuse/typography-after.png" alt="After — type scale with font family per row" /></td>
 </tr>
 </table>
 
@@ -106,8 +106,8 @@ Default theme matches the source site, not Claude's preference.
 <table>
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
 <tr>
-<td><img src="docs/before-after/theme-before.png" alt="Before — dark theme default" /></td>
-<td><img src="docs/before-after/theme-after.png" alt="After — light default matching langfuse.com" /></td>
+<td><img src="docs/before-after/langfuse/theme-before.png" alt="Before — dark theme default" /></td>
+<td><img src="docs/before-after/langfuse/theme-after.png" alt="After — light default matching langfuse.com" /></td>
 </tr>
 </table>
 
