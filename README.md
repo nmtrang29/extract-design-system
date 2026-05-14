@@ -148,6 +148,8 @@ See [`SKILL.md`](skills/extract-design-system/SKILL.md) & [`BUILD.md`](skills/ex
 - Custom display fonts (e.g., f37 Analog, GT America, Söhne...) aren't auto-loaded. 
 - Design-system docs sites currently produce confused output.
 
+---
+
 #### Additional inspirations if you want websites that don’t feel like another SaaS landing page
 
 - https://brutalistwebsites.com/
