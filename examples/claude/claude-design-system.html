@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Design Review — Claude</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ---------- THEME · mapped to claude.com tokens ---------- */
+  :root {
+    /* surfaces — warm "bone" palette */
+    --bg:        #f8f8f6;   /* --bg-100 / --color-bg */
+    --panel:     #faf9f5;   /* --bg-1 / lighter card */
+    --panel-2:   #f0eee6;   /* --bg-2 / sunken */
+    /* lines */
+    --line:      #dedcd1;   /* warm tan border (431 uses) */
+    --line-2:    #f0eee6;
+    /* text */
+    --ink:       #141413;   /* --text-100 / near-black (658 uses) */
+    --ink-2:     #3d3d3a;   /* --text-300 */
+    --ink-3:     #73726c;   /* --text-400 */
+    --ink-4:     #9c9a92;   /* --text-500 */
+    /* brand */
+    --accent:    #d97757;   /* --brand-100 / clay — Anthropic signature */
+    --link:      #1b67b2;   /* --accent-200 / --color-primary */
+    /* status (computed from --success-200, --warning-200, --danger-200, etc.) */
+    --good:      #84a64c;
+    --warn:      #d4a02a;
+    --bad:       #cd3d3d;
+    --info:      #1b67b2;
+    --idea:      #5fa896;
+    /* radii — generous: 8/16/24/32 */
+    --radius-card:    16px;  /* --radius-lg */
+    --radius-control: 8px;   /* --radius-md */
+    --radius-xl:      24px;
+    --radius-full:    32px;
+  }
+  [data-theme="dark"] {
+    /* Derived from --_gray-* ramp since no native dark detected */
+    --bg:        #141413;
+    --panel:     #1f1e1d;
+    --panel-2:   #3d3d3a;
+    --line:      #3d3d3a;
+    --line-2:    #2a2a28;
+    --ink:       #faf9f5;
+    --ink-2:     #dedcd1;
+    --ink-3:     #c2c0b6;
+    --ink-4:     #73726c;
+    --link:      #5a9bd9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; }
+  .serif { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; }
+
+  /* ---------- LAYOUT ---------- */
+  :root { --sidebar-w: 248px; }
+  .shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 28px 96px;
+    padding-left: calc(var(--sidebar-w) + 40px);
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    display: flex; flex-direction: column;
+    z-index: 40;
+    transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sidebar-head { padding: 22px 22px 14px; border-bottom: 1px solid var(--line-2); }
+  .sidebar-head .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 500; letter-spacing: -0.01em; font-size: 15px;
+  }
+  .sidebar-head .brand .mark {
+    width: 22px; height: 22px; border-radius: 6px; background: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; font-weight: 600;
+  }
+  .sidebar-head .sub { color: var(--ink-3); font-size: 12px; margin-top: 6px; line-height: 1.45; font-weight: 400; }
+
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 14px 12px 20px; }
+  .sidebar-nav::-webkit-scrollbar { width: 6px; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
+
+  .nav-group { margin-top: 14px; }
+  .nav-group:first-child { margin-top: 0; }
+  .nav-group .label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-4); font-weight: 600; line-height: 1.5;
+    padding: 6px 12px;
+  }
+  .sidebar-nav a {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--ink-2); text-decoration: none;
+    font-size: 14px; font-weight: 400; line-height: 1.5;
+    padding: 7px 12px; border-radius: var(--radius-control);
+    transition: 120ms; position: relative;
+  }
+  .sidebar-nav a:hover, .sidebar-nav a.active { color: var(--ink); background: var(--panel-2); }
+  .sidebar-nav a.active::before {
+    content: ''; position: absolute; left: -12px; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 16px; border-radius: 0 2px 2px 0;
+    background: var(--accent);
+  }
+
+  .sidebar-foot {
+    border-top: 1px solid var(--line-2);
+    padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .sidebar-foot .ver { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-4); }
+  .toggle {
+    background: var(--bg); border: 1px solid var(--line); color: var(--ink);
+    padding: 6px 10px; border-radius: var(--radius-control); cursor: pointer; font-size: 12px;
+    font-family: inherit; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .toggle:hover { background: var(--panel-2); border-color: var(--ink-2); }
+
+  /* mobile menu */
+  .menu-btn {
+    display: none;
+    position: fixed; top: 16px; left: 16px; z-index: 50;
+    width: 40px; height: 40px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius-control); cursor: pointer; color: var(--ink);
+    align-items: center; justify-content: center; font-size: 18px;
+  }
+  .scrim { display: none; position: fixed; inset: 0; z-index: 35; background: rgba(0,0,0,0.45); }
+  body.nav-open .scrim { display: block; }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    margin-top: 28px;
+    padding: 48px 40px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    background: var(--panel);
+    position: relative; overflow: hidden;
+    box-shadow: rgba(0, 0, 0, 0.016) 0px 4px 24px 0px, rgba(0, 0, 0, 0.016) 0px 4px 32px 0px, rgba(0, 0, 0, 0.01) 0px 2px 64px 0px;
+  }
+  .hero .eyebrow { color: var(--ink-3); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+  .hero h1 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: clamp(38px, 6vw, 56px);
+    line-height: 1.2;
+    font-weight: 330;
+    letter-spacing: -0.02em;
+    margin: 14px 0 22px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    background: var(--accent);
+    color: #fff;
+    padding: 0 8px;
+    border-radius: var(--radius-control);
+  }
+  .hero .source { color: var(--ink-2); font-size: 14px; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 26px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--bg); border: 1px solid var(--line);
+    color: var(--ink-2); padding: 5px 12px; border-radius: var(--radius-control); font-size: 13px;
+  }
+  .badge b { color: var(--ink); font-weight: 500; }
+  .badge .pip { width: 7px; height: 7px; border-radius: 999px; background: var(--accent); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 22px; }
+  .stat { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-control); padding: 16px 18px; }
+  .stat .v { font-family: 'Source Serif 4', Georgia, serif; font-size: 30px; font-weight: 400; letter-spacing: -0.02em; line-height: 1; }
+  .stat .l { color: var(--ink-3); font-size: 11px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+  .stat .v.good { color: var(--good); }
+
+  /* ---------- SECTIONS ---------- */
+  section { margin-top: 72px; scroll-margin-top: 80px; }
+  .section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+  .section-head h2 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 30px; font-weight: 400; letter-spacing: -0.01em; line-height: 1.2;
+  }
+  .section-head .sub { color: var(--ink-3); font-size: 14px; max-width: 580px; line-height: 1.55; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-card); padding: 24px; }
+  .panel + .panel { margin-top: 14px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .grid-6 { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+
+  /* ---------- COLOR SWATCH ---------- */
+  .swatch {
+    border-radius: var(--radius-control); overflow: hidden; cursor: pointer;
+    background: var(--bg); border: 1px solid var(--line);
+    transition: 200ms cubic-bezier(0.4, 0, 0.2, 1); position: relative;
+  }
+  .swatch:hover { border-color: var(--ink-3); transform: translateY(-1px); }
+  .swatch .chip { height: 80px; }
+  .swatch .meta { padding: 10px 12px; }
+  .swatch .hex { font-size: 13px; font-weight: 500; }
+  .swatch .role { color: var(--ink-3); font-size: 11px; margin-top: 2px; }
+  .swatch .use { color: var(--ink-4); font-size: 11px; margin-top: 2px; }
+  .swatch.lg .chip { height: 124px; position: relative; }
+
+  .copy-tip {
+    position: absolute; top: 8px; right: 8px;
+    background: #1f1e1d; color: #faf9f5;
+    font-size: 11px; padding: 4px 10px; border-radius: 6px;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .copy-tip.show { opacity: 1; }
+
+  /* ---------- TOKENS BY CONTEXT ---------- */
+  .tg-intro {
+    background: linear-gradient(to bottom, var(--panel), var(--panel-2));
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 26px;
+    margin-top: 26px;
+  }
+  .tg-intro h3 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 20px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 8px;
+  }
+  .tg-intro p { color: var(--ink-3); font-size: 14px; max-width: 680px; line-height: 1.55; }
+  .tg-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .tg-jump a {
+    display: inline-flex; align-items: center; gap: 8px;
+    text-decoration: none; color: var(--ink-2);
+    background: var(--bg); border: 1px solid var(--line);
+    padding: 6px 12px; border-radius: var(--radius-control); font-size: 12px;
+    transition: 120ms;
+  }
+  .tg-jump a:hover { color: var(--ink); border-color: var(--ink-2); }
+  .tg-jump a .pip { width: 10px; height: 10px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.08); }
+
+  .token-group {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 26px;
+    margin-top: 14px;
+    scroll-margin-top: 80px;
+  }
+  .tg-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .tg-head h4 { font-family: 'Source Serif 4', serif; font-size: 22px; font-weight: 400; letter-spacing: -0.01em; }
+  .tg-count { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--ink-3); }
+  .tg-desc { color: var(--ink-3); font-size: 14px; margin-top: 8px; max-width: 680px; line-height: 1.55; }
+
+  .tg-live { margin-top: 20px; border-radius: var(--radius-control); overflow: hidden; border: 1px solid var(--line); }
+  .tg-live-label {
+    background: var(--panel-2);
+    padding: 9px 16px;
+    font-size: 11px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .tg-table { width: 100%; margin-top: 18px; border-collapse: collapse; font-size: 14px; }
+  .tg-table th {
+    text-align: left; color: var(--ink-4); font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 9px 12px; border-bottom: 1px solid var(--line);
+  }
+  .tg-table td {
+    padding: 12px; border-bottom: 1px solid var(--line-2);
+    vertical-align: middle; color: var(--ink-2);
+  }
+  .tg-table tr:last-child td { border-bottom: 0; }
+  .tg-table .tk-swatch {
+    width: 22px; height: 22px; border-radius: 6px;
+    border: 1px solid var(--line);
+    display: inline-block; vertical-align: middle; flex: none;
+  }
+  .tg-table .tk-name { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--ink); font-weight: 500; }
+  .tg-table .tk-hex { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--ink-3); }
+  .tg-table .tk-use { color: var(--ink-2); font-size: 14px; }
+  @media (max-width: 720px) { .tg-table th:nth-child(3), .tg-table td:nth-child(3) { display: none; } }
+
+  /* Surface stack demo */
+  .surface-stack { padding: 26px; background: #f8f8f6; color: #141413; font: 14px 'Inter', sans-serif; }
+  .surface-stack .lbl { font: 500 11px 'JetBrains Mono', ui-monospace, monospace; color: #73726c; margin-bottom: 7px; }
+  .surface-stack .box { border: 1px solid #dedcd1; border-radius: 16px; padding: 18px; }
+  .surface-stack .box.inner { background: #faf9f5; }
+  .surface-stack .box.sunken { background: #f0eee6; }
+  .surface-stack .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .surface-stack .pill {
+    padding: 7px 14px; border-radius: 8px;
+    border: 1px solid #dedcd1;
+    font: 500 12px 'Inter', sans-serif;
+  }
+
+  /* Text demo */
+  .text-demo { padding: 26px; background: #faf9f5; font: 15px 'Inter', sans-serif; color: #141413; line-height: 1.55; }
+  .text-demo h5 { font-family: 'Source Serif 4', serif; color: #141413; font-size: 22px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 10px; }
+  .text-demo p { margin-bottom: 7px; }
+  .text-demo a { color: #1b67b2; text-decoration: underline; text-underline-offset: 3px; }
+
+  /* Line demo */
+  .line-demo {
+    padding: 26px; background: #faf9f5;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 18px;
+  }
+  .line-demo .item { font: 13px 'Inter', sans-serif; color: #3d3d3a; }
+  .line-demo .item .lbl { font-family: 'JetBrains Mono', ui-monospace, monospace; color: #73726c; font-size: 11px; margin-top: 7px; }
+  .line-demo .sample-card { background: #fff; padding: 16px; border-radius: 16px; color: #141413; font-size: 14px; font-weight: 500; }
+
+  /* Callout demo */
+  .callout-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px; padding: 26px; background: #faf9f5;
+  }
+  .callout {
+    padding: 12px 16px; border-radius: 16px;
+    font: 14px 'Inter', sans-serif;
+    border-left: 3px solid currentColor;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .callout .title { font-weight: 600; }
+  .callout .body { color: #3d3d3a; font-size: 13px; line-height: 1.5; }
+  .callout.s-success { color: #6b8a35; background: #84a64c1f; }
+  .callout.s-error   { color: #b32d2d; background: #cd3d3d1f; }
+  .callout.s-warning { color: #b08410; background: #d4a02a1f; }
+  .callout.s-info    { color: #1b67b2; background: #1b67b21a; }
+  .callout.s-idea    { color: #4a8a78; background: #5fa8961f; }
+
+  /* Tailwind palette demo */
+  .tw-palette {
+    padding: 22px; background: #faf9f5;
+    display: grid; gap: 14px;
+  }
+  .tw-row { display: flex; align-items: center; gap: 12px; }
+  .tw-row .name { width: 80px; font: 500 12px 'JetBrains Mono', monospace; color: #3d3d3a; }
+  .tw-row .ramp { display: grid; grid-template-columns: repeat(12, 1fr); flex: 1; height: 32px; border-radius: 8px; overflow: hidden; border: 1px solid #dedcd1; }
+  .tw-row .ramp > div { height: 100%; }
+
+  /* ---------- TYPOGRAPHY ---------- */
+  .type-row {
+    display: grid; grid-template-columns: 110px 1fr auto;
+    align-items: baseline; gap: 22px;
+    padding: 16px 0; border-bottom: 1px solid var(--line-2);
+  }
+  .type-row:last-child { border-bottom: 0; }
+  .type-row .size-col { display: flex; flex-direction: column; gap: 4px; align-self: center; }
+  .type-row .size { font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--ink-3); font-size: 13px; line-height: 1; }
+  .type-row .font { color: var(--ink-4); font-size: 11px; line-height: 1.3; }
+  .type-row .font b { color: var(--ink-2); font-weight: 500; }
+  .type-row .sample { color: var(--ink); letter-spacing: -0.01em; }
+  .type-row .meta { color: var(--ink-3); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; }
+
+  .font-pill {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--bg); border: 1px solid var(--line);
+    padding: 9px 16px; border-radius: var(--radius-control); font-size: 14px;
+    margin: 0 6px 6px 0;
+  }
+  .font-pill .count { color: var(--ink-3); font-size: 11px; }
+  .font-pill .bar { width: 70px; height: 4px; background: var(--line-2); border-radius: 2px; overflow: hidden; }
+  .font-pill .bar > i { display: block; height: 100%; background: var(--accent); }
+
+  /* ---------- SPACING ---------- */
+  .space-row {
+    display: grid; grid-template-columns: 110px 1fr 80px;
+    align-items: center; gap: 16px; padding: 8px 0;
+  }
+  .space-row .lbl { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--ink-2); }
+  .space-row .bar {
+    background: linear-gradient(90deg, var(--accent), #f0c0a0);
+    height: 20px; border-radius: 8px;
+    border: 1px solid var(--line);
+  }
+  .space-row .ratio { color: var(--ink-4); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; text-align: right; }
+
+  /* ---------- SHADOWS ---------- */
+  .shadow-card {
+    background: #fff; color: var(--ink);
+    border-radius: var(--radius-card); padding: 28px; text-align: center;
+    min-height: 110px; display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px;
+    border: 1px solid var(--line);
+  }
+  .shadow-wrap { background: var(--bg); padding: 28px; border-radius: var(--radius-card); }
+
+  /* ---------- RADII ---------- */
+  .radius-item {
+    width: 84px; height: 84px;
+    background: linear-gradient(135deg, var(--accent), #f0c0a0);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 500; font-size: 12px;
+    border: 1px solid var(--line);
+  }
+
+  /* ---------- MOTION ---------- */
+  .motion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .motion-card { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-card); padding: 20px; }
+  .motion-card .name { font-family: 'Source Serif 4', serif; font-weight: 400; font-size: 18px; }
+  .motion-card .val { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--ink-3); margin-top: 4px; }
+  .motion-demo {
+    height: 40px; margin-top: 14px; position: relative;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+  }
+  .motion-demo .ball {
+    position: absolute; left: 4px; top: 50%; transform: translateY(-50%);
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--accent);
+  }
+  .motion-card:hover .motion-demo .ball { left: calc(100% - 32px); }
+  .motion-card .motion-demo .ball { transition-property: left; }
+
+  /* ---------- COMPONENTS PREVIEW ---------- */
+  .preview-frame {
+    background: #faf9f5;
+    color: #141413;
+    border-radius: var(--radius-card);
+    padding: 40px 36px;
+    border: 1px solid var(--line);
+  }
+  .preview-frame h3 {
+    font-family: 'Source Serif 4', serif;
+    color: #141413; font-size: 24px; font-weight: 400;
+    letter-spacing: -0.01em; margin-bottom: 18px;
+  }
+  .pv-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 32px; }
+
+  /* Buttons — claude.com-ish (clay primary, dark solid, outline) */
+  .cl-btn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 11px 22px;
+    font-size: 15px;
+    line-height: 1.4;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .cl-btn[data-variant="primary"]   { background: #141413; color: #faf9f5; }
+  .cl-btn[data-variant="primary"]:hover { background: #1f1e1d; }
+  .cl-btn[data-variant="accent"]    { background: #d97757; color: #fff; }
+  .cl-btn[data-variant="accent"]:hover { background: #c46647; }
+  .cl-btn[data-variant="outline"]   { background: transparent; color: #141413; border-color: #dedcd1; }
+  .cl-btn[data-variant="outline"]:hover { background: #f8f8f6; border-color: #141413; }
+  .cl-btn[data-variant="ghost"]     { background: transparent; color: #141413; }
+  .cl-btn[data-variant="ghost"]:hover { background: #f0eee6; }
+  .cl-btn[data-size="lg"] { padding: 14px 28px; font-size: 16px; border-radius: 16px; }
+  .cl-btn[data-size="md"] { padding: 11px 22px; font-size: 15px; }
+  .cl-btn[data-size="sm"] { padding: 7px 14px; font-size: 13px; }
+
+  .cl-card {
+    background: #fff;
+    border: 1px solid #dedcd1;
+    border-radius: 24px;
+    padding: 28px;
+    color: #141413;
+    box-shadow: rgba(0, 0, 0, 0.016) 0px 4px 24px 0px;
+  }
+  .cl-card h4 { font-family: 'Source Serif 4', serif; font-size: 20px; font-weight: 400; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .cl-card p { font-size: 14px; color: #3d3d3a; line-height: 1.55; }
+  .cl-link { color: #1b67b2; text-decoration: underline; text-underline-offset: 3px; font-weight: 500; font-size: 15px; }
+
+  /* component scaffolding */
+  .comp-block { scroll-margin-top: 24px; padding: 8px 0; }
+  .comp-block + .comp-block { border-top: 1px solid #dedcd1; padding-top: 28px; margin-top: 28px; }
+  .comp-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .comp-head h3 { font-family: 'Source Serif 4', serif; color: #141413; font-size: 20px; font-weight: 400; text-transform: none; letter-spacing: -0.01em; }
+  .comp-meta { font-family: 'JetBrains Mono', ui-monospace, monospace; color: #73726c; font-size: 12px; }
+
+  /* Inputs */
+  .cl-input {
+    background: #fff;
+    border: 1px solid #dedcd1;
+    border-radius: 16px;
+    padding: 13px 18px;
+    font: 15px 'Inter', sans-serif;
+    color: #141413;
+    width: 280px; max-width: 100%;
+    transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .cl-input::placeholder { color: #9c9a92; }
+  .cl-input:focus { outline: none; border-color: #141413; box-shadow: rgba(20, 20, 19, 0.08) 0px 0px 0px 4px; }
+  .cl-input-label { display: block; font-size: 13px; color: #3d3d3a; margin-bottom: 8px; font-weight: 500; }
+  .cl-form-row { display: flex; flex-direction: column; }
+
+  /* Accordion */
+  .cl-acc { border-bottom: 1px solid #dedcd1; padding: 0; }
+  .cl-acc summary {
+    list-style: none; cursor: pointer;
+    padding: 18px 0;
+    font: 500 16px 'Inter', sans-serif;
+    color: #141413;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cl-acc summary::-webkit-details-marker { display: none; }
+  .cl-acc summary::after { content: '+'; font-size: 22px; color: #73726c; font-weight: 300; transition: transform 200ms; }
+  .cl-acc[open] summary::after { content: '−'; }
+  .cl-acc p { padding-bottom: 18px; color: #3d3d3a; font-size: 14px; line-height: 1.6; }
+
+  /* Navigation */
+  .cl-nav {
+    background: rgba(248, 248, 246, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid #dedcd1;
+    border-radius: 24px;
+    padding: 14px 24px;
+    display: flex; align-items: center; gap: 28px;
+    font: 500 15px 'Inter', sans-serif;
+    color: #141413;
+    flex-wrap: wrap;
+  }
+  .cl-nav-brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-weight: 600; font-size: 17px;
+  }
+  .cl-nav-brand .mark {
+    width: 26px; height: 26px; border-radius: 8px; background: #d97757;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 13px; font-weight: 700;
+  }
+  .cl-nav a { color: #141413; text-decoration: none; }
+  .cl-nav a:hover { color: #d97757; }
+  .cl-nav .cl-nav-spacer { flex: 1; }
+
+  /* Footer */
+  .cl-footer {
+    background: #141413;
+    border: 1px solid #141413;
+    border-radius: 24px;
+    padding: 48px 36px 28px;
+    display: grid;
+    grid-template-columns: 1.5fr repeat(4, 1fr);
+    gap: 40px;
+    font: 400 14px 'Inter', sans-serif;
+    color: #c2c0b6;
+  }
+  .cl-footer .cl-foot-brand { display: flex; flex-direction: column; gap: 12px; }
+  .cl-footer .cl-foot-brand .name {
+    font-family: 'Source Serif 4', serif;
+    font-weight: 400; color: #faf9f5; font-size: 24px;
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: -0.01em;
+  }
+  .cl-footer .cl-foot-brand p { color: #9c9a92; font-size: 14px; line-height: 1.55; }
+  .cl-footer h5 {
+    font: 600 12px 'Inter', sans-serif;
+    color: #faf9f5;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 14px;
+  }
+  .cl-footer ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .cl-footer a { color: #c2c0b6; text-decoration: none; }
+  .cl-footer a:hover { color: #d97757; }
+  .cl-footer-bottom {
+    grid-column: 1 / -1;
+    border-top: 1px solid #3d3d3a;
+    padding-top: 18px; margin-top: 10px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    font-size: 12px; color: #73726c;
+  }
+  @media (max-width: 720px) { .cl-footer { grid-template-columns: 1fr 1fr; } }
+
+  /* ---------- VOICE ---------- */
+  .quote {
+    font-family: 'Source Serif 4', serif;
+    font-weight: 330;
+    font-size: 30px;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    white-space: pre-line;
+    color: var(--ink);
+  }
+  .quote-row { padding: 22px 0; border-bottom: 1px solid var(--line-2); }
+  .quote-row:last-child { border: 0; }
+  .quote .em { background: var(--accent); color: #fff; padding: 0 8px; border-radius: var(--radius-control); }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 7px; }
+  .verb-tag {
+    background: var(--bg); border: 1px solid var(--line);
+    padding: 6px 12px; border-radius: var(--radius-control); font-size: 13px;
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--ink-2);
+  }
+  .verb-tag .c { color: var(--ink-3); font-size: 11px; }
+
+  /* ---------- LAYOUT MAP ---------- */
+  .layout-map { display: flex; flex-direction: column; gap: 6px; }
+  .layout-bar {
+    display: grid; grid-template-columns: 140px 1fr 70px;
+    align-items: center; gap: 14px;
+    padding: 13px 16px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-control);
+    font-size: 14px;
+  }
+  .layout-bar .role { font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .layout-bar .role::before {
+    content: ''; width: 9px; height: 9px; border-radius: 3px;
+    background: var(--role-color, var(--accent));
+  }
+  .layout-bar .heading { color: var(--ink-2); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .layout-bar .conf { color: var(--ink-3); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; text-align: right; }
+
+  /* ---------- ICONS ---------- */
+  .icon-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+  .icon-stat { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-control); padding: 16px; }
+  .icon-stat .v { font-family: 'Source Serif 4', serif; font-size: 24px; font-weight: 400; letter-spacing: -0.02em; }
+  .icon-stat .l { color: var(--ink-3); font-size: 11px; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+
+  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .icon-card {
+    position: relative;
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: var(--radius-control);
+    padding: 20px 12px 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    transition: 120ms;
+  }
+  .icon-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .icon-card svg { width: 24px; height: 24px; }
+  .icon-card .iname {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px; color: var(--ink-2);
+    text-align: center; word-break: break-word; line-height: 1.3;
+  }
+  .icon-card.unknown svg { stroke: var(--ink-4); color: var(--ink-4); fill: var(--ink-4); opacity: 0.5; }
+  .icon-card.unknown .iname { color: var(--ink-4); font-style: italic; }
+
+  /* ---------- A11Y ---------- */
+  .a11y-hero { display: flex; align-items: center; gap: 26px; }
+  .a11y-score { font-family: 'Source Serif 4', serif; font-size: 72px; font-weight: 400; letter-spacing: -0.04em; color: var(--good); line-height: 1; }
+  .a11y-row {
+    display: grid; grid-template-columns: 170px 1fr 70px 60px;
+    align-items: center; gap: 14px;
+    padding: 12px 14px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-control);
+    margin-top: 8px; font-size: 14px;
+  }
+  .a11y-sample { padding: 7px 14px; border-radius: 8px; font-weight: 500; text-align: center; }
+  .a11y-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--ink-3); font-size: 11px; }
+  .a11y-tag { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 6px; text-align: center; letter-spacing: 0.04em; }
+  .a11y-tag.pass { background: rgba(132,166,76,0.18); color: var(--good); }
+
+  /* ---------- KV ---------- */
+  .kv { display: grid; grid-template-columns: 180px 1fr; row-gap: 9px; column-gap: 16px; font-size: 14px; }
+  .kv dt { color: var(--ink-3); }
+  .kv dd { color: var(--ink); }
+
+  /* ---------- FILES ---------- */
+  .file-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  .file {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-control);
+    font-size: 14px;
+  }
+  .file .ext {
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px;
+    background: var(--accent); color: #fff; padding: 3px 7px; border-radius: 6px;
+    font-weight: 700;
+  }
+  .file .name { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file a { color: var(--link); text-decoration: none; }
+  .file a:hover { text-decoration: underline; }
+  .file:hover { border-color: var(--ink-3); }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 960px) {
+    .shell { padding-left: 28px; }
+    .menu-btn { display: inline-flex; }
+    .sidebar { transform: translateX(-100%); box-shadow: 0 0 40px rgba(0,0,0,0.3); }
+    body.nav-open .sidebar { transform: translateX(0); }
+  }
+  @media (max-width: 720px) {
+    .shell { padding: 72px 16px 64px; }
+    .hero { padding: 30px 24px; }
+    .type-row { grid-template-columns: 70px 1fr; }
+    .type-row .meta { display: none; }
+    .a11y-row { grid-template-columns: 130px 1fr 60px; }
+    .a11y-row .a11y-mono { display: none; }
+  }
+</style>
+</head>
+<body data-theme="light">
+
+<button class="menu-btn" onclick="toggleNav()" aria-label="Toggle navigation">≡</button>
+<div class="scrim" onclick="toggleNav(false)"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="brand"><span class="mark">C</span> Claude Design System</div>
+    <div class="sub">Anthropic · claude.com marketing surface</div>
+  </div>
+
+  <nav class="sidebar-nav" id="sidebar-nav">
+    <div class="nav-group">
+      <div class="label">Overview</div>
+      <a href="#top">At a glance</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Foundations</div>
+      <a href="#colors">Colors</a>
+      <a href="#typography">Typography</a>
+      <a href="#spacing">Spacing</a>
+      <a href="#shadows">Shadows &amp; radii</a>
+      <a href="#motion">Motion</a>
+      <a href="#icons">Icons</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Components</div>
+      <a href="#comp-buttons">Buttons</a>
+      <a href="#comp-cards">Cards</a>
+      <a href="#comp-inputs">Inputs</a>
+      <a href="#comp-links">Links</a>
+      <a href="#comp-accordions">Accordions</a>
+      <a href="#comp-navigation">Navigation</a>
+      <a href="#comp-footer">Footer</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Voice &amp; structure</div>
+      <a href="#voice">Voice &amp; content</a>
+      <a href="#layout">Page anatomy</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Audit</div>
+      <a href="#a11y">Accessibility</a>
+      <a href="#flags">Audit flags</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Resources</div>
+      <a href="#files">Generated files</a>
+    </div>
+  </nav>
+
+  <div class="sidebar-foot">
+    <span class="ver">v12.10.0</span>
+    <button class="toggle" onclick="toggleTheme()">◐ Theme</button>
+  </div>
+</aside>
+
+<div class="shell" id="top">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Design language extracted</div>
+    <h1>Think <em>fast</em>,<br/>build faster.</h1>
+    <div class="source">https://claude.com/ · 1,085 elements · 2026-05-14</div>
+    <div class="badges">
+      <span class="badge"><span class="pip"></span> Intent: <b>auth</b> · 0.32 <span class="mono" style="color:var(--ink-4);font-size:11px">(alt: landing 0.45)</span></span>
+      <span class="badge"><span class="pip"></span> Library: <b>tailwindcss</b> · 0.81</span>
+      <span class="badge"><span class="pip"></span> Material: <b>flat</b></span>
+      <span class="badge"><span class="pip"></span> Voice: <b>friendly · you-only</b></span>
+      <span class="badge"><span class="pip"></span> Headings: <b>Sentence case · tight</b></span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v">12</div><div class="l">Colors</div></div>
+      <div class="stat"><div class="v">3</div><div class="l">Font families</div></div>
+      <div class="stat"><div class="v">8</div><div class="l">Spacing</div></div>
+      <div class="stat"><div class="v">3</div><div class="l">Shadows</div></div>
+      <div class="stat"><div class="v">4</div><div class="l">Radii</div></div>
+      <div class="stat"><div class="v">7</div><div class="l">Components</div></div>
+      <div class="stat"><div class="v">43</div><div class="l">Icons</div></div>
+      <div class="stat"><div class="v good">100%</div><div class="l">WCAG score</div></div>
+    </div>
+  </div>
+
+  <!-- COLORS -->
+  <section id="colors">
+    <div class="section-head">
+      <h2>Color palette</h2>
+      <div class="sub">A warm "bone" surface anchors the entire system, with near-black ink and a single clay accent. The neutral ramp dominates — chromatic tokens are reserved for the link blue, the alert red, and the brand orange.</div>
+    </div>
+
+    <div class="panel">
+      <h3 style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:16px">Brand</h3>
+      <div class="grid-3">
+        <div class="swatch lg"><div class="chip" style="background:#d97757"></div>
+          <div class="meta"><div class="hex mono">#d97757</div><div class="role">Accent · clay (brand-100)</div><div class="use">hsl(14.8 63% 60%)</div></div></div>
+        <div class="swatch lg"><div class="chip" style="background:#1b67b2"></div>
+          <div class="meta"><div class="hex mono">#1b67b2</div><div class="role">Primary · link blue (accent-200)</div><div class="use">hsl(213 68% 50%)</div></div></div>
+        <div class="swatch lg"><div class="chip" style="background:#8a2424"></div>
+          <div class="meta"><div class="hex mono">#8a2424</div><div class="role">Secondary · alert red</div><div class="use">hsl(0 59% 34%)</div></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:16px">Neutrals · the bone ramp</h3>
+      <div class="grid-6">
+        <div class="swatch"><div class="chip" style="background:#141413"></div><div class="meta"><div class="hex mono">#141413</div><div class="role">text-100 · ink</div><div class="use">658 uses</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#1f1e1d"></div><div class="meta"><div class="hex mono">#1f1e1d</div><div class="role">gray-750</div><div class="use">645 uses</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#3d3d3a"></div><div class="meta"><div class="hex mono">#3d3d3a</div><div class="role">text-300 · ink-2</div><div class="use">55 uses</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#73726c"></div><div class="meta"><div class="hex mono">#73726c</div><div class="role">text-400 · ink-3</div><div class="use">49 uses</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#9c9a92"></div><div class="meta"><div class="hex mono">#9c9a92</div><div class="role">text-500 · ink-4</div><div class="use">64 uses</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#c2c0b6"></div><div class="meta"><div class="hex mono">#c2c0b6</div><div class="role">gray-200 · faint</div><div class="use">18 uses</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#dedcd1"></div><div class="meta"><div class="hex mono">#dedcd1</div><div class="role">border · warm tan</div><div class="use">431 uses</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#f0eee6"></div><div class="meta"><div class="hex mono">#f0eee6</div><div class="role">surface-2 · sunken</div><div class="use">1 use</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#f5f4ed"></div><div class="meta"><div class="hex mono">#f5f4ed</div><div class="role">bg-2</div><div class="use">—</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#faf9f5"></div><div class="meta"><div class="hex mono">#faf9f5</div><div class="role">bg-1 · panel</div><div class="use">166 uses</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#f8f8f6"></div><div class="meta"><div class="hex mono">#f8f8f6</div><div class="role">bg-100 · page bg</div><div class="use">large area</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#ffffff;border-bottom:1px solid var(--line)"></div><div class="meta"><div class="hex mono">#ffffff</div><div class="role">surface · elevated</div><div class="use">cards/modal</div></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:16px">Material &amp; pattern profile</h3>
+      <div class="grid-2">
+        <div>
+          <div style="height:140px;border-radius:var(--radius-card);border:1px solid var(--line);background:#faf9f5;display:flex;align-items:center;justify-content:center;color:var(--ink-4);font-family:'JetBrains Mono',monospace;font-size:12px">
+            no detected pattern · solid surface
+          </div>
+          <div style="font-size:12px;color:var(--ink-3);margin-top:10px"><span class="mono">backgroundPatterns: ["plain"]</span> · 0 gradients · 0 patterns</div>
+        </div>
+        <div>
+          <dl class="kv">
+            <dt>Saturation</dt><dd>0.17 (very muted)</dd>
+            <dt>Shadow profile</dt><dd>soft · max blur 0px (very diffuse)</dd>
+            <dt>Avg radius</dt><dd>20px</dd>
+            <dt>Max radius</dt><dd>32px</dd>
+            <dt>Has pills</dt><dd>no</dd>
+            <dt>Backdrop blur</dt><dd>no (but used on top nav)</dd>
+            <dt>Gradients</dt><dd>none detected</dd>
+            <dt>Imagery</dt><dd>SVG-heavy · 2 svg-icons</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TOKENS BY CONTEXT ===== -->
+    <div class="tg-intro">
+      <h3>Tokens by context</h3>
+      <p>How colors are organized in <span class="mono">claude-com-variables.css</span>. Anthropic ships a deep HSL-based palette — 30+ swatches per hue (gray, red, orange, yellow, green, aqua, blue, violet, magenta) layered under a smaller semantic surface (bg / text / border / accent / brand).</p>
+      <div class="tg-jump">
+        <a href="#tg-surface"><span class="pip" style="background:#faf9f5"></span> Surface</a>
+        <a href="#tg-text"><span class="pip" style="background:#141413;border-color:transparent"></span> Text</a>
+        <a href="#tg-line"><span class="pip" style="background:#dedcd1"></span> Border &amp; line</a>
+        <a href="#tg-accent"><span class="pip" style="background:#d97757;border-color:transparent"></span> Accent &amp; brand</a>
+        <a href="#tg-status"><span class="pip" style="background:#84a64c;border-color:transparent"></span> Status</a>
+        <a href="#tg-palette"><span class="pip" style="background:linear-gradient(45deg,#d97757,#1b67b2);border-color:transparent"></span> Full hue palette</a>
+      </div>
+    </div>
+
+    <!-- SURFACE -->
+    <div class="token-group" id="tg-surface">
+      <div class="tg-head">
+        <h4>Surface</h4>
+        <span class="tg-count">5 tokens · bg-000 → bg-500</span>
+      </div>
+      <p class="tg-desc">Warm bone-white system. <span class="mono">--bg-100</span> (page) sits darker than <span class="mono">--bg-000</span> (white surfaces) — an inversion of the typical light pattern that gives the entire site its signature warmth.</p>
+
+      <div class="tg-live">
+        <div class="tg-live-label">Layering example</div>
+        <div class="surface-stack">
+          <div class="lbl">--bg-100 · page background</div>
+          <div class="box inner">
+            <div class="lbl">--bg-1 · card surface</div>
+            <div class="box sunken">
+              <div class="lbl" style="color:#9c9a92">--bg-2 · sunken / hover</div>
+              <div class="row">
+                <span class="pill" style="background:#fff;border-color:#dedcd1">--bg-000 (white)</span>
+                <span class="pill" style="background:#d97757;color:#fff;border-color:#d97757">--brand-100 (clay)</span>
+                <span class="pill" style="background:#141413;color:#faf9f5;border-color:#141413">--text-100 (ink)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table class="tg-table">
+        <thead><tr><th>Token</th><th>Hex</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tk-swatch" style="background:#ffffff;border:1px solid var(--line)"></span> <span class="tk-name">--bg-000</span></td><td class="tk-hex">#ffffff</td><td class="tk-use">Pure white (cards, modals, elevated surfaces)</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#f8f8f6"></span> <span class="tk-name">--bg-100 / --color-bg</span></td><td class="tk-hex">#f8f8f6</td><td class="tk-use">Page background — the signature bone tone</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#faf9f5"></span> <span class="tk-name">--bg-1 / --color-bg-1</span></td><td class="tk-hex">#faf9f5</td><td class="tk-use">Soft card surface, slightly lighter than page</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#f5f4ed"></span> <span class="tk-name">--bg-200 / --bg-2</span></td><td class="tk-hex">#f5f4ed</td><td class="tk-use">Alt-row, subtle sectioning</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#f0eee6"></span> <span class="tk-name">--bg-300 / --gray-50</span></td><td class="tk-hex">#f0eee6</td><td class="tk-use">Sunken regions, hover backgrounds</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TEXT -->
+    <div class="token-group" id="tg-text">
+      <div class="tg-head">
+        <h4>Text</h4>
+        <span class="tg-count">5 tokens · text-100 → text-500</span>
+      </div>
+      <p class="tg-desc">A near-black ink anchor with a long warm-grey ramp. The blue link color is the only chromatic text token in regular use.</p>
+
+      <div class="tg-live">
+        <div class="tg-live-label">In context</div>
+        <div class="text-demo">
+          <h5>Think fast, build faster</h5>
+          <p>Body text uses <span class="mono">--text-100</span> on <span class="mono">--bg-100</span>.</p>
+          <p style="color:#3d3d3a"><span class="mono">--text-300</span> — supporting copy, descriptions, captions in dense UI.</p>
+          <p style="color:#73726c"><span class="mono">--text-400</span> — metadata, timestamps, "last updated" lines.</p>
+          <p>Inline <a href="#">link colored with --accent-200</a> for outbound references and CTAs.</p>
+          <p style="color:#9c9a92"><span class="mono">--text-500</span> — placeholder text, inactive controls.</p>
+        </div>
+      </div>
+
+      <table class="tg-table">
+        <thead><tr><th>Token</th><th>Hex</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tk-swatch" style="background:#141413"></span> <span class="tk-name">--text-100 / --text-000</span></td><td class="tk-hex">#141413</td><td class="tk-use">Headings, body copy, primary labels (658 uses)</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#1f1e1d"></span> <span class="tk-name">--gray-750</span></td><td class="tk-hex">#1f1e1d</td><td class="tk-use">Strong-emphasis text (645 uses)</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#3d3d3a"></span> <span class="tk-name">--text-300</span></td><td class="tk-hex">#3d3d3a</td><td class="tk-use">Supporting copy, paragraph descriptions</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#73726c"></span> <span class="tk-name">--text-400</span></td><td class="tk-hex">#73726c</td><td class="tk-use">Captions, metadata, hints</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#9c9a92"></span> <span class="tk-name">--text-500</span></td><td class="tk-hex">#9c9a92</td><td class="tk-use">Disabled controls, placeholder text</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#1b67b2"></span> <span class="tk-name">--accent-200 (link)</span></td><td class="tk-hex">#1b67b2</td><td class="tk-use">Inline links — only chromatic text token</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BORDER / LINE -->
+    <div class="token-group" id="tg-line">
+      <div class="tg-head">
+        <h4>Border &amp; line</h4>
+        <span class="tg-count">4 tokens · border-100 → border-400</span>
+      </div>
+      <p class="tg-desc">The warm <span class="mono">#dedcd1</span> tan handles essentially every border — 431 usages. Darker variants surface only on hover or focus.</p>
+
+      <div class="tg-live">
+        <div class="tg-live-label">Border variants</div>
+        <div class="line-demo">
+          <div class="item">
+            <div class="sample-card" style="border:1px solid #dedcd1">Default card border</div>
+            <div class="lbl">--border / #dedcd1</div>
+          </div>
+          <div class="item">
+            <div class="sample-card" style="border:1px solid #141413">Strong (focus)</div>
+            <div class="lbl">--border-400 / hsl(60 2% 12%)</div>
+          </div>
+          <div class="item">
+            <div class="sample-card" style="border:1px dashed #c2c0b6">Subtle divider</div>
+            <div class="lbl">--gray-200 (computed)</div>
+          </div>
+          <div class="item">
+            <div class="sample-card" style="background:#141413;border:1px solid #3d3d3a;color:#faf9f5">Dark surface outline</div>
+            <div class="lbl">on --gray-800</div>
+          </div>
+        </div>
+      </div>
+
+      <table class="tg-table">
+        <thead><tr><th>Token</th><th>Hex / HSL</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tk-swatch" style="background:#dedcd1"></span> <span class="tk-name">--border (default)</span></td><td class="tk-hex">#dedcd1</td><td class="tk-use">Cards, dividers, inputs (431 uses)</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#1f1e1d"></span> <span class="tk-name">--border-100 / 200 / 300 / 400</span></td><td class="tk-hex">hsl(60 2% 12%)</td><td class="tk-use">Strong borders — same hex, four aliases</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#c2c0b6"></span> <span class="tk-name">--gray-200</span></td><td class="tk-hex">#c2c0b6</td><td class="tk-use">Faint dividers, secondary outlines</td></tr>
+          <tr><td><span class="tk-swatch" style="background:rgba(20,20,19,0.08);border:1px solid var(--line)"></span> <span class="tk-name">--tw-ring-color (focus)</span></td><td class="tk-hex">rgba(20,20,19,0.08)</td><td class="tk-use">Translucent focus ring</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ACCENT / BRAND -->
+    <div class="token-group" id="tg-accent">
+      <div class="tg-head">
+        <h4>Accent &amp; brand</h4>
+        <span class="tg-count">10+ tokens</span>
+      </div>
+      <p class="tg-desc">Two parallel accent systems: the clay-orange <span class="mono">--brand-*</span> (Anthropic's signature warmth, applied to CTAs and highlights) and the blue <span class="mono">--accent-*</span> ramp (links and focus). Pro tokens (<span class="mono">--accent-pro-*</span>) layer a deeper indigo for upgrade surfaces.</p>
+
+      <div class="tg-live">
+        <div class="tg-live-label">Accent inventory</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;padding:22px;background:#faf9f5">
+          <div style="padding:18px;border-radius:16px;background:#d97757;color:#fff;font:500 14px 'Inter',sans-serif"><div>Brand clay</div><div style="font:400 11px 'JetBrains Mono',monospace;margin-top:4px;opacity:0.85">--brand-100 · #d97757</div></div>
+          <div style="padding:18px;border-radius:16px;background:#cc6f4f;color:#fff;font:500 14px 'Inter',sans-serif"><div>Brand emphasized</div><div style="font:400 11px 'JetBrains Mono',monospace;margin-top:4px;opacity:0.85">--_brand-clay-emphasized</div></div>
+          <div style="padding:18px;border-radius:16px;background:#1b67b2;color:#fff;font:500 14px 'Inter',sans-serif"><div>Accent blue</div><div style="font:400 11px 'JetBrains Mono',monospace;margin-top:4px;opacity:0.85">--accent-200 · #1b67b2</div></div>
+          <div style="padding:18px;border-radius:16px;background:#1452a3;color:#fff;font:500 14px 'Inter',sans-serif"><div>Accent strong</div><div style="font:400 11px 'JetBrains Mono',monospace;margin-top:4px;opacity:0.85">--accent-000</div></div>
+          <div style="padding:18px;border-radius:16px;background:#7762d8;color:#fff;font:500 14px 'Inter',sans-serif"><div>Pro violet</div><div style="font:400 11px 'JetBrains Mono',monospace;margin-top:4px;opacity:0.85">--accent-pro-100</div></div>
+          <div style="padding:18px;border-radius:16px;background:#3a2a91;color:#fff;font:500 14px 'Inter',sans-serif"><div>Pro deep</div><div style="font:400 11px 'JetBrains Mono',monospace;margin-top:4px;opacity:0.85">--accent-pro-000</div></div>
+          <div style="padding:18px;border-radius:16px;background:#bfd4f5;color:#1b67b2;font:500 14px 'Inter',sans-serif"><div>Accent tint</div><div style="font:400 11px 'JetBrains Mono',monospace;margin-top:4px">--accent-900</div></div>
+          <div style="padding:18px;border-radius:16px;background:#dad3f9;color:#3a2a91;font:500 14px 'Inter',sans-serif"><div>Pro tint</div><div style="font:400 11px 'JetBrains Mono',monospace;margin-top:4px">--accent-pro-900</div></div>
+        </div>
+      </div>
+
+      <table class="tg-table">
+        <thead><tr><th>Token</th><th>HSL</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tk-swatch" style="background:#d97757"></span> <span class="tk-name">--brand-100 / --brand-200</span></td><td class="tk-hex">hsl(14.8 63% 60%)</td><td class="tk-use">Clay accent · highlight pills · feature CTAs</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#cc6f4f"></span> <span class="tk-name">--_brand-clay-emphasized</span></td><td class="tk-hex">hsl(15.1 54% 51%)</td><td class="tk-use">Hover / emphasized brand state</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#1b67b2"></span> <span class="tk-name">--accent-100 / --accent-200</span></td><td class="tk-hex">hsl(213 68% 50%)</td><td class="tk-use">Link color · interactive states (Try Claude blue)</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#1452a3"></span> <span class="tk-name">--accent-000</span></td><td class="tk-hex">hsl(214 72% 34%)</td><td class="tk-use">Active / pressed link state</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#bfd4f5"></span> <span class="tk-name">--accent-900</span></td><td class="tk-hex">hsl(213 85% 89%)</td><td class="tk-use">Link tint backgrounds</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#7762d8"></span> <span class="tk-name">--accent-pro-100 / 200</span></td><td class="tk-hex">hsl(248 67% 63%)</td><td class="tk-use">Claude Pro upgrade surface</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#3a2a91"></span> <span class="tk-name">--accent-pro-000</span></td><td class="tk-hex">hsl(249 48% 44%)</td><td class="tk-use">Pro deep / pressed state</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- STATUS -->
+    <div class="token-group" id="tg-status">
+      <div class="tg-head">
+        <h4>Status &amp; callout</h4>
+        <span class="tg-count">5 named token sets</span>
+      </div>
+      <p class="tg-desc">Semantic groups (<span class="mono">--success-*, --warning-*, --danger-*</span>) live in the variables file but are used sparingly on the public site — most are reserved for the in-product chat experience.</p>
+
+      <div class="tg-live">
+        <div class="tg-live-label">Callout patterns</div>
+        <div class="callout-grid">
+          <div class="callout s-success">
+            <div><div class="title">Success</div><div class="body">Chat session saved. Continue in Projects.</div></div>
+          </div>
+          <div class="callout s-error">
+            <div><div class="title">Error</div><div class="body">Couldn't reach the model — retry in a moment.</div></div>
+          </div>
+          <div class="callout s-warning">
+            <div><div class="title">Warning</div><div class="body">You're approaching your usage limit for the day.</div></div>
+          </div>
+          <div class="callout s-info">
+            <div><div class="title">Info</div><div class="body">A new Claude model is available. Try it in Settings.</div></div>
+          </div>
+          <div class="callout s-idea">
+            <div><div class="title">Tip</div><div class="body">Long prompts? Switch to Sonnet 4.6 for faster turns.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <table class="tg-table">
+        <thead><tr><th>Token</th><th>HSL / Hex</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tk-swatch" style="background:#84a64c"></span> <span class="tk-name">--success-100 / 200</span></td><td class="tk-hex">hsl(82 100% 27%)</td><td class="tk-use">Success states, confirmations</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#d4a02a"></span> <span class="tk-name">--warning-100 / 200</span></td><td class="tk-hex">hsl(38 100% 33%)</td><td class="tk-use">Quota notices, deprecation banners</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#cd3d3d"></span> <span class="tk-name">--danger-100 / 200</span></td><td class="tk-hex">hsl(0 61% 52%)</td><td class="tk-use">Errors, destructive confirmations</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#1b67b2"></span> <span class="tk-name">--accent-200 (info)</span></td><td class="tk-hex">hsl(213 68% 50%)</td><td class="tk-use">Informational banners (no dedicated --info token)</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#5fa896"></span> <span class="tk-name">--aqua-300 (idea)</span></td><td class="tk-hex">hsl(157 52% 49%)</td><td class="tk-use">Tips / "did you know" — reuses aqua ramp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- FULL HUE PALETTE -->
+    <div class="token-group" id="tg-palette">
+      <div class="tg-head">
+        <h4>Full hue palette</h4>
+        <span class="tg-count">9 hues × 30+ shades</span>
+      </div>
+      <p class="tg-desc">Anthropic ships a complete Tailwind-style HSL palette as <span class="mono">--_{hue}-{shade}</span> (gray, red, orange, yellow, green, aqua, blue, violet, magenta). Each hue has 30+ steps from 0 → 900. Mostly unused on the marketing page — designed for the in-product chat surfaces.</p>
+
+      <div class="tg-live">
+        <div class="tg-live-label">Hue ramps (each shows 12 stops: 0 → 900)</div>
+        <div class="tw-palette">
+          <div class="tw-row"><span class="name">gray</span><div class="ramp">
+            <div style="background:hsl(0 0% 100%)"></div><div style="background:hsl(60 14% 97%)"></div><div style="background:hsl(60 11% 95%)"></div><div style="background:hsl(50 11% 89%)"></div><div style="background:hsl(53 12% 87%)"></div><div style="background:hsl(55 7% 68%)"></div><div style="background:hsl(45 3% 52%)"></div><div style="background:hsl(40 3% 42%)"></div><div style="background:hsl(45 3% 31%)"></div><div style="background:hsl(60 3% 21%)"></div><div style="background:hsl(60 2% 12%)"></div><div style="background:hsl(0 0% 4%)"></div>
+          </div></div>
+          <div class="tw-row"><span class="name">red</span><div class="ramp">
+            <div style="background:hsl(0 100% 99%)"></div><div style="background:hsl(0 78% 96%)"></div><div style="background:hsl(0 67% 95%)"></div><div style="background:hsl(0 78% 91%)"></div><div style="background:hsl(0 77% 81%)"></div><div style="background:hsl(0 74% 71%)"></div><div style="background:hsl(0 73% 59%)"></div><div style="background:hsl(0 61% 52%)"></div><div style="background:hsl(0 57% 41%)"></div><div style="background:hsl(0 60% 25%)"></div><div style="background:hsl(0 62% 15%)"></div><div style="background:hsl(0 0% 4%)"></div>
+          </div></div>
+          <div class="tw-row"><span class="name">orange</span><div class="ramp">
+            <div style="background:hsl(15 67% 99%)"></div><div style="background:hsl(17 58% 95%)"></div><div style="background:hsl(19 61% 93%)"></div><div style="background:hsl(18 73% 88%)"></div><div style="background:hsl(16 81% 77%)"></div><div style="background:hsl(17 79% 64%)"></div><div style="background:hsl(17 70% 50%)"></div><div style="background:hsl(17 72% 40%)"></div><div style="background:hsl(17 72% 35%)"></div><div style="background:hsl(18 79% 20%)"></div><div style="background:hsl(16 77% 12%)"></div><div style="background:hsl(0 0% 4%)"></div>
+          </div></div>
+          <div class="tw-row"><span class="name">yellow</span><div class="ramp">
+            <div style="background:hsl(40 75% 98%)"></div><div style="background:hsl(40 64% 94%)"></div><div style="background:hsl(40 81% 89%)"></div><div style="background:hsl(40 88% 81%)"></div><div style="background:hsl(41 96% 54%)"></div><div style="background:hsl(40 100% 43%)"></div><div style="background:hsl(38 100% 33%)"></div><div style="background:hsl(37 100% 26%)"></div><div style="background:hsl(35 100% 19%)"></div><div style="background:hsl(34 100% 16%)"></div><div style="background:hsl(32 100% 10%)"></div><div style="background:hsl(0 0% 4%)"></div>
+          </div></div>
+          <div class="tw-row"><span class="name">green</span><div class="ramp">
+            <div style="background:hsl(84 56% 98%)"></div><div style="background:hsl(83 50% 93%)"></div><div style="background:hsl(84 50% 89%)"></div><div style="background:hsl(83 55% 81%)"></div><div style="background:hsl(83 54% 61%)"></div><div style="background:hsl(79 94% 37%)"></div><div style="background:hsl(82 100% 27%)"></div><div style="background:hsl(86 100% 21%)"></div><div style="background:hsl(89 100% 16%)"></div><div style="background:hsl(91 100% 13%)"></div><div style="background:hsl(95 100% 8%)"></div><div style="background:hsl(0 0% 4%)"></div>
+          </div></div>
+          <div class="tw-row"><span class="name">aqua</span><div class="ramp">
+            <div style="background:hsl(150 50% 98%)"></div><div style="background:hsl(156 48% 94%)"></div><div style="background:hsl(158 46% 91%)"></div><div style="background:hsl(158 52% 84%)"></div><div style="background:hsl(157 54% 66%)"></div><div style="background:hsl(157 52% 49%)"></div><div style="background:hsl(159 73% 36%)"></div><div style="background:hsl(162 79% 28%)"></div><div style="background:hsl(165 88% 20%)"></div><div style="background:hsl(168 91% 14%)"></div><div style="background:hsl(169 90% 8%)"></div><div style="background:hsl(0 0% 4%)"></div>
+          </div></div>
+          <div class="tw-row"><span class="name">blue</span><div class="ramp">
+            <div style="background:hsl(216 100% 99%)"></div><div style="background:hsl(208 74% 95%)"></div><div style="background:hsl(210 71% 93%)"></div><div style="background:hsl(213 85% 89%)"></div><div style="background:hsl(213 80% 79%)"></div><div style="background:hsl(213 77% 68%)"></div><div style="background:hsl(213 77% 56%)"></div><div style="background:hsl(213 68% 50%)"></div><div style="background:hsl(213 72% 39%)"></div><div style="background:hsl(214 72% 34%)"></div><div style="background:hsl(212 91% 14%)"></div><div style="background:hsl(0 0% 4%)"></div>
+          </div></div>
+          <div class="tw-row"><span class="name">violet</span><div class="ramp">
+            <div style="background:hsl(255 100% 99%)"></div><div style="background:hsl(244 100% 97%)"></div><div style="background:hsl(243 91% 96%)"></div><div style="background:hsl(247 89% 93%)"></div><div style="background:hsl(246 75% 84%)"></div><div style="background:hsl(247 68% 75%)"></div><div style="background:hsl(248 67% 67%)"></div><div style="background:hsl(248 67% 63%)"></div><div style="background:hsl(248 62% 58%)"></div><div style="background:hsl(249 48% 44%)"></div><div style="background:hsl(248 54% 19%)"></div><div style="background:hsl(0 0% 4%)"></div>
+          </div></div>
+          <div class="tw-row"><span class="name">magenta</span><div class="ramp">
+            <div style="background:hsl(340 60% 99%)"></div><div style="background:hsl(340 60% 96%)"></div><div style="background:hsl(338 61% 94%)"></div><div style="background:hsl(337 76% 90%)"></div><div style="background:hsl(338 76% 81%)"></div><div style="background:hsl(337 70% 70%)"></div><div style="background:hsl(338 61% 58%)"></div><div style="background:hsl(338 48% 46%)"></div><div style="background:hsl(338 52% 35%)"></div><div style="background:hsl(338 54% 24%)"></div><div style="background:hsl(337 58% 14%)"></div><div style="background:hsl(0 0% 4%)"></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- TYPOGRAPHY -->
+  <section id="typography">
+    <div class="section-head">
+      <h2>Typography</h2>
+      <div class="sub">Anthropic Sans dominates body and UI. Anthropic Serif handles display headings and Claude's response voice. The unusually light <b>330 weight</b> on the H1 is Anthropic's signature.</div>
+    </div>
+
+    <div class="panel">
+      <h3 style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:16px">Font families</h3>
+      <div>
+        <span class="font-pill"><b>Anthropic Sans</b> <span class="bar"><i style="width:100%"></i></span> <span class="count">1,073×</span></span>
+        <span class="font-pill"><b>Anthropic Serif</b> <span class="bar"><i style="width:1.5%"></i></span> <span class="count">11×</span></span>
+        <span class="font-pill"><b>Times</b> <span class="bar"><i style="width:0.5%"></i></span> <span class="count">1×</span></span>
+      </div>
+      <div style="margin-top:14px;font-size:13px;color:var(--ink-3);line-height:1.55">
+        <b>Other declared faces in the source</b> (not used on this page but available via <span class="mono">--font-*</span>): <span class="mono">Anthropic Mono</span>, <span class="mono">OpenDyslexic</span>, <span class="mono">system-ui</span>. Times is a fallback that landed in the heading stack — almost certainly an authoring slip. <br/>
+        ⚠ Anthropic Sans &amp; Serif are <b>proprietary</b>. This preview falls back to Inter (sans) and Source Serif 4 (serif). Sizes, weights, and tracking are preserved.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:10px">Type scale</h3>
+      <div class="type-row">
+        <span class="size-col"><span class="size">56px</span><span class="font"><b>Anthropic Serif</b> · display</span></span>
+        <span class="sample serif" style="font-size:46px;font-weight:330;line-height:1.2">Think fast, build faster</span>
+        <span class="meta">330 · lh 67.2 · H1</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">30px</span><span class="font"><b>Anthropic Serif</b> · subhead</span></span>
+        <span class="sample serif" style="font-size:30px;font-weight:400;line-height:1.2">Brainstorm in chat, build in Cowork</span>
+        <span class="meta">400 · lh 36 · H2</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">24px</span><span class="font"><b>Anthropic Sans</b> · heading</span></span>
+        <span class="sample" style="font-size:24px;font-weight:600;line-height:1.33">Meet Claude</span>
+        <span class="meta">600 · lh 32 · H3</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">18px</span><span class="font"><b>Anthropic Sans</b> · body-lg</span></span>
+        <span class="sample" style="font-size:18px;font-weight:400;line-height:1.55">Claude is Anthropic's AI assistant for problem solvers.</span>
+        <span class="meta">400 · lh 28 · H4</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">17px</span><span class="font"><b>Anthropic Sans</b> · body</span></span>
+        <span class="sample" style="font-size:17px;font-weight:400;line-height:1.5">Read about Claude's capabilities, models, and integrations across Anthropic's full platform.</span>
+        <span class="meta">400 · lh 25.5</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">16px</span><span class="font"><b>Anthropic Sans</b> · body</span></span>
+        <span class="sample" style="font-size:16px;font-weight:400;line-height:1.5">Continue with Google to sign in.</span>
+        <span class="meta">400 · lh 24</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">15px</span><span class="font"><b>Anthropic Sans</b> · UI</span></span>
+        <span class="sample" style="font-size:15px;font-weight:400">Try Claude — Available on web, desktop, and mobile.</span>
+        <span class="meta">400 · lh 22.5</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">14px</span><span class="font"><b>Anthropic Sans</b> · button</span></span>
+        <span class="sample" style="font-size:14px;font-weight:500">Try Claude</span>
+        <span class="meta">500 · lh 19.6 · CTA</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">12px</span><span class="font"><b>Anthropic Sans</b> · body-base</span></span>
+        <span class="sample" style="font-size:12px;font-weight:400">Footer copyright and supplementary navigation</span>
+        <span class="meta">400 · lh 16 · body</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">11px</span><span class="font"><b>Anthropic Sans</b> · caption</span></span>
+        <span class="sample" style="font-size:11px;font-weight:400">Subprocessors · Trust center · Acceptable use</span>
+        <span class="meta">400 · lh 16.5</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:14px">Weights in use</h3>
+      <div style="display:flex;gap:18px;flex-wrap:wrap">
+        <div><span class="serif" style="font-size:24px;font-weight:330">Aa</span><div style="font:500 11px 'JetBrains Mono',monospace;color:var(--ink-3);margin-top:4px">330 · light display · 2×</div></div>
+        <div><span class="serif" style="font-size:24px;font-weight:400">Aa</span><div style="font:500 11px 'JetBrains Mono',monospace;color:var(--ink-3);margin-top:4px">400 · regular · 1,049×</div></div>
+        <div><span style="font-size:24px;font-weight:430">Aa</span><div style="font:500 11px 'JetBrains Mono',monospace;color:var(--ink-3);margin-top:4px">430 · regular-mid · 3×</div></div>
+        <div><span style="font-size:24px;font-weight:500">Aa</span><div style="font:500 11px 'JetBrains Mono',monospace;color:var(--ink-3);margin-top:4px">500 · medium · 26×</div></div>
+        <div><span style="font-size:24px;font-weight:600">Aa</span><div style="font:500 11px 'JetBrains Mono',monospace;color:var(--ink-3);margin-top:4px">600 · semibold · 5×</div></div>
+      </div>
+      <div style="margin-top:14px;font-size:13px;color:var(--ink-3)">
+        Variable-weight font use. The 330 and 430 weights are intermediate stops — Anthropic Sans is a custom variable face, not standard Inter or Helvetica.
+      </div>
+    </div>
+  </section>
+
+  <!-- SPACING -->
+  <section id="spacing">
+    <div class="section-head">
+      <h2>Spacing scale (base: 4px)</h2>
+      <div class="sub">Sparse 8-step scale optimized for marketing pages. Big jumps — there's nothing between 1px (hairline) and 40px, and the upper end goes all the way to 256px section gaps.</div>
+    </div>
+    <div class="panel">
+      <div class="space-row"><span class="lbl">s0 · 1px</span><div class="bar" style="width:2px;min-width:2px"></div><span class="ratio">hairline</span></div>
+      <div class="space-row"><span class="lbl">s1 · 40px</span><div class="bar" style="width:80px"></div><span class="ratio">10×</span></div>
+      <div class="space-row"><span class="lbl">s2 · 48px</span><div class="bar" style="width:96px"></div><span class="ratio">12×</span></div>
+      <div class="space-row"><span class="lbl">s3 · 56px</span><div class="bar" style="width:112px"></div><span class="ratio">14×</span></div>
+      <div class="space-row"><span class="lbl">s4 · 80px</span><div class="bar" style="width:160px"></div><span class="ratio">20×</span></div>
+      <div class="space-row"><span class="lbl">s5 · 91px</span><div class="bar" style="width:182px"></div><span class="ratio">22.75×</span></div>
+      <div class="space-row"><span class="lbl">s6 · 192px</span><div class="bar" style="width:240px"></div><span class="ratio">48×</span></div>
+      <div class="space-row"><span class="lbl">s7 · 256px</span><div class="bar" style="width:240px"></div><span class="ratio">64×</span></div>
+    </div>
+  </section>
+
+  <!-- SHADOWS -->
+  <section id="shadows">
+    <div class="section-head">
+      <h2>Elevation</h2>
+      <div class="sub">All three shadows are "sm" by token but differ wildly — flat zero-blur baselines, multi-layer ambient drops, and a blue-tinted accent glow for primary CTAs. No `md` or `lg` step.</div>
+    </div>
+    <div class="panel shadow-wrap">
+      <div class="grid-3">
+        <div class="shadow-card" style="box-shadow:rgba(0, 0, 0, 0.04) 0px 4px 20px 0px">soft · 4/20</div>
+        <div class="shadow-card" style="box-shadow:rgba(0, 0, 0, 0.016) 0px 4px 24px 0px, rgba(0, 0, 0, 0.016) 0px 4px 32px 0px, rgba(0, 0, 0, 0.01) 0px 2px 64px 0px, rgba(0, 0, 0, 0.01) 0px 16px 32px 0px">ambient · 4-layer</div>
+        <div class="shadow-card" style="box-shadow:rgba(27, 103, 178, 0.1) 0px 4px 24px 0px">CTA glow · blue tint</div>
+      </div>
+      <div style="margin-top:16px;font-size:13px;color:var(--ink-3);line-height:1.55">
+        Tailwind's defaults are also in the source — <span class="mono">--cds-shadow-sm</span>, <span class="mono">-md</span>, <span class="mono">-lg</span> — but unused on this page. The blue-tinted glow is the signature claude.com touch.
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:36px">
+      <h2 id="radii">Border radii</h2>
+      <div class="sub">Generous, all multiples of 8. Cards and modals lean to 16px or 24px; the largest 32px reads as <span class="mono">full</span> in token names but is finite in practice.</div>
+    </div>
+    <div class="panel">
+      <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:end">
+        <div style="text-align:center">
+          <div class="radius-item" style="border-radius:8px">8px</div>
+          <div style="font-size:12px;color:var(--ink-3);margin-top:10px">md · controls</div>
+        </div>
+        <div style="text-align:center">
+          <div class="radius-item" style="border-radius:16px">16px</div>
+          <div style="font-size:12px;color:var(--ink-3);margin-top:10px">lg · cards (6 uses)</div>
+        </div>
+        <div style="text-align:center">
+          <div class="radius-item" style="border-radius:24px">24px</div>
+          <div style="font-size:12px;color:var(--ink-3);margin-top:10px">xl · large surfaces (3 uses)</div>
+        </div>
+        <div style="text-align:center">
+          <div class="radius-item" style="border-radius:32px">32px</div>
+          <div style="font-size:12px;color:var(--ink-3);margin-top:10px">full · hero blocks (1 use)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MOTION -->
+  <section id="motion">
+    <div class="section-head">
+      <h2>Motion</h2>
+      <div class="sub">Hover any card. Four durations, four easings — including the snappy <span class="mono">cubic-bezier(0.22, 1, 0.36, 1)</span> overshoot that powers Claude's response animation.</div>
+    </div>
+    <div class="panel">
+      <div class="motion-grid">
+        <div class="motion-card">
+          <div class="name">xs</div>
+          <div class="val">100ms · cubic-bezier(0.4, 0, 0.2, 1)</div>
+          <div class="motion-demo"><div class="ball" style="transition-duration:100ms;transition-timing-function:cubic-bezier(0.4,0,0.2,1)"></div></div>
+        </div>
+        <div class="motion-card">
+          <div class="name">sm</div>
+          <div class="val">200ms · cubic-bezier(0.165, 0.85, 0.45, 1)</div>
+          <div class="motion-demo"><div class="ball" style="transition-duration:200ms;transition-timing-function:cubic-bezier(0.165,0.85,0.45,1)"></div></div>
+        </div>
+        <div class="motion-card">
+          <div class="name">md</div>
+          <div class="val">300ms · cubic-bezier(0, 0, 0.2, 1)</div>
+          <div class="motion-demo"><div class="ball" style="transition-duration:300ms;transition-timing-function:cubic-bezier(0,0,0.2,1)"></div></div>
+        </div>
+        <div class="motion-card">
+          <div class="name">lg</div>
+          <div class="val">500ms · cubic-bezier(0.22, 1, 0.36, 1) · overshoot</div>
+          <div class="motion-demo"><div class="ball" style="transition-duration:500ms;transition-timing-function:cubic-bezier(0.22,1,0.36,1)"></div></div>
+        </div>
+      </div>
+      <div style="margin-top:16px;font-size:13px;color:var(--ink-3)">
+        Feel: <b style="color:var(--ink)">mixed</b> · Scroll-linked animations: <b style="color:var(--ink)">yes</b> · No springs detected.
+      </div>
+    </div>
+  </section>
+
+  <!-- ICONS -->
+  <section id="icons">
+    <div class="section-head">
+      <h2>Icon system</h2>
+      <div class="sub">No library confidently identified — claude.com uses bespoke filled SVGs at a 20px grid, plus a handful of larger product/logo marks. Likely a custom Anthropic icon set.</div>
+    </div>
+    <div class="panel">
+      <div class="icon-summary">
+        <div class="icon-stat"><div class="v">43</div><div class="l">Total icons</div></div>
+        <div class="icon-stat"><div class="v">36</div><div class="l">Fill only</div></div>
+        <div class="icon-stat"><div class="v">0</div><div class="l">Stroke only</div></div>
+        <div class="icon-stat"><div class="v">20px</div><div class="l">Dominant grid</div></div>
+        <div class="icon-stat"><div class="v">0%</div><div class="l">Rounded caps</div></div>
+        <div class="icon-stat"><div class="v">100%</div><div class="l">Bespoke (custom)</div></div>
+      </div>
+      <div style="margin-top:20px">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:14px">Detected icons · all bespoke fill style · no library match</div>
+        <div class="icon-grid">
+          <!-- Render as inline SVG glyphs since the source set isn't a public library -->
+          <div class="icon-card"><svg viewBox="0 0 20 20" width="24" height="24" fill="#141413"><path d="M10 2L3 6v8l7 4 7-4V6L10 2zm0 2.2L15.3 7 10 9.8 4.7 7 10 4.2zM4 8.7l5 2.6V17l-5-2.9V8.7zm12 0v5.4L11 17v-5.7l5-2.6z"/></svg><div class="iname">cube · 20×</div></div>
+          <div class="icon-card"><svg viewBox="0 0 20 20" width="24" height="24" fill="#141413"><circle cx="10" cy="10" r="8"/></svg><div class="iname">dot</div></div>
+          <div class="icon-card"><svg viewBox="0 0 20 20" width="24" height="24" fill="#141413"><path d="M10 2C5.6 2 2 5.6 2 10s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm-1 12l-4-4 1.4-1.4L9 11.2l5.6-5.6L16 7l-7 7z"/></svg><div class="iname">check-circle</div></div>
+          <div class="icon-card"><svg viewBox="0 0 20 20" width="24" height="24" fill="#141413"><path d="M10 4l-1.5 1.5L13 10l-4.5 4.5L10 16l6-6-6-6z"/></svg><div class="iname">chevron-right</div></div>
+          <div class="icon-card"><svg viewBox="0 0 20 20" width="24" height="24" fill="#141413"><path d="M4 5h12v2H4V5zm0 4h12v2H4V9zm0 4h12v2H4v-2z"/></svg><div class="iname">menu</div></div>
+          <div class="icon-card"><svg viewBox="0 0 20 20" width="24" height="24" fill="#141413"><path d="M9 2C5.7 2 3 4.7 3 8c0 4.6 6 10 6 10s6-5.4 6-10c0-3.3-2.7-6-6-6zm0 8a2 2 0 110-4 2 2 0 010 4z" transform="translate(1 0)"/></svg><div class="iname">pin</div></div>
+          <div class="icon-card"><svg viewBox="0 0 20 20" width="24" height="24" fill="#141413"><path d="M3 4h14v3H3V4zm0 5h14v3H3V9zm0 5h14v3H3v-3z"/></svg><div class="iname">list</div></div>
+          <div class="icon-card"><svg viewBox="0 0 20 20" width="24" height="24" fill="#141413"><path d="M4 3h12v14H4V3zm2 2v10h8V5H6zm1 2h6v1H7V7zm0 3h6v1H7v-1zm0 3h4v1H7v-1z"/></svg><div class="iname">document</div></div>
+        </div>
+
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin:28px 0 14px">Larger marks · transition-transform · 7 instances</div>
+        <div class="icon-grid">
+          <div class="icon-card unknown"><svg viewBox="0 0 60 60" width="40" height="40" fill="currentColor"><rect x="6" y="6" width="48" height="48" rx="8"/></svg><div class="iname">product mark · transitioning · ×7</div></div>
+          <div class="icon-card unknown"><svg viewBox="0 0 60 60" width="40" height="40" fill="currentColor"><rect x="6" y="6" width="48" height="48" rx="8"/></svg><div class="iname">text-text-000 · 4.5rem × 7.5rem</div></div>
+          <div class="icon-card unknown"><svg viewBox="0 0 20 20" width="24" height="24" fill="currentColor"><rect x="3" y="3" width="14" height="14"/></svg><div class="iname">mixed style · 3 instances</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section id="components">
+    <div class="section-head">
+      <h2>Components</h2>
+      <div class="sub">7 detected patterns. Lean component set — claude.com is intentionally minimal at the marketing surface, deferring complexity to the in-product chat. Tabs, tooltips, dropdowns, and modals weren't detected.</div>
+    </div>
+
+    <div class="preview-frame">
+
+      <!-- Buttons -->
+      <div class="comp-block" id="comp-buttons">
+        <div class="comp-head">
+          <h3>Buttons</h3>
+          <div class="comp-meta">20 instances · 1 variant detected (default) · 1 size (lg) · 4 styles shown</div>
+        </div>
+        <div class="pv-row">
+          <button class="cl-btn" data-variant="primary" data-size="lg">Try Claude</button>
+          <button class="cl-btn" data-variant="accent" data-size="lg">Continue with Google</button>
+          <button class="cl-btn" data-variant="outline" data-size="lg">Continue with email</button>
+          <button class="cl-btn" data-variant="ghost" data-size="lg">Continue with SSO</button>
+        </div>
+        <div class="pv-row" style="margin-bottom:0">
+          <button class="cl-btn" data-variant="primary" data-size="md">Meet Claude</button>
+          <button class="cl-btn" data-variant="accent" data-size="md">Download desktop app</button>
+          <button class="cl-btn" data-variant="outline" data-size="sm">Pricing</button>
+          <button class="cl-btn" data-variant="ghost" data-size="sm">Login</button>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="comp-block" id="comp-cards">
+        <div class="comp-head">
+          <h3>Cards</h3>
+          <div class="comp-meta">11 instances · 24px radius · multi-layer ambient shadow · serif headings</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:18px">
+          <div class="cl-card">
+            <h4>Claude Code</h4>
+            <p>Write and refactor code in your terminal. Available now in beta.</p>
+          </div>
+          <div class="cl-card">
+            <h4>Projects</h4>
+            <p>Organize context and conversations into shared workspaces.</p>
+          </div>
+          <div class="cl-card">
+            <h4>Cowork</h4>
+            <p>Brainstorm in chat, build alongside Claude — your AI pair.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inputs -->
+      <div class="comp-block" id="comp-inputs">
+        <div class="comp-head">
+          <h3>Inputs</h3>
+          <div class="comp-meta">auth form region · 16px radius · ink-color focus ring</div>
+        </div>
+        <div class="pv-row" style="gap:24px;align-items:flex-start">
+          <div class="cl-form-row">
+            <label class="cl-input-label">Email</label>
+            <input class="cl-input" placeholder="you@anthropic.com" />
+          </div>
+          <div class="cl-form-row">
+            <label class="cl-input-label">Focused</label>
+            <input class="cl-input" value="claude@example.com" autofocus />
+          </div>
+          <div class="cl-form-row">
+            <label class="cl-input-label">Disabled</label>
+            <input class="cl-input" placeholder="—" disabled style="background:#f0eee6;color:#9c9a92" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="comp-block" id="comp-links">
+        <div class="comp-head">
+          <h3>Links</h3>
+          <div class="comp-meta">underlined · blue #1b67b2 · plus dark inline link</div>
+        </div>
+        <div class="pv-row" style="margin-bottom:0">
+          <a class="cl-link" href="#">Read the announcement →</a>
+          <a class="cl-link" href="#">See pricing for teams →</a>
+          <a class="cl-link" href="#" style="color:#141413">Privacy and security ↗</a>
+          <a class="cl-link" href="#" style="color:#73726c">Trust center</a>
+        </div>
+      </div>
+
+      <!-- Accordions -->
+      <div class="comp-block" id="comp-accordions">
+        <div class="comp-head">
+          <h3>Accordions</h3>
+          <div class="comp-meta">FAQ pattern · minus/plus indicator · sentence-case headings</div>
+        </div>
+        <div style="max-width:720px">
+          <details class="cl-acc" open>
+            <summary>What is Claude and how does it work?</summary>
+            <p>Claude is an AI assistant built by Anthropic to be helpful, harmless, and honest. It can help with writing, analysis, math, coding, creative work, and answering questions — across long conversations with rich context.</p>
+          </details>
+          <details class="cl-acc">
+            <summary>What should I use Claude for?</summary>
+            <p>Drafting, brainstorming, summarizing, coding, research, customer support, content moderation — anywhere thoughtful, accurate text generation can move work forward.</p>
+          </details>
+          <details class="cl-acc">
+            <summary>Is Claude free to use?</summary>
+            <p>Yes. Claude has a generous free tier on claude.com. Pro and Team plans unlock higher usage limits, faster response times, and access to the latest Opus model.</p>
+          </details>
+          <details class="cl-acc">
+            <summary>What models does Claude offer?</summary>
+            <p>Opus 4.7 (most capable), Sonnet 4.6 (balanced speed and intelligence), and Haiku 4.5 (fastest, lightweight). Each is available via the chat app, API, and Bedrock / Vertex.</p>
+          </details>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="comp-block" id="comp-navigation">
+        <div class="comp-head">
+          <h3>Navigation</h3>
+          <div class="comp-meta">8 nav buttons · top bar · backdrop-blur frosted surface · 24px radius</div>
+        </div>
+        <div class="cl-nav">
+          <div class="cl-nav-brand"><span class="mark">✦</span> Claude</div>
+          <a href="#">Meet Claude</a>
+          <a href="#">Platform</a>
+          <a href="#">Solutions</a>
+          <a href="#">Pricing</a>
+          <a href="#">Resources</a>
+          <span class="cl-nav-spacer"></span>
+          <a href="#" style="color:#73726c">Contact sales</a>
+          <a href="#">Login</a>
+          <button class="cl-btn" data-variant="primary" data-size="md">Try Claude</button>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="comp-block" id="comp-footer">
+        <div class="comp-head">
+          <h3>Footer</h3>
+          <div class="comp-meta">146 cards · 4-column grid · Products / Features / Models / Solutions · dark surface</div>
+        </div>
+        <div class="cl-footer">
+          <div class="cl-foot-brand">
+            <div class="name"><span style="display:inline-flex;width:30px;height:30px;border-radius:8px;background:#d97757;color:#fff;align-items:center;justify-content:center;font-size:15px;font-weight:700">✦</span> Claude</div>
+            <p>By Anthropic. AI assistance you can trust.</p>
+            <div class="pv-row" style="gap:8px;margin:8px 0 0">
+              <a class="cl-btn" data-variant="outline" data-size="sm" href="#" style="color:#faf9f5;border-color:#3d3d3a;background:transparent">Try Claude</a>
+              <a class="cl-btn" data-variant="ghost" data-size="sm" href="#" style="color:#c2c0b6">Download apps</a>
+            </div>
+          </div>
+          <div>
+            <h5>Products</h5>
+            <ul>
+              <li><a>Claude.ai</a></li>
+              <li><a>Claude Code</a></li>
+              <li><a>API Platform</a></li>
+              <li><a>Cowork</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5>Features</h5>
+            <ul>
+              <li><a>Projects</a></li>
+              <li><a>Artifacts</a></li>
+              <li><a>Connectors</a></li>
+              <li><a>Computer use</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5>Models</h5>
+            <ul>
+              <li><a>Opus 4.7</a></li>
+              <li><a>Sonnet 4.6</a></li>
+              <li><a>Haiku 4.5</a></li>
+              <li><a>Model card</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5>Solutions</h5>
+            <ul>
+              <li><a>Enterprise</a></li>
+              <li><a>Teams</a></li>
+              <li><a>Education</a></li>
+              <li><a>Developers</a></li>
+            </ul>
+          </div>
+          <div class="cl-footer-bottom">
+            <span>© 2026 Anthropic, PBC · All rights reserved</span>
+            <span>San Francisco · London · Dublin · Tokyo · Zürich</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- VOICE -->
+  <section id="voice">
+    <div class="section-head">
+      <h2>Voice &amp; content</h2>
+      <div class="sub">Friendly tone, "you-only" pronoun, tight Sentence case headings. Anthropic Sans body; Anthropic Serif for marketing hooks. CTAs cluster around <em>try</em> and <em>continue</em>.</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h3 style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:16px">Sample headings</h3>
+        <div class="quote-row"><div class="quote">Think <span class="em">fast</span>,
+build faster.</div></div>
+        <div class="quote-row"><div class="quote">Brainstorm in chat,
+build in <span class="em">Cowork</span>.</div></div>
+        <div class="quote-row"><div class="quote">Products</div></div>
+        <div class="quote-row"><div class="quote">Features · Models
+Solutions · <span class="em">Claude</span> Platform</div></div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h3 style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:16px">CTA verbs</h3>
+          <div class="tag-row">
+            <span class="verb-tag">try <span class="c">4×</span></span>
+            <span class="verb-tag">continue <span class="c">3×</span></span>
+            <span class="verb-tag">what <span class="c">2×</span></span>
+            <span class="verb-tag">meet <span class="c">1×</span></span>
+            <span class="verb-tag">platform <span class="c">1×</span></span>
+            <span class="verb-tag">solutions <span class="c">1×</span></span>
+            <span class="verb-tag">pricing <span class="c">1×</span></span>
+            <span class="verb-tag">resources <span class="c">1×</span></span>
+            <span class="verb-tag">login <span class="c">1×</span></span>
+            <span class="verb-tag">download <span class="c">1×</span></span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3 style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:16px">Common button labels</h3>
+          <div class="tag-row">
+            <span class="verb-tag">Try Claude <span class="c">4×</span></span>
+            <span class="verb-tag">Continue with Google <span class="c">1×</span></span>
+            <span class="verb-tag">Continue with email <span class="c">1×</span></span>
+            <span class="verb-tag">Continue with SSO <span class="c">1×</span></span>
+            <span class="verb-tag">Download desktop app <span class="c">1×</span></span>
+            <span class="verb-tag">Meet Claude <span class="c">1×</span></span>
+            <span class="verb-tag">Individual <span class="c">1×</span></span>
+            <span class="verb-tag">Team and Enterprise <span class="c">1×</span></span>
+            <span class="verb-tag">What is Claude and how does it work? <span class="c">1×</span></span>
+          </div>
+        </div>
+        <div class="panel">
+          <dl class="kv">
+            <dt>Tone</dt><dd>Friendly</dd>
+            <dt>Pronoun posture</dt><dd>you-only</dd>
+            <dt>Heading case</dt><dd>Sentence case</dd>
+            <dt>Heading length</dt><dd>Tight</dd>
+            <dt>Total buttons</dt><dd>20</dd>
+            <dt>Total headings</dt><dd>7</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAYOUT MAP -->
+  <section id="layout">
+    <div class="section-head">
+      <h2>Page anatomy</h2>
+      <div class="sub">3 top-level sections detected. The home page collapses to nav → feature-grid → footer — typical of an auth/sign-in surface that doubles as marketing.</div>
+    </div>
+    <div class="panel">
+      <div class="layout-map">
+        <div class="layout-bar" style="--role-color:#c2c0b6"><span class="role">nav</span><span class="heading">Meet Claude · Platform · Solutions · Pricing · Resources · Contact sales · Login · Try Claude</span><span class="conf mono">0.90</span></div>
+        <div class="layout-bar" style="--role-color:#d97757"><span class="role">feature-grid</span><span class="heading">"Think fast, build faster" · 4 CTAs · 11 cards · main content</span><span class="conf mono">0.80</span></div>
+        <div class="layout-bar" style="--role-color:#c2c0b6"><span class="role">footer</span><span class="heading">"Products" · Features · Models · Solutions · Claude Platform · 146 cards</span><span class="conf mono">0.95</span></div>
+      </div>
+      <div style="margin-top:16px;font-size:13px;color:var(--ink-3);line-height:1.55">
+        The page's intent landed on <span class="mono">auth · 0.32</span> (low confidence) with <span class="mono">landing</span>, <span class="mono">legal</span>, and <span class="mono">blog-post</span> as alternates — a sign the home page now blends marketing surfaces with sign-in widgets. <span class="mono">needsSmart: true</span> means the heuristic flagged the result for human review.
+      </div>
+    </div>
+  </section>
+
+  <!-- A11Y -->
+  <section id="a11y">
+    <div class="section-head">
+      <h2>Accessibility</h2>
+      <div class="sub">Every detected text/background pairing passes WCAG. The dominant <span class="mono">#141413</span> on <span class="mono">#f8f8f6</span> body pair clears AAA at 15.5:1.</div>
+    </div>
+    <div class="panel">
+      <div class="a11y-hero">
+        <div class="a11y-score">100%</div>
+        <div>
+          <div style="font-weight:600;font-size:16px">WCAG contrast score</div>
+          <div style="color:var(--ink-3);font-size:14px;margin-top:4px">0 failing pairs · across 1,085 elements</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#f8f8f6;color:#141413">Aa Sample text</div>
+          <div class="a11y-mono">#141413 on #f8f8f6 · primary body</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">15.51:1</span>
+          <span class="a11y-tag pass">AAA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#f8f8f6;color:#3d3d3a">Aa Sample text</div>
+          <div class="a11y-mono">#3d3d3a on #f8f8f6 · secondary</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">10.04:1</span>
+          <span class="a11y-tag pass">AAA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#f8f8f6;color:#73726c">Aa Sample text</div>
+          <div class="a11y-mono">#73726c on #f8f8f6 · muted</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">4.85:1</span>
+          <span class="a11y-tag pass">AA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#141413;color:#faf9f5">Aa Sample text</div>
+          <div class="a11y-mono">#faf9f5 on #141413 · primary CTA</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">15.79:1</span>
+          <span class="a11y-tag pass">AAA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#d97757;color:#ffffff">Aa Sample text</div>
+          <div class="a11y-mono">#ffffff on #d97757 · accent / clay</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">3.36:1</span>
+          <span class="a11y-tag pass">AA-lg</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#f8f8f6;color:#1b67b2">Aa Sample text</div>
+          <div class="a11y-mono">#1b67b2 on #f8f8f6 · link blue</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">5.46:1</span>
+          <span class="a11y-tag pass">AAA</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUDIT FLAGS -->
+  <section id="flags">
+    <div class="section-head">
+      <h2>Audit flags</h2>
+      <div class="sub">Design Score: <b style="color:var(--ink)">89/100 (B)</b> · 3 issues. Cleaner than most marketing codebases — but the <span class="mono">!important</span> and duplicate-declaration counts still suggest a Tailwind layer fighting with the design-system layer.</div>
+    </div>
+    <div class="grid-2">
+      <div class="panel" style="border-left:3px solid var(--warn)">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--warn);margin-bottom:8px;font-weight:600">⚠ Warning</div>
+        <div style="font-weight:600">668 <span class="mono">!important</span> rules</div>
+        <div style="color:var(--ink-3);font-size:14px;margin-top:6px;line-height:1.55">Prefer specificity over overrides. High <span class="mono">!important</span> usage signals a brittle cascade — typical when Tailwind utilities collide with a design-system layer.</div>
+      </div>
+      <div class="panel" style="border-left:3px solid var(--warn)">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--warn);margin-bottom:8px;font-weight:600">⚠ Warning</div>
+        <div style="font-weight:600">94% of CSS is unused</div>
+        <div style="color:var(--ink-3);font-size:14px;margin-top:6px;line-height:1.55">A purge step would dramatically reduce the shipped stylesheet weight. The full HSL palette (9 hues × 30 shades) accounts for much of this.</div>
+      </div>
+      <div class="panel" style="border-left:3px solid var(--warn)">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--warn);margin-bottom:8px;font-weight:600">⚠ Warning</div>
+        <div style="font-weight:600">5,473 duplicate CSS declarations</div>
+        <div style="color:var(--ink-3);font-size:14px;margin-top:6px;line-height:1.55">Multiple stylesheet entries are emitting overlapping rules. A bundler-level dedupe should be the first move.</div>
+      </div>
+      <div class="panel" style="border-left:3px solid var(--good)">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--good);margin-bottom:8px;font-weight:600">✓ Strength</div>
+        <div style="font-weight:600">Perfect WCAG contrast</div>
+        <div style="color:var(--ink-3);font-size:14px;margin-top:6px;line-height:1.55">All 0 detected color pairs fail WCAG — 100% pass rate. Dark ink on bone background sits at 15.51:1.</div>
+      </div>
+      <div class="panel" style="border-left:3px solid var(--good)">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--good);margin-bottom:8px;font-weight:600">✓ Strength</div>
+        <div style="font-weight:600">Tight radius vocabulary</div>
+        <div style="color:var(--ink-3);font-size:14px;margin-top:6px;line-height:1.55">Only 4 radius tokens (8 / 16 / 24 / 32 px) and no <span class="mono">999px</span> pill abuse. Generous corners give the system its signature warmth.</div>
+      </div>
+      <div class="panel" style="border-left:3px solid var(--good)">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--good);margin-bottom:8px;font-weight:600">✓ Strength</div>
+        <div style="font-weight:600">Anthropic Sans owns the system</div>
+        <div style="color:var(--ink-3);font-size:14px;margin-top:6px;line-height:1.55">99% of all type is set in Anthropic Sans. The custom variable face is a clear design-system anchor; the lone Times instance is a fallback slip worth fixing.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FILES -->
+  <section id="files">
+    <div class="section-head">
+      <h2>Generated artifacts</h2>
+      <div class="sub">26 output files in this directory. Click to open.</div>
+    </div>
+    <div class="panel">
+      <div class="file-grid">
+        <div class="file"><span class="ext">MD</span><span class="name"><a href="claude-com-DESIGN.md">claude-com-DESIGN.md</a></span></div>
+        <div class="file"><span class="ext">MD</span><span class="name"><a href="DESIGN.md">DESIGN.md (full reference)</a></span></div>
+        <div class="file"><span class="ext">MD</span><span class="name"><a href="claude-com-design-language.md">claude-com-design-language.md</a></span></div>
+        <div class="file"><span class="ext">MD</span><span class="name"><a href="CHANGELOG.md">CHANGELOG.md</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-design-tokens.json">claude-com-design-tokens.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-figma-variables.json">claude-com-figma-variables.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-intent.json">claude-com-intent.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-visual-dna.json">claude-com-visual-dna.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-voice.json">claude-com-voice.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-icon-system.json">claude-com-icon-system.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-motion-tokens.json">claude-com-motion-tokens.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-form-states.json">claude-com-form-states.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-library.json">claude-com-library.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-mcp.json">claude-com-mcp.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-seo.json">claude-com-seo.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-stack-intel.json">claude-com-stack-intel.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-screenshots.json">claude-com-screenshots.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-logo.json">claude-com-logo.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="claude-com-wordpress-theme.json">claude-com-wordpress-theme.json</a></span></div>
+        <div class="file"><span class="ext">CSS</span><span class="name"><a href="claude-com-variables.css">claude-com-variables.css</a></span></div>
+        <div class="file"><span class="ext">CSS</span><span class="name"><a href="claude-com-shadcn-theme.css">claude-com-shadcn-theme.css</a></span></div>
+        <div class="file"><span class="ext">JS</span><span class="name"><a href="claude-com-tailwind.config.js">claude-com-tailwind.config.js</a></span></div>
+        <div class="file"><span class="ext">JS</span><span class="name"><a href="claude-com-theme.js">claude-com-theme.js</a></span></div>
+        <div class="file"><span class="ext">TSX</span><span class="name"><a href="claude-com-anatomy.tsx">claude-com-anatomy.tsx</a></span></div>
+        <div class="file"><span class="ext">SVG</span><span class="name"><a href="claude-com-logo.svg">claude-com-logo.svg</a></span></div>
+        <div class="file"><span class="ext">HTML</span><span class="name"><a href="claude-com-preview.html">claude-com-preview.html</a> (auto-generated)</span></div>
+        <div class="file"><span class="ext">DIR</span><span class="name"><a href="claude-com-prompts/">claude-com-prompts/</a></span></div>
+      </div>
+    </div>
+  </section>
+
+  <div style="margin-top:64px;color:var(--ink-4);font-size:12px;text-align:center" class="mono">
+    designlang v12.10.0 · extracted 2026-05-14 · review compiled 2026-05-14
+  </div>
+
+</div>
+
+<script>
+  function toggleTheme() {
+    const root = document.body;
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+  }
+
+  function toggleNav(force) {
+    const open = typeof force === 'boolean' ? force : !document.body.classList.contains('nav-open');
+    document.body.classList.toggle('nav-open', open);
+  }
+
+  document.querySelectorAll('#sidebar-nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.matchMedia('(max-width: 960px)').matches) toggleNav(false);
+    });
+  });
+
+  document.querySelectorAll('.swatch').forEach(el => {
+    el.addEventListener('click', () => {
+      const hex = el.querySelector('.hex')?.textContent?.trim();
+      if (!hex) return;
+      navigator.clipboard.writeText(hex).then(() => {
+        let tip = el.querySelector('.copy-tip');
+        if (!tip) { tip = document.createElement('div'); tip.className = 'copy-tip'; el.appendChild(tip); }
+        tip.textContent = 'Copied ' + hex;
+        tip.classList.add('show');
+        setTimeout(() => tip.classList.remove('show'), 1200);
+      });
+    });
+  });
+
+  const navLinks = Array.from(document.querySelectorAll('#sidebar-nav a[href^="#"]'));
+  const linkById = new Map(navLinks.map(a => [a.getAttribute('href').slice(1), a]));
+  const sections = navLinks
+    .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+    .filter(Boolean);
+  const setActive = (id) => {
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  };
+  const spy = new IntersectionObserver((entries) => {
+    const visible = entries.filter(e => e.isIntersecting)
+      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    if (visible[0]) setActive(visible[0].target.id);
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  sections.forEach(s => spy.observe(s));
+  if (linkById.has('top')) linkById.get('top').classList.add('active');
+</script>
+</body>
+</html>
