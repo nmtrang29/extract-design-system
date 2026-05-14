@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Branch 1: Token Pattern Broadening — Primer demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f5f5f1; color: #1a1a1c; padding: 32px; line-height: 1.5; }
+  .mono { font-family: 'Geist Mono', monospace; }
+  .head { max-width: 1300px; margin: 0 auto 24px; }
+  .head h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.02em; }
+  .head .meta { color: #6a6a70; font-size: 13px; font-family: 'Geist Mono', monospace; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1300px; margin: 0 auto; }
+  .col { background: #fff; border: 1px solid #e0e0d8; border-radius: 8px; padding: 24px; }
+  .col .badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; padding: 4px 10px; border-radius: 2px; display: inline-block; margin-bottom: 12px; }
+  .col.before .badge { background: #cc331414; color: #cc3314; }
+  .col.after .badge { background: #538a2e14; color: #538a2e; }
+  .col h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .col .sub { color: #6a6a70; font-size: 13px; margin-bottom: 18px; }
+  .empty-state { background: #faf9f5; border: 1px dashed #cfcfc9; border-radius: 6px; padding: 24px; text-align: center; }
+  .empty-state .ico { font-size: 28px; margin-bottom: 8px; opacity: 0.5; }
+  .empty-state .label { color: #6a6a70; font-size: 13px; }
+  .empty-state .label code { background: rgba(0,0,0,0.04); padding: 1px 5px; border-radius: 2px; font-family: 'Geist Mono', monospace; font-size: 11px; }
+  .tg-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .tg-head h3 { font-size: 14px; font-weight: 600; }
+  .tg-count { font-family: 'Geist Mono', monospace; font-size: 11px; color: #6a6a70; }
+  .tg-desc { color: #6a6a70; font-size: 12px; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; color: #6a6a70; font-weight: 600; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; padding: 8px 10px; border-bottom: 1px solid #e0e0d8; }
+  td { padding: 10px; border-bottom: 1px solid #ececea; vertical-align: middle; }
+  tr:last-child td { border-bottom: 0; }
+  .tk-swatch { width: 18px; height: 18px; border-radius: 2px; border: 1px solid #cfcfc9; display: inline-block; vertical-align: middle; margin-right: 10px; flex: none; }
+  .tk-name { font-family: 'Geist Mono', monospace; font-size: 11px; color: #1a1a1c; font-weight: 500; }
+  .tk-hex { font-family: 'Geist Mono', monospace; font-size: 11px; color: #6a6a70; }
+  .tk-use { color: #44444a; font-size: 12px; }
+  .group { margin-bottom: 18px; }
+  .annotation { margin-top: 18px; padding: 14px 16px; background: #faf9f5; border-radius: 6px; font-size: 12.5px; color: #44444a; line-height: 1.6; }
+  .annotation b { color: #1a1a1c; }
+  .annotation code { background: #fff; border: 1px solid #ececea; padding: 1px 5px; border-radius: 2px; font-family: 'Geist Mono', monospace; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>Tokens by context · Primer (primer.style)</h1>
+  <div class="meta">Branch 1 · token-pattern-broadening · 2115 css vars detected · 83 bgColor/fgColor/borderColor tokens</div>
+</div>
+
+<div class="grid">
+
+  <!-- BEFORE -->
+  <div class="col before">
+    <span class="badge">Before · current spec</span>
+    <h2>Tokens by context · 0 groups populated</h2>
+    <p class="sub">The current pattern matcher looks for <code>--surface-*</code>, <code>--text-*</code>, <code>--line-*</code> etc. Primer ships <code>--bgColor-*</code>, <code>--fgColor-*</code>, <code>--borderColor-*</code> — none of which match. All 6 groups are skipped per the "omit empty groups" hard rule.</p>
+
+    <div class="empty-state">
+      <div class="ico">∅</div>
+      <div class="label">No tokens matched. Entire section omitted.<br/><br/>Detected but ignored:<br/><code>--bgColor-default</code>, <code>--fgColor-default</code>, <code>--borderColor-default</code> (83 total)</div>
+    </div>
+
+    <div class="annotation">
+      <b>What the user actually sees</b> when running the skill on primer.style today: hero + colors primitive palette + typography… and then the page skips straight to typography. The Tokens-by-context section <b>doesn't render at all</b>.
+    </div>
+  </div>
+
+  <!-- AFTER -->
+  <div class="col after">
+    <span class="badge">After · broadened patterns</span>
+    <h2>Tokens by context · 3 groups populated</h2>
+    <p class="sub">The broadened spec adds <code>bgColor*</code>, <code>fgColor*</code>, <code>borderColor*</code> to Surface, Text, and Border & line matchers (after stripping system prefixes). Primer's 83 tokens now classify into the right groups.</p>
+
+    <div class="group">
+      <div class="tg-head"><h3>Surface</h3><span class="tg-count">~30 tokens</span></div>
+      <p class="tg-desc">Primer's <code class="mono">--bgColor-*</code> system</p>
+      <table>
+        <thead><tr><th>Token</th><th>Hex</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tk-swatch" style="background:#ffffff"></span><span class="tk-name">--bgColor-default</span></td><td class="tk-hex">#ffffff</td><td class="tk-use">Page bg</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#f6f8fa"></span><span class="tk-name">--bgColor-muted</span></td><td class="tk-hex">#f6f8fa</td><td class="tk-use">Card / sunken</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#1f883d"></span><span class="tk-name">--bgColor-success-emphasis</span></td><td class="tk-hex">#1f883d</td><td class="tk-use">Success badges / PR-merged</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#9a6700"></span><span class="tk-name">--bgColor-attention-emphasis</span></td><td class="tk-hex">#9a6700</td><td class="tk-use">Attention / draft</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#0969da"></span><span class="tk-name">--bgColor-accent-emphasis</span></td><td class="tk-hex">#0969da</td><td class="tk-use">Primary action bg</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="group">
+      <div class="tg-head"><h3>Text</h3><span class="tg-count">~24 tokens</span></div>
+      <p class="tg-desc">Primer's <code class="mono">--fgColor-*</code> system</p>
+      <table>
+        <thead><tr><th>Token</th><th>Hex</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tk-swatch" style="background:#1f2328"></span><span class="tk-name">--fgColor-default</span></td><td class="tk-hex">#1f2328</td><td class="tk-use">Primary body text</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#59636e"></span><span class="tk-name">--fgColor-muted</span></td><td class="tk-hex">#59636e</td><td class="tk-use">Secondary copy</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#0969da"></span><span class="tk-name">--fgColor-accent</span></td><td class="tk-hex">#0969da</td><td class="tk-use">Links</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#1a7f37"></span><span class="tk-name">--fgColor-success</span></td><td class="tk-hex">#1a7f37</td><td class="tk-use">Success text</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="group">
+      <div class="tg-head"><h3>Border &amp; line</h3><span class="tg-count">~29 tokens</span></div>
+      <p class="tg-desc">Primer's <code class="mono">--borderColor-*</code> system</p>
+      <table>
+        <thead><tr><th>Token</th><th>Hex</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tk-swatch" style="background:#d1d9e0"></span><span class="tk-name">--borderColor-default</span></td><td class="tk-hex">#d1d9e0</td><td class="tk-use">Card / divider</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#818b98"></span><span class="tk-name">--borderColor-emphasis</span></td><td class="tk-hex">#818b98</td><td class="tk-use">Strong border</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#cf222e"></span><span class="tk-name">--borderColor-closed-emphasis</span></td><td class="tk-hex">#cf222e</td><td class="tk-use">Closed PR / danger</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="annotation">
+      <b>What the user sees now</b>: Surface, Text, and Border groups all populated with real Primer tokens. The 5 status colors (success/attention/danger/done/sponsors) follow Primer's PR-state naming and get rendered in the Status group too (not shown above for space).
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

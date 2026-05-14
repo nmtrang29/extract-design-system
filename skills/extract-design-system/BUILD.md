@@ -119,14 +119,38 @@ RESOURCES
 
 Intro panel with **quick-jump pills** to each non-empty group, then one panel per group. **Detect tokens by pattern, not by exact name.** Groups are populated by scanning `*-variables.css` for variables matching the patterns below; skip any group whose patterns match nothing.
 
-| Group | Pattern to match in `*-variables.css` | Live example |
+**Generic-prefix matcher (applied first):** Real-world design systems use many different naming conventions. Before matching specific roles, normalize variable names by stripping known **system prefixes** so the role-matchers below work across systems. Recognized prefixes:
+
+| Prefix | System / library |
+|---|---|
+| `--cds-*` | IBM Carbon Design System |
+| `--spectrum-*` | Adobe Spectrum |
+| `--md-sys-*`, `--md-ref-*` | Google Material 3 |
+| `--slds-*`, `--slds-g-*`, `--slds-c-*` | Salesforce Lightning |
+| `--bgColor-*`, `--fgColor-*`, `--borderColor-*` | GitHub Primer (no `--` system prefix; the prefix IS the role) |
+| `--usa-*`, `--usa-color-*` | U.S. Web Design System |
+| `--ant-*`, `--ant-color-*` | Ant Design |
+| `--mui-*`, `--mui-palette-*` | Material UI |
+| `--chakra-*` | Chakra UI |
+| `--ds-*`, `--atl-*` | Atlassian Atlaskit |
+| `--bs-*` | Bootstrap |
+| `--p-*` | Primer (alt naming), PrimeNG |
+| `--color-fd-*` | Fumadocs |
+
+After stripping the system prefix, the role-matchers below apply to the remainder. For Primer (`--bgColor-*` / `--fgColor-*`), the role IS the prefix — match directly.
+
+| Group | Pattern to match (after prefix-strip) | Live example |
 |---|---|---|
-| **Surface** | `--surface-*`, `--bg-*`, `--background*`, `--canvas*`, plus any neutral color used >50× as a background in the DOM | Nested-box layering demo: outer (page bg) → middle (card surface) → inner (sunken / hover). If multiple "layered" surfaces detected, include all. |
-| **Text** | `--text-*`, `--ink-*`, `--foreground*`, `--color-text-*`, `--*-foreground` (where the role is text) | Sample paragraph with each tone shown in visual hierarchy. Call out any text token that's clearly chromatic (saturated, not in the neutral ramp) — this is usually the link color. |
-| **Border & line** | `--line-*`, `--border-*`, `--divider-*`, `--ring*`, `--outline*` | One sample card per distinct border treatment (default, strong, dashed, code, etc.). |
-| **Status & callout** | `--callout-*`, `--status-*`, `--alert-*`, plus any token whose name contains `success`, `error`, `warning`, `info`, `danger`, `destructive`, `idea`, `tip` | One left-border callout block per status. Skip the group entirely if the source has no status tokens. |
-| **Code syntax** | `--text-code-*`, `--syntax-*`, `--hl-*`, `--code-*`, framework-specific (e.g., `--color-fd-*` for Fumadocs, `--shiki-*` for Shiki, `--prism-*` for Prism), plus diff-add/remove tokens | A syntax-highlighted snippet (use any test code) + a diff block with `+`/`−` markers. Skip if no code tokens detected. |
-| **Library primitives** | `--primary*`, `--secondary*`, `--accent*`, `--muted*`, `--destructive*`, `--card*`, `--popover*`, `--input*`, `--ring*` — the shadcn naming convention. Detect by checking `library.json` for shadcn/ui or by presence of these names. | Paired fg/bg cards showing each combination. Label captions with the raw value (HSL, hex, OKLCH — whatever the source uses). |
+| **Surface** | `surface*`, `bg*`, `background*`, `canvas*`, `layer*` (Carbon), `palette-background-*` (Spectrum/Material), `color-bg-*` (Ant), `bgColor*` (Primer), plus any neutral color used >50× as a background in the DOM | Nested-box layering demo: outer (page bg) → middle (card surface) → inner (sunken / hover). If multiple "layered" surfaces detected, include all. |
+| **Text** | `text*`, `ink*`, `foreground*`, `on-surface*` / `on-background*` / `on-primary*` (Material 3 idiom), `*-foreground` (shadcn idiom), `color-text-*` (Ant), `fgColor*` (Primer) | Sample paragraph with each tone shown in visual hierarchy. Call out any text token that's clearly chromatic (saturated, not in the neutral ramp) — this is usually the link color. |
+| **Border & line** | `line*`, `border*`, `divider*`, `ring*`, `outline*`, `stroke*`, `borderColor*` (Primer), `color-border-*` (Ant) | One sample card per distinct border treatment (default, strong, dashed, code, etc.). |
+| **Status & callout** | `callout*`, `status*`, `alert*`, `support-success/error/warning/info` (Carbon idiom), `feedback-*` (Spectrum), plus any token whose name contains `success`, `error`, `warning`, `info`, `danger`, `destructive`, `idea`, `tip` | One left-border callout block per status. Skip the group entirely if the source has no status tokens. |
+| **Code syntax** | `text-code-*`, `syntax-*`, `hl-*`, `code-*`, plus framework-specific (`--color-fd-*` for Fumadocs, `--shiki-*` for Shiki, `--prism-*` for Prism, `--cm-*` for CodeMirror), plus diff-add/remove tokens | A syntax-highlighted snippet (use any test code) + a diff block with `+`/`−` markers. Skip if no code tokens detected. |
+| **Library primitives** | `primary*`, `secondary*`, `accent*`, `muted*`, `destructive*`, `card*`, `popover*`, `input*`, `ring*` (shadcn idiom). Also surface `interactive*` (Carbon), `cta-*` (general). Detect by checking `library.json` for the system or by presence of these names. | Paired fg/bg cards showing each combination. Label captions with the raw value (HSL, hex, OKLCH — whatever the source uses). |
+
+**Value-based fallback:** If a token's name doesn't match any role pattern but its *value* clearly fits a role (e.g., a near-white hex `#fafafa` used 100+ times as a background in the DOM), classify by value. This handles systems where token names don't match any naming convention we know.
+
+**Reference table column headers:** keep the original variable name with its full system prefix (e.g., `--cds-ui-background`, not stripped to `ui-background`). The prefix-strip is only for *matching*, not for display.
 
 **Each group has the same scaffold:**
 1. Header — group name + token count + 1-line role description
