@@ -21,7 +21,7 @@ A **Claude Code skill** that turns any website URL into a polished, self-referen
 
 ## Installation
 
-**Prerequisite:** [`designlang`](https://www.npmjs.com/package/designlang) (`npm i -g designlang`, or use via `npx` on first run).
+**Prerequisite:** [`designlang`](https://www.npmjs.com/package/designlang) (`npm i designlang`).
 
 In Claude Code, run:
 
