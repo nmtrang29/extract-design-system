@@ -61,7 +61,7 @@ This will:
 
 #### Page styling
 
-On brand. The page chrome is built from the same tokens it documents. Fixed left sidebar with scrollspy. Mobile collapses to hamburger drawer.
+On brand. Content taken from the source site. The page chrome is built from the same tokens it documents. Fixed left sidebar with scrollspy. Mobile collapses to hamburger drawer.
 
 <table>
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
