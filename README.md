@@ -8,7 +8,7 @@ Extract design system from any website, turn raw materials into a **polished, se
 
 | Site | Polished page | DESIGN.md reference |
 |---|---|---|
-| **Langfuse** — modern shadcn site, warm beige + yellow accent | [`examples/langfuse/langfuse-design-system.html`](examples/langfuse/langfuse-design-system.html) | — (predates DESIGN.md spec) |
+| **Langfuse** — modern shadcn site, warm beige + yellow accent | [`examples/langfuse/langfuse-design-system.html`](examples/langfuse/langfuse-design-system.html) | [`examples/langfuse/DESIGN.md`](examples/langfuse/DESIGN.md) (715 lines) |
 | **Ableton** — brutalist editorial, 0 radii + 0 shadows, custom CSS | [`examples/ableton/ableton-design-system.html`](examples/ableton/ableton-design-system.html) | [`examples/ableton/DESIGN.md`](examples/ableton/DESIGN.md) (622 lines) |
 
 The two examples are stress tests of the same skill on opposite design languages — proving the spec produces brand-faithful output without bleeding aesthetics between sites.
