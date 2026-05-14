@@ -10,15 +10,17 @@ Run a full design-language extraction on a URL **and** generate a polished, self
 
 ## Process
 
-**1. Run the raw extraction.**
+**1. Run the raw extraction into a per-site folder.**
+
+Each site gets its own folder under `./design-extract-output/` so artifacts from different runs never mix. Use the brand name (no TLD) as the folder name — `langfuse.com` → `langfuse/`, `vercel.com` → `vercel/`, `shopify.com` → `shopify/`.
 
 ```bash
-npx designlang <url> --screenshots --out ./design-extract-output
+npx designlang <url> --screenshots --out ./design-extract-output/<site>/
 ```
 
 Add `--depth 3` for multi-page crawling. Add `--dark` for dark-mode parity.
 
-**2. Read every relevant artifact in `./design-extract-output/`** before writing the review:
+**2. Read every relevant artifact in `./design-extract-output/<site>/`** before writing the review:
 
 | File | What to extract |
 |---|---|
@@ -34,11 +36,11 @@ Add `--depth 3` for multi-page crawling. Add `--dark` for dark-mode parity.
 | `*-library.json` | Component library detection (shadcn, etc.) |
 | `*-design-language.md` | Audit warnings (font count, !important, duplicate CSS) |
 
-**3. Build the design-system HTML** by copying `TEMPLATE.html` to `<site>-design-system.html` in the same output directory and replacing every `{{TOKEN}}` placeholder with values from the extracted files. Use just the brand name (no TLD) — e.g. `langfuse.com` → `langfuse-design-system.html`, `vercel.com` → `vercel-design-system.html`. **Do not modify `*-preview.html`** — leave it in place as the basic reference.
+**3. Build the design-system HTML** by copying `TEMPLATE.html` to `./design-extract-output/<site>/<site>-design-system.html` and replacing every `{{TOKEN}}` placeholder with values from the extracted files. **Do not modify `*-preview.html`** — leave it in place as the basic reference.
 
 The full page structure, token mapping, snapping rules, and copy decisions are in **[BUILD.md](./BUILD.md)** — read it before populating the template.
 
-**4. Write an optional `CHANGELOG.md`** alongside the review documenting which choices were derived from the extraction and which had to fall back (e.g., custom display fonts that aren't free-to-host).
+**4. Write an optional `CHANGELOG.md`** alongside the review (at `./design-extract-output/<site>/CHANGELOG.md`) documenting which choices were derived from the extraction and which had to fall back (e.g., custom display fonts that aren't free-to-host). No `<site>-` prefix needed — the folder already names the site.
 
 ## Core decisions (baked in — do not re-ask)
 
@@ -66,11 +68,21 @@ These are the choices that make the output a coherent design-system page rather 
 
 ## Output
 
-| File | Purpose |
-|---|---|
-| `<site>-design-system.html` | **Primary output** — the polished, self-styled design-system page (brand name only, no TLD) |
-| `<slug>-*.{md,json,css,js,tsx,html}` | Original 22 designlang artifacts (kept) |
-| `CHANGELOG.md` | Optional — provenance + decisions log |
+All output lives inside a per-site folder so multiple extractions never mix:
+
+```
+./design-extract-output/
+└── <site>/                              ← brand name, no TLD
+    ├── <site>-design-system.html        ← Primary output
+    ├── <slug>-DESIGN.md                 ← designlang summary
+    ├── <slug>-design-tokens.json
+    ├── <slug>-variables.css
+    ├── <slug>-preview.html              ← basic preview (untouched)
+    ├── ... (18 more designlang artifacts)
+    └── CHANGELOG.md                     ← optional provenance log
+```
+
+`<site>` is the brand name (e.g. `langfuse`). `<slug>` is designlang's prefix for individual artifacts (e.g. `langfuse-com`).
 
 ## What this skill does NOT do
 

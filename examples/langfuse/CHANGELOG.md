@@ -3,7 +3,7 @@
 A session-by-session log of how `langfuse-design-system.html` was built up from the raw `/extract-design` output, with the intent and motivation behind each change.
 
 - **Source extraction:** `/extract-design https://langfuse.com/` (designlang v12.10.0)
-- **Output directory:** `/Users/trang.nguyen/design-extract-output/`
+- **Output directory:** `./design-extract-output/langfuse/` (per-site folder convention)
 - **Primary artifact:** `langfuse-design-system.html`
 - **Session date:** 2026-05-14
 

@@ -4,7 +4,7 @@ A fork of [design-extract](https://github.com/Manavarya09/design-extract) that t
 
 ![Hero screenshot](docs/before-after/hero-after.png)
 
-[**▶ Live example**](examples/langfuse-design-system.html)
+[**▶ Live example**](examples/langfuse/langfuse-design-system.html)
 
 ---
 
@@ -52,29 +52,36 @@ This will:
 1. Run `npx designlang <url> --screenshots` to produce 22 raw extraction artifacts
 2. Read every relevant artifact (`*-variables.css`, `*-design-tokens.json`, `*-intent.json`, `*-voice.json`, etc.)
 3. Populate `skills/extract-design-system/TEMPLATE.html` with the extracted values
-4. Save the result as `<site>-design-system.html` 
+4. Save the result inside a per-site folder: `./design-extract-output/<site>/<site>-design-system.html` (e.g. `./design-extract-output/langfuse/langfuse-design-system.html`)
 5. Optionally write a `CHANGELOG.md` documenting any inferred mappings or fallbacks
 
 ---
 
 ## Output
 
+Each website gets its own folder so artifacts from different runs never mix:
+
 ```
 design-extract-output/
-├── <site>-design-system.html   ← the polished design-system page (what this skill adds, e.g. langfuse-design-system.html)
-├── <slug>-preview.html         ← the basic preview from designlang (left in place)
-├── <slug>-DESIGN.md
-├── <slug>-design-tokens.json
-├── <slug>-variables.css        ← richest semantic-token source
-├── <slug>-intent.json
-├── <slug>-voice.json
-├── <slug>-anatomy.tsx
-├── <slug>-icon-system.json
-├── <slug>-visual-dna.json
-├── <slug>-motion-tokens.json
-├── ... (12 more designlang artifacts)
-└── CHANGELOG.md                ← optional provenance log
+├── langfuse/
+│   ├── langfuse-design-system.html   ← the polished design-system page (what this skill adds)
+│   ├── langfuse-com-preview.html     ← the basic preview from designlang (left in place)
+│   ├── langfuse-com-DESIGN.md
+│   ├── langfuse-com-design-tokens.json
+│   ├── langfuse-com-variables.css    ← richest semantic-token source
+│   ├── langfuse-com-intent.json
+│   ├── langfuse-com-voice.json
+│   ├── langfuse-com-anatomy.tsx
+│   ├── langfuse-com-icon-system.json
+│   ├── ... (13 more designlang artifacts)
+│   └── CHANGELOG.md                  ← optional provenance log
+├── vercel/                           ← next site you run on
+│   └── ...
+└── shopify/
+    └── ...
 ```
+
+Folder name = brand only, no TLD (`langfuse.com → langfuse/`, `vercel.com → vercel/`).
 
 ---
 
