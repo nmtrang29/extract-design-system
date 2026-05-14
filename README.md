@@ -73,7 +73,7 @@ On brand. Content taken from the source site. The page chrome is built from the 
 
 #### Colors
 
-Two-layer view: primitive palette + tokens shown in context. Each with live examples + reference table.
+Two-layer view: primitive palette + tokens shown in context. Each with live examples + reference table. Token-name pattern match broadening. Plus a tiebreaker that prefers DOM-observed colors when named tokens disagree with what's painted. 
 
 <table> 
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
@@ -85,7 +85,7 @@ Two-layer view: primitive palette + tokens shown in context. Each with live exam
 
 #### Components
 
-Render *every* detected pattern with live examples that use the actual extracted tokens, not just the canonical 3.
+Render *every* detected pattern with live examples that use the actual extracted tokens, not just the canonical 3. Pattern catalogue 11 → 33 — adds toasts, data tables, pagination, switches, sliders, avatars, breadcrumbs, modals, drawers, skeletons, empty states, steppers, date pickers, color pickers, etc.
 
 <table>
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
@@ -119,12 +119,6 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 </tr>
 </table>
 
-### Other changes
-+ Token-name pattern match broadening. Plus a tiebreaker that prefers DOM-observed colors when named tokens disagree with what's painted. 
-+ Pattern catalogue 11 → 33** — adds toasts, data tables, pagination, switches, sliders, avatars, breadcrumbs, modals, drawers, skeletons, empty states, steppers, date pickers, color pickers, etc.
-+ Default theme matches the source site.
-
----
 
 ### Baked-in decisions
 
@@ -138,13 +132,12 @@ Choices that make the output a coherent design-system page:
 - **Type scale:** show font family per row (inferred from family usage counts)
 - **Radii:** snap every chrome radius to the detected
 - **Typography:** snap to detected scale
-- **Accent treatment:** decide by luminance — near-white accents → background pill, saturated accents → text color directly
-- **Per-site folders:** outputs never mix between extractions
+- **Theme**: Default theme matches the source site.
 
 See [`SKILL.md`](skills/extract-design-system/SKILL.md) for the full list.
 
 
-## Known limitations
+### Known limitations
 
 - Custom display fonts (e.g., f37 Analog, GT America, Söhne...) aren't auto-loaded. 
 - Design-system docs sites currently produce confused output.
