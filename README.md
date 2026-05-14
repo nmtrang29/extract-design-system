@@ -24,12 +24,6 @@ A Claude Code wrapper skill that turns any website URL into a polished, self-ref
 <td><a href="https://nmtrang29.github.io/extract-design-system/examples/mistral/mistral-design-system.html"><img src="docs/before-after/mistral/hero.png" alt="Mistral demo — beige cream, orange accent, signature six-stripe footer band, brutalist 0-radius" /></a></td>
 </tr>
 </table>
-
-Additional inspirations if you want websites that don’t feel like another SaaS landing page
-
-- https://brutalistwebsites.com/
-- https://www.siteinspire.com/
-- https://www.awwwards.com/websites/experimental
   
 ---
 
@@ -134,7 +128,7 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 </table>
 
 
-### Summary of baked-in decisions
+#### Summary of baked-in decisions
 
 - **Copy**: Analysed and taken from the source site.
 - **Sidebar:** fixed left, hamburger on mobile
@@ -149,7 +143,13 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 See [`SKILL.md`](skills/extract-design-system/SKILL.md) & [`BUILD.md`](skills/extract-design-system/BUILD.md)  for the full list.
 
 
-### Known limitations
+#### Known limitations
 
 - Custom display fonts (e.g., f37 Analog, GT America, Söhne...) aren't auto-loaded. 
 - Design-system docs sites currently produce confused output.
+
+#### Additional inspirations if you want websites that don’t feel like another SaaS landing page
+
+- https://brutalistwebsites.com/
+- https://www.siteinspire.com/
+- https://www.awwwards.com/websites/experimental
