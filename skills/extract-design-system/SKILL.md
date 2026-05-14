@@ -60,6 +60,23 @@ These are the choices that make the output a coherent design-system page rather 
 - **Typography snap:** every font size must be in the detected scale. No half-pixel sizes. Map review-chrome by role (hero = largest, section h2 = 3rd-largest, eyebrow = smallest) rather than by absolute number.
 - **Accent treatment:** the accent only appears where the *source* uses it (detected emphasis in headings, accent-colored buttons in the DOM, etc.) — don't synthesize emphasis. When the accent IS placed, pick between text-color vs background-fill by WCAG contrast ratio: whichever pairing passes AA wins; both pass → prefer text color (smaller footprint); neither passes → pick the higher and flag it.
 
+## Painted-DOM-first principle
+
+**Always look at what the source actually paints, not just at the named tokens.** A site can declare `--color-primary` and barely paint it; another can declare nothing and paint blue everywhere. The cascade is the contract; the painted DOM is the truth.
+
+For every role token the demo needs (`--bg`, `--panel`, `--ink`, `--line`, `--accent`, hero surface, etc.), the resolution order is:
+
+1. **Count what's painted** in the source DOM (`background-color`, `color`, `border-color`).
+2. **Compare** the most-painted value for that role against the named token value.
+3. **Prefer the painted value when they disagree** — and record the decision in DESIGN.md §15 with both counts so the call is auditable.
+
+The detailed tiebreaker per role (surface, panel, ink, line, accent, hero surface) lives in **[BUILD.md §4 — DOM-frequency tiebreaker](./BUILD.md#4-colors--two-layer-view)**. The rules there are derived from the extraction — relative counts, painted-vs-named comparisons, saturation tests — not from hardcoded thresholds or site-specific values.
+
+**Two consequences of this principle that the demos repeatedly need:**
+
+- **No synthesized white card chrome.** If the painted DOM doesn't show a distinct elevated card surface, the demo's `--panel` resolves to `--bg`. Content sits flat. Pure white `#ffffff` is a *Notion-default*, not a universal.
+- **No synthesized decoration.** Radial gradients, repeating-line patterns, oblique stripes, conic shapes — none of these belong in the demo unless they're detected as a real source pattern (in `visual-dna.json` `backgroundPatterns` or as a tokenized feature like Mistral's footer band). Generic "make the hero feel designed" flourishes are creative invention, not extraction.
+
 ## Trigger phrases
 
 `extract design system`, `generate design system review`, `design system audit`, `review-grade design docs`, `/extract-design-system`, `turn this extraction into a design system page`, `make a Carbon-style design review`

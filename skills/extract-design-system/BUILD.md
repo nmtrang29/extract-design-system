@@ -101,7 +101,14 @@ RESOURCES
 - Source line in the detected mono family, body-small: `<url> · <element-count> elements · <date>`
 - Badge row: one outlined pill per detection that's present in the extraction. Skip any whose source data is missing (e.g., no `imagery` detection → no imagery pill).
 - Stats grid: one cell per non-empty category. Auto-populate from `{Colors, Font families, Spacing, Shadows, Radii, Components, Icons, WCAG score}` — drop any with count 0. WCAG cell uses `--good` if ≥90%, `--warn` 70–90%, `--bad` <70%.
-- **Background:** if `visual-dna.json` `backgroundPatterns.labels` contains a pattern, layer it at ~0.08 opacity over `--panel`. Otherwise just `--panel`. Add a radial glow only if the accent is low-contrast enough to read at 28% alpha.
+- **Hero surface:** apply the **hero surface tiebreaker** from §4 — H1 painted color determines whether the hero lives on light or dark. If H1 is light-on-dark in the source, the demo hero gets a dark surface and light text. If H1 is dark-on-light, the demo hero matches `--bg` or `--panel`.
+- **Background pattern:** if `visual-dna.json` `backgroundPatterns.labels` contains a pattern, layer it at ~0.08 opacity over the hero surface. Otherwise plain.
+- **No synthesized decoration.** Decoration on the hero must come from a detected source feature:
+  - **From `visual-dna.json` `backgroundPatterns`** — render the detected pattern (line-grid / dot-grid / SVG sample) at ~0.08 opacity over the hero surface.
+  - **From a detected tokenized stripe / band** — if `*-variables.css` contains a sequenced token family like `--*-band-1..N`, `--*-stripe-*`, `--gradient-stops-*`, render the stripe at the hero edge.
+  - **From `visual-dna.json` `materialLanguage`** — only if `gradientCount > 0` AND the gradient samples in `gradients[]` are non-empty; render one of the detected gradient strings, not a synthesized one.
+
+  Anything else — invented radial accent-tinted glows, repeating-line "staff" patterns, oblique stripes, conic shapes, accent-colored bleeds — is creative invention. Don't add it. If `visual-dna.json` `backgroundPatterns.labels` is `['plain']` and `gradientCount` is 0, the hero has no decoration. That's correct.
 
 ---
 
@@ -160,11 +167,20 @@ The rule, applied per role:
 
 - **For `--bg` / `{{BG}}`:** Body / `<html>` computed `background-color`. Usually unambiguous, but if a site uses a hero-section bg override, prefer body bg.
 
-When the named token and DOM-most-used disagree, **annotate the decision inline in DESIGN.md** so reviewers can see the trade-off:
+- **For `--panel` (card/elevated surface):** Compute the histogram of painted `background-color` values across `<body> *`. The painted page bg (`--bg`) will lead the histogram. **The candidate panel is the next non-bg, non-transparent color** in the histogram. Apply the candidate as `--panel` only if its painted count is meaningful relative to the bg count — i.e., `count(candidate) / count(--bg) ≥ ~0.1` — otherwise the source isn't actually using a distinct card surface and you should resolve `--panel = --bg`. Don't assume `#ffffff`: the candidate may be darker than `--bg` (a sunken panel) or warmer, or absent entirely. The ratio is derived from the histogram itself; no specific number is hardcoded — `0.1` is the order of magnitude that separates "Notion-default white cards everywhere" from "occasional elevated surface used in a few sections."
+
+- **For `--accent` (chromatic highlight):** From the painted `background-color` + `color` histograms, **filter to chromatic colors** (HSL saturation above the median saturation of all painted colors, or — equivalently — CIELAB chroma above the median). Pick the highest-count chromatic. This is derived: no fixed saturation cutoff, no fixed minimum count. The "named --color-primary" entry from `*-variables.css` is a candidate but does not win automatically — it has to also be in the painted-chromatic histogram. If the named token isn't painted, it loses.
+
+- **For hero surface (the demo's hero card):** Compute the WCAG-relative luminance of the H1's painted `color` and its nearest non-transparent ancestor `background-color`. Whichever direction the contrast points in the source (light text on dark; dark text on light) determines the demo hero's surface and text orientation. If the H1 is light-on-dark in the source, the demo hero gets a dark surface from `--ink` (or the painted ancestor bg if it's distinct) and inverted text. If dark-on-light, the demo hero matches `--bg` or `--panel`. The luminance check is a comparison, not a fixed threshold — `L(text) > L(bg)` means light-on-dark and vice versa.
+
+When any tiebreaker fires, **annotate the decision inline in DESIGN.md** with both the painted and named values so reviewers can see the trade-off:
 
 ```
-- `--ink` → `#db0000` (DOM-frequency: 411 elements; named --color-text was #000000 with 149 elements)
-- `--line` → `#808080` (DOM-frequency: 10 <hr> borders; no semantic --line-* token detected)
+- `--ink`  → painted #db0000 (411 elements) wins over named --color-text #000000 (149 elements)
+- `--line` → painted #808080 (most-painted <hr> border) wins; no semantic --line-* token detected
+- `--panel` → --bg (no second surface painted with meaningful frequency)
+- `--accent` → painted #0000ff (highest-count chromatic) wins over named --color-primary #ff8389 (lower painted count)
+- hero surface → dark, light text (H1 painted color luminance > H1's ancestor background luminance)
 ```
 
 **Reference table column headers:** keep the original variable name with its full system prefix (e.g., `--cds-ui-background`, not stripped to `ui-background`). The prefix-strip is only for *matching*, not for display.
@@ -371,6 +387,13 @@ Small `<div>` with designlang version + extraction date in Geist Mono, ink-muted
 - Load detected primary body font + detected mono via Google Fonts.
 - Replace any default mono references in the template with the detected mono.
 - If the system has a custom display face that's not free, **fall back to body** and note it in the type-scale section description.
+
+### Border weight (line color)
+
+- Read painted DOM `border-color` from `<hr>`, `[role="separator"]`, and elements with `border-width > 0`. The highest-count painted border color resolves to `--line`.
+- Use that painted color directly in chrome borders (`.panel`, `.stat`, `.swatch`, dividers). Don't substitute a soft default.
+- If the painted line color and the painted `--ink` are the same value (or near-identical in luminance), the source is brutalist — render borders at full opacity. If the painted line is meaningfully lighter than `--ink`, render at full opacity too; it's the source's choice. **The opacity comes from the painted observation, not from a luminance cutoff.**
+- Only fall back to a synthesized soft hairline (`color-mix(in oklab, var(--ink) 8%, transparent)`) when no painted border color is detected at all — i.e., the source has zero `<hr>` / bordered elements, which is rare.
 
 ### Accent treatment
 
