@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mistral AI — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- Arial is system. Pixelbasel & FragmentMono ("font-vibe") are bespoke; fall back to JetBrains Mono. -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ===============================================================
+     THEME — mapped from mistral-ai-variables.css
+     Mistral's identity = warm beige page + black text + orange accent.
+     The signature is the 6-stop "footer band" that ramps from sunshine
+     yellow through orange to red — rendered below as a real strip,
+     not synthesized inline emphasis. Material is flat, radius 0 by
+     default (brutalist), with one 4px sm radius for small controls.
+     =============================================================== */
+  :root {
+    /* surfaces — the warm beige system */
+    --bg:        #fffaeb;   /* --color-bg / page surface */
+    --panel:     #ffffff;   /* elevated card surface */
+    --panel-2:   #fff0c2;   /* --color-mistral-sunshine-50 — sunken panel */
+    /* lines — sunshine-tinted, not gray */
+    --line:      #ffe295;   /* --color-mistral-sunshine-100 / soft yellow */
+    --line-2:    #fff0c2;
+    /* text — black on beige (12% on hsl scale) */
+    --ink:       #1f1f1f;   /* --color-mistral-black-matt */
+    --ink-2:     #3c3c3c;   /* --color-mistral-black-matt-tint */
+    --ink-3:     #7a7a7a;
+    --ink-4:     #000000;   /* deep-black, rare */
+    /* accent — mistral orange (hsl 17 96% 52%) */
+    --accent:        #fa520f;
+    --accent-bright: #ff8205;   /* mistral-orange-bright */
+    --accent-deep:   #ffae00;   /* --color-accent (deep amber) */
+    --link:          #fa520f;
+    /* status */
+    --good:      #166534;
+    --warn:      #ffd900;
+    --bad:       #e00400;       /* --color-bg-7 / mistral-red */
+    /* footer band — the signature 6-stop ramp */
+    --band-1:    #ffe295;
+    --band-2:    #ffd900;
+    --band-3:    #ffae00;
+    --band-4:    #ff8205;
+    --band-5:    #fa520f;
+    --band-6:    #e00400;
+    /* radii — Mistral is brutalist: 0 by default, 4px sm only */
+    --radius:    0px;
+    --radius-sm: 4px;
+  }
+  [data-theme="dark"] {
+    --bg:        #1f1f1f;
+    --panel:     #000000;
+    --panel-2:   #3c3c3c;
+    --line:      #3c3c3c;
+    --line-2:    #1f1f1f;
+    --ink:       #fffaeb;
+    --ink-2:     #fff0c2;
+    --ink-3:     #ffe295;
+    --accent:    #ff8205;
+    --link:      #ffae00;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Arial', ui-sans-serif, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  /* ============== LAYOUT ============== */
+  :root { --sidebar-w: 248px; }
+  .shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 28px 96px;
+    padding-left: calc(var(--sidebar-w) + 40px);
+  }
+
+  /* ============== SIDEBAR ============== */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--bg);
+    border-right: 1px solid var(--line);
+    display: flex; flex-direction: column;
+    z-index: 40;
+  }
+  .sidebar-head { padding: 24px 22px 16px; border-bottom: 1px solid var(--line); }
+  .sidebar-head .brand { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+  .sidebar-head .brand .mark {
+    width: 18px; height: 18px;
+    background: linear-gradient(90deg, var(--band-2) 0%, var(--band-3) 33%, var(--band-4) 66%, var(--band-5) 100%);
+    display: inline-block;
+  }
+  .sidebar-head .sub { color: var(--ink-3); font-size: 12px; margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 14px 12px 20px; }
+  .nav-group { margin-top: 14px; }
+  .nav-group:first-child { margin-top: 0; }
+  .nav-group .label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-3); font-weight: 700;
+    padding: 6px 12px;
+  }
+  .sidebar-nav a {
+    display: block; color: var(--ink-2); text-decoration: none;
+    font-size: 13px; font-weight: 400;
+    padding: 6px 12px; border-radius: var(--radius-sm);
+    transition: 120ms;
+  }
+  .sidebar-nav a:hover, .sidebar-nav a.active { color: var(--ink); background: var(--panel-2); }
+  .sidebar-foot { border-top: 1px solid var(--line); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .sidebar-foot .ver { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3); }
+  .toggle { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 6px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; font-family: inherit; }
+  .toggle:hover { background: var(--panel-2); border-color: var(--ink-2); }
+
+  /* ============== HERO ============== */
+  .hero {
+    margin-top: 28px;
+    padding: 56px 40px 48px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: rgba(127, 99, 21, 0.06) -8px 16px 39px 0px,
+                rgba(127, 99, 21, 0.04) -33px 64px 72px 0px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero .eyebrow {
+    color: var(--ink-3); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .hero h1 {
+    font-size: clamp(48px, 7vw, 82px);
+    line-height: 1.0; font-weight: 400; letter-spacing: -0.025em;
+    margin: 16px 0 20px;
+    max-width: 800px;
+    white-space: pre-line;
+  }
+  /* Per the WCAG-contrast accent rule: mistral.ai's H1 is plain — the
+     site relies on the footer band + accent CTAs for color, not pills. */
+  .hero .source {
+    color: var(--ink-2); font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 12px;
+  }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 28px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--ink-2); padding: 4px 10px;
+    border-radius: var(--radius-sm); font-size: 12px;
+  }
+  .badge b { color: var(--ink); font-weight: 700; }
+  .badge .pip { width: 6px; height: 6px; border-radius: 999px; background: var(--ink-2); }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 24px; }
+  .stat { background: var(--panel-2); border: 1px solid var(--line); padding: 14px 16px; }
+  .stat .v { font-size: 32px; font-weight: 400; letter-spacing: -0.02em; line-height: 1; }
+  .stat .l { color: var(--ink-3); font-size: 10px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .stat .v.good { color: var(--good); }
+  .stat .v.accent { color: var(--accent); }
+
+  /* ============== SECTIONS ============== */
+  section { margin-top: 64px; scroll-margin-top: 80px; }
+  .section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 36px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; }
+  .section-head .sub { color: var(--ink-2); font-size: 14px; max-width: 540px; line-height: 1.5; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 24px;
+  }
+  .panel + .panel { margin-top: 10px; }
+  .panel h3 { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; margin-bottom: 14px; font-family: 'JetBrains Mono', monospace; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .grid-6 { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+  .grid-8 { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; }
+
+  /* ============== SWATCHES ============== */
+  .swatch { overflow: hidden; background: var(--panel-2); border: 1px solid var(--line); }
+  .swatch .chip { height: 76px; }
+  .swatch .meta { padding: 9px 12px; }
+  .swatch .hex { font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .swatch .role { color: var(--ink-3); font-size: 11px; margin-top: 2px; }
+  .swatch .use { color: var(--ink-3); font-size: 10.5px; margin-top: 2px; }
+  .swatch.lg .chip { height: 120px; }
+
+  /* The footer band as a presentation block — horizontal stripes (rows) as on mistral.ai */
+  .band-strip {
+    display: grid; grid-template-rows: repeat(6, 1fr);
+    height: 240px;
+    border: 1px solid var(--line);
+  }
+  .band-strip > div { display: flex; align-items: center; padding: 0 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--ink); }
+  .band-strip > div.dark { color: var(--bg); }
+
+  /* ============== TYPE SCALE ============== */
+  .type-row {
+    display: grid; grid-template-columns: 100px 1fr auto;
+    align-items: baseline; gap: 18px;
+    padding: 14px 0; border-bottom: 1px solid var(--line);
+  }
+  .type-row:last-child { border: 0; }
+  .type-row .size-col { display: flex; flex-direction: column; gap: 4px; align-self: center; }
+  .type-row .size { font-family: 'JetBrains Mono', monospace; color: var(--ink-3); font-size: 12px; }
+  .type-row .font { color: var(--ink-3); font-size: 11px; line-height: 1.3; }
+  .type-row .font b { color: var(--ink-2); font-weight: 700; }
+  .type-row .sample { color: var(--ink); letter-spacing: -0.015em; }
+  .type-row .meta { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+  /* ============== COMPONENTS PREVIEW ============== */
+  .preview-frame {
+    background: var(--bg); color: var(--ink);
+    padding: 40px 32px;
+    border: 1px solid var(--line);
+  }
+  .comp-block { scroll-margin-top: 24px; padding: 8px 0; }
+  .comp-block + .comp-block { border-top: 1px solid var(--line); padding-top: 28px; margin-top: 28px; }
+  .comp-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .comp-head h3 { font-family: inherit; color: var(--ink); font-size: 20px; font-weight: 400; letter-spacing: -0.01em; text-transform: none; }
+  .comp-meta { font-family: 'JetBrains Mono', monospace; color: var(--ink-3); font-size: 11px; }
+  .pv-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 0; }
+
+  /* Mistral primitives — 0 radius, sharp edges, orange accent */
+  .m-btn {
+    font-family: inherit; font-weight: 700;
+    border-radius: var(--radius-sm);
+    padding: 10px 20px; font-size: 13px;
+    cursor: pointer; border: 1px solid transparent;
+    transition: 150ms;
+    display: inline-flex; align-items: center; gap: 6px;
+    line-height: 1.2;
+  }
+  .m-btn[data-variant="primary"]   { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .m-btn[data-variant="primary"]:hover { background: #c93f08; border-color: #c93f08; }
+  .m-btn[data-variant="secondary"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .m-btn[data-variant="secondary"]:hover { background: var(--ink-4); }
+  .m-btn[data-variant="outline"]   { background: var(--panel); color: var(--ink); border-color: var(--ink); }
+  .m-btn[data-variant="outline"]:hover { background: var(--panel-2); }
+  .m-btn[data-variant="ghost"]     { background: transparent; color: var(--ink); }
+  .m-btn[data-variant="ghost"]:hover { background: var(--panel-2); }
+
+  .m-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 24px;
+    transition: 200ms;
+  }
+  .m-card:hover {
+    border-color: var(--ink);
+    box-shadow: rgba(127, 99, 21, 0.12) -8px 16px 39px 0px;
+  }
+  .m-card h4 { font-size: 20px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.01em; }
+  .m-card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .m-card .tag {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--accent); margin-bottom: 12px;
+  }
+
+  .m-input {
+    background: var(--panel); border: 1px solid var(--ink-2);
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    font: 14px inherit; color: var(--ink);
+    width: 240px; max-width: 100%; transition: 150ms;
+  }
+  .m-input::placeholder { color: var(--ink-3); }
+  .m-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(250, 82, 15, 0.2); }
+  .m-input-label { display: block; font-size: 11px; color: var(--ink-2); margin-bottom: 6px; font-weight: 700; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .m-link { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; font-weight: 500; font-size: 14px; }
+  .m-link:hover { text-decoration-thickness: 2px; }
+  .m-link.ink { color: var(--ink); text-decoration-color: var(--ink-3); }
+  .m-link.ink:hover { text-decoration-color: var(--ink); }
+
+  .m-nav {
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 24px;
+    display: flex; align-items: center; gap: 28px;
+    font: 700 14px inherit; color: var(--ink); flex-wrap: wrap;
+  }
+  .m-nav-brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; }
+  .m-nav-brand .mark {
+    width: 22px; height: 22px;
+    background: linear-gradient(90deg, var(--band-2) 0%, var(--band-3) 33%, var(--band-4) 66%, var(--band-5) 100%);
+  }
+  .m-nav a { color: var(--ink); text-decoration: none; font-weight: 400; font-size: 14px; }
+  .m-nav a:hover { color: var(--accent); }
+  .m-nav-spacer { flex: 1; }
+
+  .m-modal {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 28px;
+    max-width: 480px;
+    box-shadow: rgba(127, 99, 21, 0.12) -8px 16px 39px 0px,
+                rgba(127, 99, 21, 0.1) -33px 64px 72px 0px,
+                rgba(127, 99, 21, 0.06) -73px 144px 97px 0px;
+  }
+  .m-modal h4 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .m-modal p { font-size: 14px; color: var(--ink-2); line-height: 1.5; margin-bottom: 20px; }
+  .m-modal .actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* mistral.ai's footer surface is hsl(45 100% 88%) ≈ #ffeec2 — soft cream, not white */
+  .m-footer {
+    background: #ffeec2;
+    border: 1px solid var(--line);
+    font: 400 13px inherit; color: var(--ink-2);
+    position: relative;
+    overflow: hidden;
+  }
+  /* The band runs ABOVE the footer content as full-width horizontal rows */
+  .m-footer-band {
+    display: grid; grid-template-rows: repeat(6, 1fr);
+    height: 280px;
+  }
+  .m-footer-band > div { width: 100%; }
+  .m-footer-content { padding: 32px 28px; }
+  .m-footer-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 32px; }
+  .m-footer .brand { display: flex; flex-direction: column; gap: 10px; }
+  .m-footer .brand .name { font-weight: 700; color: var(--ink); font-size: 18px; display: flex; align-items: center; gap: 8px; }
+  .m-footer .brand p { color: var(--ink-2); font-size: 13px; line-height: 1.5; max-width: 280px; }
+  .m-footer h5 { font: 700 10px 'JetBrains Mono', monospace; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+  .m-footer ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .m-footer a { color: var(--ink-2); text-decoration: none; }
+  .m-footer a:hover { color: var(--accent); }
+
+  /* Voice section */
+  .quote { font-size: 28px; letter-spacing: -0.015em; line-height: 1.15; color: var(--ink); white-space: pre-line; font-weight: 400; }
+  .quote-row { padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .quote-row:last-child { border: 0; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .verb-tag { background: var(--panel-2); border: 1px solid var(--line); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 12px; color: var(--ink-2); display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; }
+  .verb-tag .c { color: var(--ink-3); font-size: 11px; }
+
+  /* KV / dl */
+  .kv { display: grid; grid-template-columns: max-content 1fr; column-gap: 16px; row-gap: 8px; font-size: 13px; }
+  .kv dt { color: var(--ink-3); }
+  .kv dd { color: var(--ink); }
+
+  /* Spacing visualization */
+  .space-row { display: grid; grid-template-columns: 100px 1fr 60px; align-items: center; gap: 14px; padding: 7px 0; }
+  .space-row .lbl { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-2); }
+  .space-row .bar { background: var(--accent); height: 18px; }
+  .space-row .ratio { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 11px; text-align: right; }
+
+  /* Radii */
+  .radius-item { width: 80px; height: 80px; background: var(--panel-2); border: 1px solid var(--ink); display: flex; align-items: center; justify-content: center; color: var(--ink); font-weight: 700; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+
+  /* Shadows demo */
+  .shadow-card { background: var(--panel); color: var(--ink); padding: 24px; text-align: center; min-height: 96px; display: flex; align-items: center; justify-content: center; font: 700 12px 'JetBrains Mono', monospace; border: 1px solid var(--line); }
+
+  /* A11y */
+  .a11y-hero { display: flex; align-items: center; gap: 24px; }
+  .a11y-score { font-size: 82px; font-weight: 400; letter-spacing: -0.04em; line-height: 1; color: var(--good); }
+  .a11y-row { display: grid; grid-template-columns: 140px 1fr 60px 60px; align-items: center; gap: 14px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); margin-top: 6px; font-size: 13px; }
+  .a11y-sample { padding: 6px 14px; border-radius: var(--radius-sm); font-weight: 700; text-align: center; }
+  .a11y-mono { font-family: 'JetBrains Mono', monospace; color: var(--ink-3); font-size: 11px; }
+  .a11y-tag { font-size: 10px; font-weight: 700; padding: 3px 8px; text-align: center; letter-spacing: 0.05em; font-family: 'JetBrains Mono', monospace; }
+  .a11y-tag.pass { background: rgba(22, 101, 52, 0.15); color: var(--good); }
+
+  /* Layout map */
+  .layout-bar { display: grid; grid-template-columns: 110px 1fr 60px; align-items: center; gap: 12px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; }
+  .layout-bar .role { font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 7px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .layout-bar .role::before { content: ''; width: 6px; height: 6px; background: var(--role-color, var(--ink-3)); }
+  .layout-bar .heading { color: var(--ink-2); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .layout-bar .conf { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 11px; text-align: right; }
+
+  @media (max-width: 960px) {
+    .shell { padding-left: 28px; }
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+
+<body data-theme="light">
+
+<aside class="sidebar">
+  <div class="sidebar-head">
+    <div class="brand"><span class="mark"></span> Mistral Design System</div>
+    <div class="sub">mistral.ai</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="label">Overview</div>
+      <a href="#top">At a glance</a>
+    </div>
+    <div class="nav-group">
+      <div class="label">Foundations</div>
+      <a href="#colors">Colors</a>
+      <a href="#band">The footer band</a>
+      <a href="#typography">Typography</a>
+      <a href="#spacing">Spacing</a>
+      <a href="#shadows">Shadows &amp; radii</a>
+    </div>
+    <div class="nav-group">
+      <div class="label">Components</div>
+      <a href="#comp-buttons">Buttons</a>
+      <a href="#comp-cards">Cards</a>
+      <a href="#comp-inputs">Inputs</a>
+      <a href="#comp-links">Links</a>
+      <a href="#comp-modal">Modal</a>
+      <a href="#comp-navigation">Navigation</a>
+      <a href="#comp-footer">Footer</a>
+    </div>
+    <div class="nav-group">
+      <div class="label">Voice &amp; structure</div>
+      <a href="#voice">Voice &amp; content</a>
+      <a href="#layout">Page anatomy</a>
+    </div>
+    <div class="nav-group">
+      <div class="label">Audit</div>
+      <a href="#a11y">Accessibility</a>
+    </div>
+  </nav>
+  <div class="sidebar-foot">
+    <span class="ver">v12.10.0</span>
+    <button class="toggle">◐ Theme</button>
+  </div>
+</aside>
+
+<div class="shell" id="top">
+
+  <div class="hero">
+    <div class="eyebrow">Design Language Extracted</div>
+    <h1>Frontier AI.
+In your hands.</h1>
+    <div class="source">https://mistral.ai/ · 2026-05-14 · designlang v12.10.0</div>
+    <div class="badges">
+      <span class="badge"><span class="pip"></span> Intent: <b>landing</b> · 0.29</span>
+      <span class="badge"><span class="pip"></span> Library: <b>shadcn/ui</b> · 0.65</span>
+      <span class="badge"><span class="pip"></span> Material: <b>flat</b></span>
+      <span class="badge"><span class="pip"></span> Voice: <b>friendly · you-only</b></span>
+      <span class="badge"><span class="pip"></span> Headings: <b>Sentence case · tight</b></span>
+      <span class="badge"><span class="pip"></span> Stack: <b>self-hosted + Google Fonts (15 files)</b></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">12</div><div class="l">Colors</div></div>
+      <div class="stat"><div class="v">3</div><div class="l">Font families</div></div>
+      <div class="stat"><div class="v">9</div><div class="l">Spacing</div></div>
+      <div class="stat"><div class="v">1</div><div class="l">Shadow</div></div>
+      <div class="stat"><div class="v">1</div><div class="l">Radius</div></div>
+      <div class="stat"><div class="v">6</div><div class="l">Components</div></div>
+      <div class="stat"><div class="v good">100%</div><div class="l">WCAG score</div></div>
+      <div class="stat"><div class="v accent">94/100</div><div class="l">Design score · A</div></div>
+    </div>
+  </div>
+
+  <!-- COLORS -->
+  <section id="colors">
+    <div class="section-head">
+      <h2>Color palette</h2>
+      <div class="sub">12 unique colors. A warm-beige page anchored on <span class="mono">#fffaeb</span> with black text and the iconic <span class="mono" style="color:var(--accent);font-weight:700">#fa520f</span> mistral-orange accent. Lines and dividers are sunshine-tinted (<span class="mono">#ffe295</span>) — not gray — which keeps the system warm at every layer.</div>
+    </div>
+
+    <div class="panel">
+      <h3>Brand</h3>
+      <div class="grid-3">
+        <div class="swatch lg"><div class="chip" style="background:#fffaeb"></div><div class="meta"><div class="hex">#fffaeb</div><div class="role">background · mistral-beige</div><div class="use">page surface</div></div></div>
+        <div class="swatch lg"><div class="chip" style="background:#1f1f1f"></div><div class="meta"><div class="hex">#1f1f1f</div><div class="role">ink · mistral-black-matt</div><div class="use">primary text · hsl 0 0% 12%</div></div></div>
+        <div class="swatch lg"><div class="chip" style="background:#fa520f"></div><div class="meta"><div class="hex">#fa520f</div><div class="role">accent · mistral-orange</div><div class="use">CTAs · hsl 17 96% 52%</div></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Sunshine ramp · beige → yellow</h3>
+      <div class="grid-6">
+        <div class="swatch"><div class="chip" style="background:#fffaeb"></div><div class="meta"><div class="hex">#fffaeb</div><div class="role">beige · bg</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#fff0c2"></div><div class="meta"><div class="hex">#fff0c2</div><div class="role">sunshine-50</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#ffe295"></div><div class="meta"><div class="hex">#ffe295</div><div class="role">sunshine-100 · line</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#ffdd8a"></div><div class="meta"><div class="hex">#ffdd8a</div><div class="role">sunshine-200</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#ffd06a"></div><div class="meta"><div class="hex">#ffd06a</div><div class="role">sunshine-300</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#ffd900"></div><div class="meta"><div class="hex">#ffd900</div><div class="role">secondary · sun</div></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Orange &amp; red ramp · the warm end</h3>
+      <div class="grid-6">
+        <div class="swatch"><div class="chip" style="background:#ffae00"></div><div class="meta"><div class="hex">#ffae00</div><div class="role">amber · accent-deep</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#ff8a00"></div><div class="meta"><div class="hex">#ff8a00</div><div class="role">sunshine-900</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#ff8205"></div><div class="meta"><div class="hex">#ff8205</div><div class="role">bright · orange</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#fa520f"></div><div class="meta"><div class="hex">#fa520f</div><div class="role">mistral-orange</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#e00400"></div><div class="meta"><div class="hex">#e00400</div><div class="role">mistral-red · destructive</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#000000"></div><div class="meta"><div class="hex">#000000</div><div class="role">deep-black · rare</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE FOOTER BAND -->
+  <section id="band">
+    <div class="section-head">
+      <h2>The footer band</h2>
+      <div class="sub">Mistral's signature six-stop stripe. It runs full-width above the footer — six horizontal rows with hard edges, stacked from <span class="mono">band-1</span> (cream) at the top to <span class="mono">band-6</span> (red) at the bottom.</div>
+    </div>
+    <div class="panel">
+      <h3>Six discrete tokens · stacked rows, not a smooth gradient</h3>
+      <div class="band-strip">
+        <div style="background:#ffe295">band-1 · #ffe295 · hsl(45, 100%, 88%)</div>
+        <div style="background:#ffd900">band-2 · #ffd900 · hsl(51, 100%, 50%)</div>
+        <div style="background:#ffae00">band-3 · #ffae00 · hsl(41, 100%, 50%)</div>
+        <div style="background:#ff8205" class="dark">band-4 · #ff8205 · hsl(30, 100%, 51%)</div>
+        <div style="background:#fa520f" class="dark">band-5 · #fa520f · hsl(17, 96%, 52%)</div>
+        <div style="background:#e00400" class="dark">band-6 · #e00400 · hsl(1, 100%, 44%)</div>
+      </div>
+      <p style="color:var(--ink-2);font-size:13px;margin-top:16px;line-height:1.55;max-width:680px">The six stops map to <span class="mono">--mistral-footer-band-1</span> through <span class="mono">--mistral-footer-band-6</span>. They are <em>not</em> a smooth gradient — each row is an equal-height slice with a hard edge. That's what makes the band feel printed (a flag, a thermal strip) rather than rendered (a smooth CSS gradient).</p>
+    </div>
+  </section>
+
+  <!-- TYPOGRAPHY -->
+  <section id="typography">
+    <div class="section-head">
+      <h2>Typography</h2>
+      <div class="sub"><b>Arial</b> carries the entire system (977 uses) — display, body, UI. No serif. The monos <span class="mono">Pixelbasel</span> and <span class="mono">FragmentMono</span> ("font-vibe") are bespoke, falling back to ui-monospace here. All headings are weight 400 — size and color carry the hierarchy, not boldness.</div>
+    </div>
+
+    <div class="panel">
+      <h3>Font families</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <span class="verb-tag">Arial <span class="c">977×</span></span>
+        <span class="verb-tag">Times <span class="c">9×</span></span>
+        <span class="verb-tag">Rubik <span class="c">1×</span></span>
+        <span class="verb-tag">Pixelbasel <span class="c">mono · custom</span></span>
+        <span class="verb-tag">FragmentMono <span class="c">mono · custom</span></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Type scale · 11 sizes detected</h3>
+      <div class="type-row">
+        <span class="size-col"><span class="size">103px</span><span class="font"><b>Arial</b> · display-md</span></span>
+        <span class="sample" style="font-size:72px;font-weight:400;line-height:1.0;letter-spacing:-0.025em">Frontier AI.</span>
+        <span class="meta">400 · lh 97.85 · H0-md</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">82px</span><span class="font"><b>Arial</b> · H1</span></span>
+        <span class="sample" style="font-size:54px;font-weight:400;line-height:1.05;letter-spacing:-0.02em">In your hands.</span>
+        <span class="meta">400 · lh 82</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">56px</span><span class="font"><b>Arial</b> · H2</span></span>
+        <span class="sample" style="font-size:40px;font-weight:400;line-height:1.1">Deployed in production.</span>
+        <span class="meta">400 · lh 53.2</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">48px</span><span class="font"><b>Arial</b> · H3-md</span></span>
+        <span class="sample" style="font-size:36px;font-weight:400;line-height:1.15">What Mistral AI can do for you.</span>
+        <span class="meta">400 · lh 45.6</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">32px</span><span class="font"><b>Arial</b> · subtitle-md</span></span>
+        <span class="sample" style="font-size:24px;font-weight:400;line-height:1.2">Powered by a deeply configurable AI platform.</span>
+        <span class="meta">400 · lh 36.8</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">24px</span><span class="font"><b>Arial</b> · subtitle</span></span>
+        <span class="sample" style="font-size:18px;font-weight:400;line-height:1.25">Your AI future belongs in your hands.</span>
+        <span class="meta">400 · lh 27.6</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">16px</span><span class="font"><b>Arial</b> · body</span></span>
+        <span class="sample" style="font-size:16px;font-weight:400">Frontier-grade models, deployed where you need them — open, configurable, and built for production.</span>
+        <span class="meta">400 · base</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">14px</span><span class="font"><b>Arial</b> · ui</span></span>
+        <span class="sample" style="font-size:14px;font-weight:400">Discover Le Chat, Vibe, Studio, Forge, and Applied AI.</span>
+        <span class="meta">400 · ui</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">13px</span><span class="font"><b>Pixelbasel</b> · mono</span></span>
+        <span class="sample mono" style="font-size:13px;font-weight:400">npm install mistral · ax mistral-large-latest</span>
+        <span class="meta">400 · code</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">11px</span><span class="font"><b>Pixelbasel</b> · eyebrow</span></span>
+        <span class="sample mono" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">FRONTIER AI · IN YOUR HANDS</span>
+        <span class="meta">700 · uppercase</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPACING -->
+  <section id="spacing">
+    <div class="section-head">
+      <h2>Spacing scale</h2>
+      <div class="sub">9 detected spacing values around a 2px base unit. After the 32px jump, increments grow large — 64, 72, 80, 98 — suggesting section-scale rhythm rather than tight component spacing. The 392px outlier is likely a hero-height token.</div>
+    </div>
+    <div class="panel">
+      <div class="space-row"><span class="lbl">s0 · 2px</span><div class="bar" style="width:2px;min-width:2px"></div><span class="ratio">base</span></div>
+      <div class="space-row"><span class="lbl">s1 · 32px</span><div class="bar" style="width:32px"></div><span class="ratio">16×</span></div>
+      <div class="space-row"><span class="lbl">s2 · 48px</span><div class="bar" style="width:48px"></div><span class="ratio">24×</span></div>
+      <div class="space-row"><span class="lbl">s3 · 64px</span><div class="bar" style="width:64px"></div><span class="ratio">32×</span></div>
+      <div class="space-row"><span class="lbl">s4 · 72px</span><div class="bar" style="width:72px"></div><span class="ratio">36×</span></div>
+      <div class="space-row"><span class="lbl">s5 · 80px</span><div class="bar" style="width:80px"></div><span class="ratio">40×</span></div>
+      <div class="space-row"><span class="lbl">s6 · 98px</span><div class="bar" style="width:98px"></div><span class="ratio">49×</span></div>
+      <div class="space-row"><span class="lbl">s7 · 173px</span><div class="bar" style="width:173px"></div><span class="ratio">86×</span></div>
+      <div class="space-row"><span class="lbl">s8 · 392px</span><div class="bar" style="width:300px"></div><span class="ratio">196×</span></div>
+    </div>
+  </section>
+
+  <!-- SHADOWS & RADII -->
+  <section id="shadows">
+    <div class="section-head">
+      <h2>Elevation</h2>
+      <div class="sub">One shadow token — and it's distinctive. Mistral tints its shadow warm (<span class="mono">rgba(127, 99, 21, ...)</span>), so cards never throw a cool gray drop on the beige page. Five stacked layers smear the falloff over 400px.</div>
+    </div>
+    <div class="panel">
+      <div class="grid-3">
+        <div class="shadow-card" style="box-shadow:rgba(127, 99, 21, 0.12) -8px 16px 39px 0px">sm · 39px blur</div>
+        <div class="shadow-card" style="box-shadow:rgba(127, 99, 21, 0.12) -8px 16px 39px 0px, rgba(127, 99, 21, 0.1) -33px 64px 72px 0px">sm · 2 layers</div>
+        <div class="shadow-card" style="box-shadow:rgba(127, 99, 21, 0.12) -8px 16px 39px 0px, rgba(127, 99, 21, 0.1) -33px 64px 72px 0px, rgba(127, 99, 21, 0.06) -73px 144px 97px 0px, rgba(127, 99, 21, 0.02) -130px 256px 115px 0px, rgba(127, 99, 21, 0) -203px 400px 126px 0px">sm · full 5-layer stack</div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:32px">
+      <h2 id="radii">Border radii</h2>
+      <div class="sub">A brutalist system: <span class="mono">0px</span> is the default — sharp corners on everything from cards to modals to buttons. The only radius token in the cascade is <span class="mono">4px</span> for small controls like input fields and tag chips.</div>
+    </div>
+    <div class="panel">
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:end">
+        <div style="text-align:center"><div class="radius-item" style="border-radius:0px">0px</div><div style="font-size:11px;color:var(--ink-3);margin-top:8px;font-family:'JetBrains Mono',monospace">default · cards, modals, buttons</div></div>
+        <div style="text-align:center"><div class="radius-item" style="border-radius:4px">4px</div><div style="font-size:11px;color:var(--ink-3);margin-top:8px;font-family:'JetBrains Mono',monospace">sm · inputs, chips</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section id="components">
+    <div class="section-head">
+      <h2>Components</h2>
+      <div class="sub">6 detected patterns rendered live with extracted tokens. Mistral's set is intentionally narrow: buttons (primary + outline), inputs, links, navigation, modal, footer. No tabs, no segmented controls, no badges. The reduced surface lets the footer band do all the chromatic work.</div>
+    </div>
+
+    <div class="preview-frame">
+
+      <div class="comp-block" id="comp-buttons">
+        <div class="comp-head"><h3>Buttons</h3><div class="comp-meta">4 variants · orange primary · solid-black secondary · outline · ghost</div></div>
+        <div class="pv-row">
+          <button class="m-btn" data-variant="primary">Discover Le Chat</button>
+          <button class="m-btn" data-variant="secondary">Try Studio</button>
+          <button class="m-btn" data-variant="outline">Contact sales</button>
+          <button class="m-btn" data-variant="ghost">Read docs ↗</button>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-cards">
+        <div class="comp-head"><h3>Cards · product showcase</h3><div class="comp-meta">0px radius · warm shadow on hover · orange eyebrow tag</div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
+          <div class="m-card">
+            <div class="tag">Le Chat</div>
+            <h4>Conversational AI</h4>
+            <p>The fastest open AI assistant — for individuals and teams.</p>
+          </div>
+          <div class="m-card">
+            <div class="tag">Studio</div>
+            <h4>Build with our models</h4>
+            <p>Customize, fine-tune, and deploy frontier models from a single workspace.</p>
+          </div>
+          <div class="m-card">
+            <div class="tag">Forge</div>
+            <h4>Autonomous agents</h4>
+            <p>Production-grade agentic systems with full control over tooling, prompts, and policy.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-inputs">
+        <div class="comp-head"><h3>Inputs</h3><div class="comp-meta">4px radius · orange focus ring (3px halo) · ink-2 default border</div></div>
+        <div class="pv-row" style="gap:20px;align-items:flex-start">
+          <div>
+            <label class="m-input-label">Email</label>
+            <input class="m-input" placeholder="you@company.com" />
+          </div>
+          <div>
+            <label class="m-input-label">Focused</label>
+            <input class="m-input" value="contact@mistral.ai" autofocus />
+          </div>
+          <div>
+            <label class="m-input-label">Disabled</label>
+            <input class="m-input" placeholder="—" disabled style="opacity:0.5" />
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-links">
+        <div class="comp-head"><h3>Links</h3><div class="comp-meta">Orange underline by default · text-color underline for in-flow links</div></div>
+        <div class="pv-row" style="font-size:15px;gap:24px">
+          <a class="m-link" href="#">Discover Le Chat</a>
+          <a class="m-link" href="#">View open roles</a>
+          <a class="m-link ink" href="#">Privacy choices</a>
+          <a class="m-link ink" href="#">Talk to an expert</a>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-modal">
+        <div class="comp-head"><h3>Modal</h3><div class="comp-meta">0 radius · warm 5-layer shadow · footer-aligned actions</div></div>
+        <div class="m-modal">
+          <h4>Start building with Mistral AI</h4>
+          <p>Get an API key and ship your first call in under 60 seconds. Free tier includes mistral-small-latest and 1M tokens / month.</p>
+          <div class="actions">
+            <button class="m-btn" data-variant="ghost">Cancel</button>
+            <button class="m-btn" data-variant="primary">Get API key</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-navigation">
+        <div class="comp-head"><h3>Navigation</h3><div class="comp-meta">2 nav regions on mistral.ai · 100px desktop height · 88px mobile</div></div>
+        <div class="m-nav">
+          <div class="m-nav-brand"><span class="mark"></span> Mistral AI</div>
+          <a>Products</a>
+          <a>Solutions</a>
+          <a>Research</a>
+          <a>Blog</a>
+          <a>Customers</a>
+          <a>Company</a>
+          <span class="m-nav-spacer"></span>
+          <button class="m-btn" data-variant="outline">Contact sales</button>
+          <button class="m-btn" data-variant="primary">Try Studio</button>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-footer">
+        <div class="comp-head"><h3>Footer · with band</h3><div class="comp-meta">Six horizontal stripes above 4-column links on a soft #ffeec2 cream</div></div>
+        <div class="m-footer">
+          <div class="m-footer-band">
+            <div style="background:#ffe295"></div>
+            <div style="background:#ffd900"></div>
+            <div style="background:#ffae00"></div>
+            <div style="background:#ff8205"></div>
+            <div style="background:#fa520f"></div>
+            <div style="background:#e00400"></div>
+          </div>
+          <div class="m-footer-content">
+            <div class="m-footer-grid">
+              <div class="brand">
+                <div class="name"><span style="display:inline-block;width:22px;height:22px;background:linear-gradient(180deg,#ffd900 0%,#ffae00 33%,#ff8205 66%,#fa520f 100%)"></span> Mistral AI</div>
+                <p>Frontier AI for builders. Open weights and the most powerful AI platform for enterprises — deployed where you need it.</p>
+              </div>
+              <div><h5>Why Mistral</h5><ul><li><a>About us</a></li><li><a>Our customers</a></li><li><a>Careers</a></li><li><a>Contact us</a></li></ul></div>
+              <div><h5>Explore</h5><ul><li><a>AI solutions</a></li><li><a>Partners</a></li><li><a>Research</a></li><li><a>Documentation</a></li></ul></div>
+              <div><h5>Legal</h5><ul><li><a>Terms of service</a></li><li><a>Privacy policy</a></li><li><a>Privacy choices</a></li><li><a>Brand</a></li></ul></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- VOICE -->
+  <section id="voice">
+    <div class="section-head">
+      <h2>Voice &amp; content</h2>
+      <div class="sub">Friendly. You-only pronoun posture. Sentence-case, tight headings — often a two-line break: subject + claim. The signature CTA verb is <b>discover</b> (6 uses), pointing at each product family.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="panel">
+        <h3>Sample headings</h3>
+        <div class="quote-row"><div class="quote">Frontier AI.
+In your hands.</div></div>
+        <div class="quote-row"><div class="quote">Your AI future belongs in your hands.</div></div>
+        <div class="quote-row"><div class="quote">Deployed in production.</div></div>
+        <div class="quote-row"><div class="quote">Powered by a deeply configurable AI platform.</div></div>
+        <div class="quote-row"><div class="quote">AI deployments designed for privacy.</div></div>
+      </div>
+      <div>
+        <div class="panel">
+          <h3>CTA verbs</h3>
+          <div class="tag-row">
+            <span class="verb-tag">discover <span class="c">6×</span></span>
+            <span class="verb-tag">go <span class="c">2×</span></span>
+            <span class="verb-tag">view <span class="c">1×</span></span>
+            <span class="verb-tag">start <span class="c">1×</span></span>
+            <span class="verb-tag">talk <span class="c">1×</span></span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Button patterns (signature)</h3>
+          <div class="tag-row">
+            <span class="verb-tag">Discover Le Chat</span>
+            <span class="verb-tag">Discover Vibe</span>
+            <span class="verb-tag">Discover Studio</span>
+            <span class="verb-tag">Discover Forge</span>
+            <span class="verb-tag">Discover Applied AI</span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Voice metadata</h3>
+          <dl class="kv">
+            <dt>Tone</dt><dd>Friendly</dd>
+            <dt>Pronoun</dt><dd>you-only</dd>
+            <dt>Heading case</dt><dd>Sentence case</dd>
+            <dt>Heading length</dt><dd>Tight</dd>
+            <dt>Emphasis style</dt><dd>none inline · the footer band carries chromatic weight</dd>
+            <dt>Buttons detected</dt><dd>15</dd>
+            <dt>Headings detected</dt><dd>16</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE ANATOMY -->
+  <section id="layout">
+    <div class="section-head">
+      <h2>Page anatomy</h2>
+      <div class="sub">8 sections detected in reading order. Mistral leads with a "testimonial" frame around the hero (a banner-style claim), then a logo-wall of customers, two product hero blocks, and a footer with the signature band.</div>
+    </div>
+    <div class="panel">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div class="layout-bar" style="--role-color:#fa520f"><span class="role">testimonial</span><span class="heading">"Frontier AI. In your hands." · 18 CTAs</span><span class="conf mono">0.80</span></div>
+        <div class="layout-bar" style="--role-color:#ffae00"><span class="role">logo-wall</span><span class="heading">Customer logos · 16 cards</span><span class="conf mono">0.85</span></div>
+        <div class="layout-bar"><span class="role">nav</span><span class="heading">Products · Solutions · Research · Blog · Customers · Company</span><span class="conf mono">0.90</span></div>
+        <div class="layout-bar" style="--role-color:#fa520f"><span class="role">hero</span><span class="heading">"Deployed in production." · 2 CTAs</span><span class="conf mono">0.40</span></div>
+        <div class="layout-bar"><span class="role">content</span><span class="heading">"Powered by a deeply configurable AI platform."</span><span class="conf mono">0.30</span></div>
+        <div class="layout-bar" style="--role-color:#fa520f"><span class="role">hero</span><span class="heading">"AI deployments designed for privacy." · 1 CTA</span><span class="conf mono">0.40</span></div>
+        <div class="layout-bar" style="--role-color:#e00400"><span class="role">footer</span><span class="heading">Why Mistral · Explore · Build · Legal</span><span class="conf mono">0.95</span></div>
+        <div class="layout-bar"><span class="role">nav</span><span class="heading">Why Mistral · 22 footer links</span><span class="conf mono">0.90</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- A11Y -->
+  <section id="a11y">
+    <div class="section-head">
+      <h2>Accessibility</h2>
+      <div class="sub">100% WCAG contrast score. Mistral's restraint here is part of why — they paint black text on warm beige (12.5:1) and reserve the orange for control surfaces, never as body text on the page background.</div>
+    </div>
+    <div class="panel">
+      <div class="a11y-hero">
+        <div class="a11y-score">100%</div>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:var(--ink)">WCAG contrast score</div>
+          <div style="color:var(--ink-3);font-size:13px;margin-top:4px;font-family:'JetBrains Mono',monospace">All detected pairs pass AA · 0 failing</div>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#fffaeb;color:#1f1f1f">Aa Sample</div>
+          <div class="a11y-mono">#1f1f1f on #fffaeb</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">12.5:1</span>
+          <span class="a11y-tag pass">AAA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#fffaeb;color:#3c3c3c">Aa Sample</div>
+          <div class="a11y-mono">#3c3c3c on #fffaeb · muted text</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">8.6:1</span>
+          <span class="a11y-tag pass">AAA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#fa520f;color:#ffffff">Aa Sample</div>
+          <div class="a11y-mono">#ffffff on #fa520f · primary CTA</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">4.5:1</span>
+          <span class="a11y-tag pass">AA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#1f1f1f;color:#fffaeb">Aa Sample</div>
+          <div class="a11y-mono">#fffaeb on #1f1f1f · secondary CTA</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">15.4:1</span>
+          <span class="a11y-tag pass">AAA</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div style="margin-top:60px;color:var(--ink-3);font-size:11px;text-align:center;font-family:'JetBrains Mono',monospace">
+    designlang v12.10.0 · extracted 2026-05-14
+  </div>
+
+</div>
+
+</body>
+</html>

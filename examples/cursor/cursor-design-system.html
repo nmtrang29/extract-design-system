@@ -18,10 +18,12 @@
      doesn't use them; not invented here).
      =============================================================== */
   :root {
-    /* surfaces — Cursor's warm-bone system */
+    /* surfaces — Cursor's warm-bone system. Painted DOM never uses pure white:
+       cursor.com commits to monochrome-warm with --color-bg #f7f7f4 as the page
+       and --color-bg-1 #f2f1ed as the slightly-sunken panel. */
     --bg:        #f7f7f4;   /* --color-bg / primary surface */
-    --panel:     #ffffff;   /* elevated card */
-    --panel-2:   #f2f1ed;   /* --color-bg-1, subtle warm offset */
+    --panel:     #f2f1ed;   /* --color-bg-1 / sunken card (60 painted instances) */
+    --panel-2:   #ebeae5;   /* --color-bg-5 / one step deeper */
     /* lines */
     --line:      #d9d5cf;   /* --color-bg-2 / --color-neutral-300 */
     --line-2:    #e6e5e0;

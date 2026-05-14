@@ -10,11 +10,12 @@ A Claude Code wrapper skill that turns any website URL into a polished, self-ref
 
 <table>
 <tr>
-<td width="20%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html"><b>▶ Langfuse</b></a></td>
-<td width="20%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/ableton/ableton-design-system.html"><b>▶ Ableton</b></a></td>
-<td width="20%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html"><b>▶ Claude</b></a></td>
-<td width="20%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/utrecht/utrecht-design-system.html"><b>▶ Utrecht</b></a></td>
-<td width="20%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/cursor/cursor-design-system.html"><b>▶ Cursor</b></a></td>
+<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html"><b>▶ Langfuse</b></a></td>
+<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/ableton/ableton-design-system.html"><b>▶ Ableton</b></a></td>
+<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html"><b>▶ Claude</b></a></td>
+<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/utrecht/utrecht-design-system.html"><b>▶ Utrecht</b></a></td>
+<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/cursor/cursor-design-system.html"><b>▶ Cursor</b></a></td>
+<td width="16%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/mistral/mistral-design-system.html"><b>▶ Mistral</b></a></td>
 </tr>
 <tr>
 <td><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html"><img src="docs/before-after/langfuse/hero-after.png" alt="Langfuse demo — warm beige, yellow accent, shadcn" /></a></td>
@@ -22,6 +23,7 @@ A Claude Code wrapper skill that turns any website URL into a polished, self-ref
 <td><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html"><img src="docs/before-after/claude/hero.png" alt="Claude demo — warm bone, EB Garamond italic, Tailwind" /></a></td>
 <td><a href="https://nmtrang29.github.io/extract-design-system/examples/utrecht/utrecht-design-system.html"><img src="docs/before-after/utrecht/hero.png" alt="Utrecht demo — minimal red on white, gray hairlines, Shopify storefront" /></a></td>
 <td><a href="https://nmtrang29.github.io/extract-design-system/examples/cursor/cursor-design-system.html"><img src="docs/before-after/cursor/hero.png" alt="Cursor demo — warm bone, no chromatic accent, EB Garamond italic for editorial emphasis, Berkeley Mono metadata" /></a></td>
+<td><a href="https://nmtrang29.github.io/extract-design-system/examples/mistral/mistral-design-system.html"><img src="docs/before-after/mistral/hero.png" alt="Mistral demo — beige cream, orange accent, signature six-stripe footer band, brutalist 0-radius" /></a></td>
 </tr>
 </table>
 
