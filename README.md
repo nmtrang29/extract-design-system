@@ -8,7 +8,7 @@ A Claude Code skill that extracts DESIGN.md from any URL, with a truthful previe
 
 Main issues I encounter with a couple of DESIGN.md / design system extraction tools 
 
-1. **No visual fidelity**: Design system preview doesn’t reflect the original brand, tokens, or patterns. Making it hard to visualise unless you're familiar with the source.  
+1. **No visual fidelity**: Design system preview doesn’t reflect the original brand, tokens, or patterns. Making it hard to visualise/verify unless you're familiar with the source.  
 2. **Token ≠ reality**: Real usage sometimes diverges from detected values  
 
 ---
