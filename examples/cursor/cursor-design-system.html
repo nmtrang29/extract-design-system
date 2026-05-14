@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cursor — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- CursorGothic is licensed; falls back to Inter. EB Garamond italic is free. Berkeley Mono is licensed; falls back to JetBrains Mono. -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=EB+Garamond:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ===============================================================
+     THEME — mapped from cursor-com-variables.css
+     Per the WCAG accent rule: Cursor has no chromatic accent —
+     --color-secondary (#26251e) is the brand-defining warm-dark and
+     also the most-used DOM color (1389 elements). It serves as both
+     --ink AND any visual accent. No inline emphasis pills (cursor.com
+     doesn't use them; not invented here).
+     =============================================================== */
+  :root {
+    /* surfaces — Cursor's warm-bone system */
+    --bg:        #f7f7f4;   /* --color-bg / primary surface */
+    --panel:     #ffffff;   /* elevated card */
+    --panel-2:   #f2f1ed;   /* --color-bg-1, subtle warm offset */
+    /* lines */
+    --line:      #d9d5cf;   /* --color-bg-2 / --color-neutral-300 */
+    --line-2:    #e6e5e0;
+    /* text — DOM-most-used wins: #26251e on 1389 elements */
+    --ink:       #26251e;   /* --color-text-1 / warm near-black */
+    --ink-2:     #4a443b;   /* --color-neutral-400 / warm muted */
+    --ink-3:     #b6b9be;   /* --color-neutral-500 / cool muted */
+    --ink-4:     #3c3935;
+    /* accent — same as ink. Cursor has no chromatic accent. */
+    --accent:    #26251e;
+    --link:      #26251e;
+    /* status — only success token exists (#1f8a65) */
+    --good:      #1f8a65;
+    --warn:      #e09d00;
+    --bad:       #cc3314;
+    /* radii — detected {2, 8, 12} */
+    --radius-control: 2px;
+    --radius-card:    8px;
+    --radius-lg:      12px;
+  }
+  [data-theme="dark"] {
+    /* Cursor ships theme tokens — dark variant inverted from same family */
+    --bg:        #141414;
+    --panel:     #1f1d18;
+    --panel-2:   #26251e;
+    --line:      #3c3935;
+    --line-2:    #4a443b;
+    --ink:       #f7f7f4;
+    --ink-2:     #d9d5cf;
+    --ink-3:     #b6b9be;
+    --ink-4:     #4a443b;
+    --accent:    #f7f7f4;
+    --link:      #f7f7f4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'CursorGothic', 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'Berkeley Mono', 'JetBrains Mono', ui-monospace, monospace; }
+  .serif-italic { font-family: 'EB Garamond', Georgia, serif; font-style: italic; }
+
+  /* ============== LAYOUT ============== */
+  :root { --sidebar-w: 248px; }
+  .shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 28px 96px;
+    padding-left: calc(var(--sidebar-w) + 40px);
+  }
+
+  /* ============== SIDEBAR ============== */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--bg);
+    border-right: 1px solid var(--line);
+    display: flex; flex-direction: column;
+    z-index: 40;
+  }
+  .sidebar-head { padding: 24px 22px 16px; border-bottom: 1px solid var(--line-2); }
+  .sidebar-head .brand { font-weight: 500; font-size: 14px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+  .sidebar-head .brand .mark { width: 16px; height: 16px; background: var(--ink); display: inline-flex; align-items: center; justify-content: center; color: var(--bg); font-size: 9px; font-weight: 700; }
+  .sidebar-head .sub { color: var(--ink-3); font-size: 12px; margin-top: 6px; font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; }
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 14px 12px 20px; }
+  .nav-group { margin-top: 14px; }
+  .nav-group:first-child { margin-top: 0; }
+  .nav-group .label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-3); font-weight: 600;
+    padding: 6px 12px;
+  }
+  .sidebar-nav a {
+    display: block; color: var(--ink-2); text-decoration: none;
+    font-size: 13px; font-weight: 400;
+    padding: 6px 12px; border-radius: var(--radius-control);
+    transition: 120ms;
+  }
+  .sidebar-nav a:hover, .sidebar-nav a.active { color: var(--ink); background: var(--panel-2); }
+  .sidebar-foot { border-top: 1px solid var(--line-2); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .sidebar-foot .ver { font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3); }
+  .toggle { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 6px 10px; border-radius: var(--radius-control); cursor: pointer; font-size: 12px; font-family: inherit; }
+  .toggle:hover { background: var(--panel-2); border-color: var(--ink-2); }
+
+  /* ============== HERO ============== */
+  .hero {
+    margin-top: 28px;
+    padding: 56px 40px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    background: var(--panel);
+    box-shadow: rgba(0, 0, 0, 0.02) 0px 0px 16px 0px, rgba(0, 0, 0, 0.008) 0px 0px 8px 0px;
+    position: relative;
+  }
+  .hero .eyebrow {
+    color: var(--ink-3); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; font-weight: 600;
+    font-family: 'Berkeley Mono', 'JetBrains Mono', monospace;
+  }
+  .hero h1 {
+    font-size: clamp(40px, 5vw, 72px);
+    line-height: 1.05; font-weight: 400; letter-spacing: -0.025em;
+    margin: 16px 0 20px;
+    max-width: 720px;
+  }
+  /* NOTE: cursor.com does NOT use inline emphasis. Per the updated rule,
+     no <em> is inserted here. The serif italic is reserved for editorial
+     callouts (used elsewhere in the page where the source does use it). */
+  .hero .source {
+    color: var(--ink-2); font-size: 12px;
+    font-family: 'Berkeley Mono', 'JetBrains Mono', monospace;
+    margin-top: 12px;
+  }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 28px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--ink-2); padding: 4px 10px;
+    border-radius: var(--radius-control); font-size: 12px;
+  }
+  .badge b { color: var(--ink); font-weight: 500; }
+  .badge .pip { width: 6px; height: 6px; border-radius: 999px; background: var(--ink-2); }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 24px; }
+  .stat { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-card); padding: 14px 16px; }
+  .stat .v { font-size: 32px; font-weight: 400; letter-spacing: -0.02em; line-height: 1; }
+  .stat .l { color: var(--ink-3); font-size: 10px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; }
+  .stat .v.good { color: var(--good); }
+
+  /* ============== SECTIONS ============== */
+  section { margin-top: 64px; scroll-margin-top: 80px; }
+  .section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 36px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; }
+  .section-head .sub { color: var(--ink-2); font-size: 14px; max-width: 540px; line-height: 1.5; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius-card); padding: 24px;
+  }
+  .panel + .panel { margin-top: 10px; }
+  .panel h3 { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 14px; font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .grid-6 { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+
+  /* ============== SWATCHES ============== */
+  .swatch { border-radius: var(--radius-control); overflow: hidden; background: var(--panel-2); border: 1px solid var(--line); }
+  .swatch .chip { height: 76px; }
+  .swatch .meta { padding: 9px 12px; }
+  .swatch .hex { font-size: 12px; font-weight: 500; font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; }
+  .swatch .role { color: var(--ink-3); font-size: 11px; margin-top: 2px; }
+  .swatch .use { color: var(--ink-3); font-size: 10.5px; margin-top: 2px; }
+  .swatch.lg .chip { height: 120px; }
+
+  /* ============== TYPE SCALE ============== */
+  .type-row {
+    display: grid; grid-template-columns: 100px 1fr auto;
+    align-items: baseline; gap: 18px;
+    padding: 14px 0; border-bottom: 1px solid var(--line-2);
+  }
+  .type-row:last-child { border: 0; }
+  .type-row .size-col { display: flex; flex-direction: column; gap: 4px; align-self: center; }
+  .type-row .size { font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; color: var(--ink-3); font-size: 12px; }
+  .type-row .font { color: var(--ink-3); font-size: 11px; line-height: 1.3; }
+  .type-row .font b { color: var(--ink-2); font-weight: 500; }
+  .type-row .sample { color: var(--ink); letter-spacing: -0.01em; }
+  .type-row .meta { color: var(--ink-3); font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; font-size: 11px; }
+
+  /* ============== COMPONENTS PREVIEW ============== */
+  .preview-frame {
+    background: var(--bg); color: var(--ink);
+    border-radius: var(--radius-card); padding: 40px 32px;
+    border: 1px solid var(--line);
+  }
+  .comp-block { scroll-margin-top: 24px; padding: 8px 0; }
+  .comp-block + .comp-block { border-top: 1px solid var(--line); padding-top: 28px; margin-top: 28px; }
+  .comp-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .comp-head h3 { font-family: inherit; color: var(--ink); font-size: 20px; font-weight: 400; letter-spacing: -0.01em; text-transform: none; }
+  .comp-meta { font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; color: var(--ink-3); font-size: 11px; }
+  .pv-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 0; }
+
+  /* Cursor primitives */
+  .c-btn {
+    font-family: inherit; font-weight: 500;
+    border-radius: var(--radius-control);
+    padding: 8px 14px; font-size: 13px;
+    cursor: pointer; border: 1px solid transparent;
+    transition: 150ms;
+    display: inline-flex; align-items: center; gap: 6px;
+    line-height: 1.2;
+  }
+  .c-btn[data-variant="primary"]   { background: #26251e; color: #f7f7f4; }
+  .c-btn[data-variant="primary"]:hover { background: #050503; }
+  .c-btn[data-variant="secondary"] { background: var(--panel); color: var(--ink); border-color: var(--line); }
+  .c-btn[data-variant="secondary"]:hover { background: var(--panel-2); border-color: var(--ink-2); }
+  .c-btn[data-variant="ghost"]     { background: transparent; color: var(--ink); }
+  .c-btn[data-variant="ghost"]:hover { background: var(--panel-2); }
+
+  .c-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 24px;
+    transition: 200ms;
+    box-shadow: rgba(0, 0, 0, 0.02) 0px 0px 16px 0px;
+  }
+  .c-card:hover { border-color: var(--ink-3); }
+  .c-card h4 { font-size: 16px; font-weight: 500; margin-bottom: 6px; letter-spacing: -0.005em; }
+  .c-card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .c-card .price { font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: 28px; font-weight: 400; color: var(--ink); }
+  .c-card .price .unit { font-size: 13px; font-style: normal; font-family: inherit; color: var(--ink-3); }
+
+  .c-input {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius-control); padding: 8px 12px;
+    font: 14px inherit; color: var(--ink);
+    width: 240px; max-width: 100%; transition: 150ms;
+  }
+  .c-input::placeholder { color: var(--ink-3); }
+  .c-input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 2px var(--panel-2); }
+  .c-input-label { display: block; font-size: 11px; color: var(--ink-2); margin-bottom: 6px; font-weight: 500; font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .c-link { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--ink-3); font-weight: 500; font-size: 14px; }
+  .c-link:hover { text-decoration-color: var(--ink); }
+
+  .c-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border-radius: var(--radius-control);
+    font: 500 11px 'Berkeley Mono', 'JetBrains Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2);
+  }
+  .c-badge[data-variant="solid"]  { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .c-badge[data-variant="good"]   { background: rgba(31, 138, 101, 0.1); color: var(--good); border-color: rgba(31, 138, 101, 0.25); }
+  .c-badge .pip { width: 6px; height: 6px; border-radius: 999px; background: currentColor; opacity: 0.8; }
+
+  .c-tabs { display: inline-flex; background: var(--panel-2); border-radius: var(--radius-control); padding: 3px; gap: 2px; border: 1px solid var(--line); }
+  .c-tabs button { background: transparent; border: 0; padding: 6px 14px; border-radius: var(--radius-control); font: 500 13px inherit; color: var(--ink-2); cursor: pointer; }
+  .c-tabs button.active { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+
+  .c-nav {
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 28px;
+    font: 500 13px inherit; color: var(--ink); flex-wrap: wrap;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+  }
+  .c-nav-brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+  .c-nav-brand .mark { width: 18px; height: 18px; background: var(--ink); display: inline-flex; align-items: center; justify-content: center; color: var(--bg); font-size: 10px; font-weight: 700; }
+  .c-nav a { color: var(--ink-2); text-decoration: none; font-weight: 400; }
+  .c-nav a:hover { color: var(--ink); }
+  .c-nav-spacer { flex: 1; }
+
+  .c-comparison {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px; background: var(--line); border: 1px solid var(--line);
+    border-radius: var(--radius-card); overflow: hidden;
+  }
+  .c-comparison .col { background: var(--panel); padding: 24px; }
+  .c-comparison .col h4 { font-size: 13px; font-weight: 500; margin-bottom: 8px; font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+  .c-comparison .col h4.featured { color: var(--ink); }
+  .c-comparison .col h4.muted { color: var(--ink-3); }
+  .c-comparison .col p { font-size: 13px; color: var(--ink-2); margin-bottom: 4px; }
+  .c-comparison .col .check { color: var(--good); margin-right: 4px; }
+
+  .c-footer {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 32px 28px 24px;
+    display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 32px;
+    font: 400 13px inherit; color: var(--ink-2);
+  }
+  .c-footer .brand { display: flex; flex-direction: column; gap: 10px; }
+  .c-footer .brand .name { font-weight: 500; color: var(--ink); font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .c-footer .brand p { color: var(--ink-2); font-size: 13px; line-height: 1.5; max-width: 280px; }
+  .c-footer h5 { font: 600 10px 'Berkeley Mono', 'JetBrains Mono', monospace; color: var(--ink); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+  .c-footer ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .c-footer a { color: var(--ink-2); text-decoration: none; }
+  .c-footer a:hover { color: var(--ink); }
+
+  /* Voice section */
+  .quote { font-size: 28px; letter-spacing: -0.015em; line-height: 1.2; color: var(--ink); white-space: pre-line; font-weight: 400; }
+  .quote-row { padding: 18px 0; border-bottom: 1px solid var(--line-2); }
+  .quote-row:last-child { border: 0; }
+  .quote .editorial { font-family: 'EB Garamond', Georgia, serif; font-style: italic; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .verb-tag { background: var(--panel-2); border: 1px solid var(--line); padding: 5px 10px; border-radius: var(--radius-control); font-size: 12px; color: var(--ink-2); display: inline-flex; align-items: center; gap: 8px; font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; }
+  .verb-tag .c { color: var(--ink-3); font-size: 11px; }
+
+  /* KV / dl */
+  .kv { display: grid; grid-template-columns: max-content 1fr; column-gap: 16px; row-gap: 8px; font-size: 13px; }
+  .kv dt { color: var(--ink-3); }
+  .kv dd { color: var(--ink); }
+
+  /* Spacing visualization */
+  .space-row { display: grid; grid-template-columns: 80px 1fr 60px; align-items: center; gap: 14px; padding: 7px 0; }
+  .space-row .lbl { font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-2); }
+  .space-row .bar { background: var(--ink); height: 18px; border-radius: var(--radius-control); }
+  .space-row .ratio { color: var(--ink-3); font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; font-size: 11px; text-align: right; }
+
+  /* Radii */
+  .radius-item { width: 80px; height: 80px; background: var(--panel-2); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--ink); font-weight: 500; font-size: 12px; font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; }
+
+  /* Shadows demo */
+  .shadow-card { background: var(--panel); color: var(--ink); border-radius: var(--radius-card); padding: 24px; text-align: center; min-height: 96px; display: flex; align-items: center; justify-content: center; font: 12px 'Berkeley Mono', 'JetBrains Mono', monospace; }
+
+  /* A11y */
+  .a11y-hero { display: flex; align-items: center; gap: 24px; }
+  .a11y-score { font-size: 68px; font-weight: 400; letter-spacing: -0.04em; line-height: 1; color: var(--good); font-family: 'EB Garamond', Georgia, serif; font-style: italic; }
+  .a11y-row { display: grid; grid-template-columns: 140px 1fr 60px 60px; align-items: center; gap: 14px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-control); margin-top: 6px; font-size: 13px; }
+  .a11y-sample { padding: 6px 14px; border-radius: var(--radius-control); font-weight: 500; text-align: center; }
+  .a11y-mono { font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; color: var(--ink-3); font-size: 11px; }
+  .a11y-tag { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-control); text-align: center; letter-spacing: 0.05em; font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; }
+  .a11y-tag.pass { background: rgba(31, 138, 101, 0.15); color: var(--good); }
+  .a11y-tag.fail { background: rgba(204, 51, 20, 0.15); color: var(--bad); }
+
+  /* Layout map */
+  .layout-bar { display: grid; grid-template-columns: 110px 1fr 60px; align-items: center; gap: 12px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-control); font-size: 13px; }
+  .layout-bar .role { font-weight: 500; color: var(--ink); display: flex; align-items: center; gap: 7px; font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; font-size: 11px; }
+  .layout-bar .role::before { content: ''; width: 6px; height: 6px; border-radius: 2px; background: var(--role-color, var(--ink-3)); }
+  .layout-bar .heading { color: var(--ink-2); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .layout-bar .conf { color: var(--ink-3); font-family: 'Berkeley Mono', 'JetBrains Mono', monospace; font-size: 11px; text-align: right; }
+
+  @media (max-width: 960px) {
+    .shell { padding-left: 28px; }
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+
+<body data-theme="light">
+
+<aside class="sidebar">
+  <div class="sidebar-head">
+    <div class="brand"><span class="mark">C</span> Cursor Design System</div>
+    <div class="sub">cursor.com</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="label">Overview</div>
+      <a href="#top">At a glance</a>
+    </div>
+    <div class="nav-group">
+      <div class="label">Foundations</div>
+      <a href="#colors">Colors</a>
+      <a href="#typography">Typography</a>
+      <a href="#spacing">Spacing</a>
+      <a href="#shadows">Shadows &amp; radii</a>
+      <a href="#icons">Icons</a>
+    </div>
+    <div class="nav-group">
+      <div class="label">Components</div>
+      <a href="#comp-buttons">Buttons</a>
+      <a href="#comp-cards">Cards</a>
+      <a href="#comp-inputs">Inputs</a>
+      <a href="#comp-badges">Badges</a>
+      <a href="#comp-tabs">Tabs</a>
+      <a href="#comp-comparison">Comparison</a>
+      <a href="#comp-navigation">Navigation</a>
+      <a href="#comp-footer">Footer</a>
+    </div>
+    <div class="nav-group">
+      <div class="label">Voice &amp; structure</div>
+      <a href="#voice">Voice &amp; content</a>
+      <a href="#layout">Page anatomy</a>
+    </div>
+    <div class="nav-group">
+      <div class="label">Audit</div>
+      <a href="#a11y">Accessibility</a>
+    </div>
+  </nav>
+  <div class="sidebar-foot">
+    <span class="ver">v12.10.0</span>
+    <button class="toggle">◐ Theme</button>
+  </div>
+</aside>
+
+<div class="shell" id="top">
+
+  <div class="hero">
+    <div class="eyebrow">Design Language Extracted</div>
+    <h1>Cursor is the best way to code with AI.</h1>
+    <div class="source">https://cursor.com/ · 5,932 elements · 2026-05-14</div>
+    <div class="badges">
+      <span class="badge"><span class="pip"></span> Intent: <b>landing</b> · 0.31</span>
+      <span class="badge"><span class="pip"></span> Library: <b>tailwindcss</b> · 0.76</span>
+      <span class="badge"><span class="pip"></span> Material: <b>flat</b></span>
+      <span class="badge"><span class="pip"></span> Voice: <b>neutral</b></span>
+      <span class="badge"><span class="pip"></span> Headings: <b>Sentence case · tight</b></span>
+      <span class="badge"><span class="pip"></span> Stack: <b>self-hosted fonts (17 files)</b></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">24</div><div class="l">Colors</div></div>
+      <div class="stat"><div class="v">4</div><div class="l">Font families</div></div>
+      <div class="stat"><div class="v">14</div><div class="l">Spacing</div></div>
+      <div class="stat"><div class="v">9</div><div class="l">Shadows</div></div>
+      <div class="stat"><div class="v">3</div><div class="l">Radii</div></div>
+      <div class="stat"><div class="v">13</div><div class="l">Components</div></div>
+      <div class="stat"><div class="v">28</div><div class="l">Icons</div></div>
+      <div class="stat"><div class="v good">82%</div><div class="l">WCAG score</div></div>
+    </div>
+  </div>
+
+  <!-- COLORS -->
+  <section id="colors">
+    <div class="section-head">
+      <h2>Color palette</h2>
+      <div class="sub">24 unique colors. Warm-bone surface system anchored on <span class="mono">#f7f7f4</span> with near-black warm-toned <span class="mono">#26251e</span> as the dominant text color. No chromatic accent — emphasis lives in editorial italics (EB Garamond) and the mono family (Berkeley Mono).</div>
+    </div>
+
+    <div class="panel">
+      <h3>Brand</h3>
+      <div class="grid-3">
+        <div class="swatch lg"><div class="chip" style="background:#f7f7f4"></div><div class="meta"><div class="hex">#f7f7f4</div><div class="role">Primary · page surface</div><div class="use">133 uses</div></div></div>
+        <div class="swatch lg"><div class="chip" style="background:#26251e"></div><div class="meta"><div class="hex">#26251e</div><div class="role">Secondary · warm-dark text/ink</div><div class="use">2847 uses</div></div></div>
+        <div class="swatch lg"><div class="chip" style="background:#e6e5e0"></div><div class="meta"><div class="hex">#e6e5e0</div><div class="role">Accent · warm light surface</div><div class="use">26 uses</div></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Neutrals &amp; surfaces</h3>
+      <div class="grid-6">
+        <div class="swatch"><div class="chip" style="background:#f7f7f4"></div><div class="meta"><div class="hex">#f7f7f4</div><div class="role">bg / page</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#f2f1ed"></div><div class="meta"><div class="hex">#f2f1ed</div><div class="role">bg-1 / muted</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#ebeae5"></div><div class="meta"><div class="hex">#ebeae5</div><div class="role">bg-5</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#e6e5e0"></div><div class="meta"><div class="hex">#e6e5e0</div><div class="role">bg-4 / accent</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#d9d5cf"></div><div class="meta"><div class="hex">#d9d5cf</div><div class="role">bg-2 / line</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#b6b9be"></div><div class="meta"><div class="hex">#b6b9be</div><div class="role">bg-3 / cool gray</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#4a443b"></div><div class="meta"><div class="hex">#4a443b</div><div class="role">neutral-400</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#3c3935"></div><div class="meta"><div class="hex">#3c3935</div><div class="role">neutral-600</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#26251e"></div><div class="meta"><div class="hex">#26251e</div><div class="role">text-1 · 2,847×</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#141414"></div><div class="meta"><div class="hex">#141414</div><div class="role">neutral-100</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#050503"></div><div class="meta"><div class="hex">#050503</div><div class="role">neutral-50 / text-3</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#1f8a65"></div><div class="meta"><div class="hex">#1f8a65</div><div class="role">text-4 · success</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TYPOGRAPHY -->
+  <section id="typography">
+    <div class="section-head">
+      <h2>Typography</h2>
+      <div class="sub"><b>CursorGothic</b> handles the heavy lifting (1,262 uses). <span class="serif-italic">EB Garamond italic</span> is reserved for editorial pull-quotes and price callouts. <span class="mono">Berkeley Mono</span> is the eyebrow/metadata mono.</div>
+    </div>
+
+    <div class="panel">
+      <h3>Font families</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <span class="verb-tag">CursorGothic <span class="c">1262×</span></span>
+        <span class="verb-tag">Berkeley Mono <span class="c">258×</span></span>
+        <span class="verb-tag">EB Garamond <span class="c">158×</span></span>
+        <span class="verb-tag">Lato <span class="c">71×</span></span>
+        <span class="verb-tag">CursorIcons16 <span class="c">icon font</span></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Type scale · 14 sizes detected</h3>
+      <div class="type-row">
+        <span class="size-col"><span class="size">72px</span><span class="font"><b>CursorGothic</b> · display</span></span>
+        <span class="sample" style="font-size:54px;font-weight:400;line-height:1.05">Built to make you productive</span>
+        <span class="meta">400 · lh 79.2 · H1</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">36px</span><span class="font"><b>CursorGothic</b> · display</span></span>
+        <span class="sample" style="font-size:36px;font-weight:400;line-height:1.2">Trusted every day</span>
+        <span class="meta">400 · lh 43.2 · H2</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">28px</span><span class="font" style="font-family:'EB Garamond',serif;font-style:italic"><b>EB Garamond</b> · editorial</span></span>
+        <span class="sample" style="font-size:28px;font-weight:400;font-family:'EB Garamond',serif;font-style:italic">Pricing — pay as you grow</span>
+        <span class="meta">400i · serif</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">26px</span><span class="font"><b>CursorGothic</b> · H3</span></span>
+        <span class="sample" style="font-size:26px;font-weight:400">Built for power users</span>
+        <span class="meta">400 · lh 32.5 · H3</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">22px</span><span class="font"><b>CursorGothic</b> · H4</span></span>
+        <span class="sample" style="font-size:22px;font-weight:400">Section heading</span>
+        <span class="meta">400 · lh 28.6 · H4</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">14px</span><span class="font"><b>CursorGothic</b> · body</span></span>
+        <span class="sample" style="font-size:14px;font-weight:400">Cursor is built on a fork of VS Code, giving you an editor you already know — supercharged.</span>
+        <span class="meta">400 · lh 21</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">12px</span><span class="font"><b>CursorGothic</b> · base</span></span>
+        <span class="sample" style="font-size:12px;font-weight:400">Default body size · used widely</span>
+        <span class="meta">400 · lh 16 · base</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">12px</span><span class="font"><b>Berkeley Mono</b> · meta</span></span>
+        <span class="sample mono" style="font-size:12px;font-weight:400">npm install -g cursor</span>
+        <span class="meta">400 · code</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">10px</span><span class="font"><b>Berkeley Mono</b> · eyebrow</span></span>
+        <span class="sample mono" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em">FEATURED</span>
+        <span class="meta">600 · uppercase</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPACING -->
+  <section id="spacing">
+    <div class="section-head">
+      <h2>Spacing scale</h2>
+      <div class="sub">14 detected spacing values. No standard 4/8 base — the scale jumps in section-level chunks (28, 45, 48, 52, 56, 64, 67, 90, 101…) suggesting hand-tuned vertical rhythm.</div>
+    </div>
+    <div class="panel">
+      <div class="space-row"><span class="lbl">s0 · 0px</span><div class="bar" style="width:1px;min-width:1px"></div><span class="ratio">none</span></div>
+      <div class="space-row"><span class="lbl">s1 · 28px</span><div class="bar" style="width:56px"></div><span class="ratio">7×</span></div>
+      <div class="space-row"><span class="lbl">s2 · 45px</span><div class="bar" style="width:90px"></div><span class="ratio">11×</span></div>
+      <div class="space-row"><span class="lbl">s3 · 48px</span><div class="bar" style="width:96px"></div><span class="ratio">12×</span></div>
+      <div class="space-row"><span class="lbl">s4 · 52px</span><div class="bar" style="width:104px"></div><span class="ratio">13×</span></div>
+      <div class="space-row"><span class="lbl">s5 · 56px</span><div class="bar" style="width:112px"></div><span class="ratio">14×</span></div>
+      <div class="space-row"><span class="lbl">s6 · 64px</span><div class="bar" style="width:128px"></div><span class="ratio">16×</span></div>
+      <div class="space-row"><span class="lbl">s7 · 67px</span><div class="bar" style="width:134px"></div><span class="ratio">17×</span></div>
+      <div class="space-row"><span class="lbl">s8 · 90px</span><div class="bar" style="width:180px"></div><span class="ratio">22×</span></div>
+      <div class="space-row"><span class="lbl">s9 · 101px</span><div class="bar" style="width:202px"></div><span class="ratio">25×</span></div>
+    </div>
+  </section>
+
+  <!-- SHADOWS & RADII -->
+  <section id="shadows">
+    <div class="section-head">
+      <h2>Elevation</h2>
+      <div class="sub">9 shadow tokens, including an oklab-encoded shadow (rare). The signature Cursor card has a soft 18px blur drop plus a 1px ring.</div>
+    </div>
+    <div class="panel">
+      <div class="grid-3">
+        <div class="shadow-card" style="box-shadow:rgba(0,0,0,0.02) 0px 0px 16px 0px, rgba(0,0,0,0.008) 0px 0px 8px 0px">sm · ambient</div>
+        <div class="shadow-card" style="box-shadow:rgba(0,0,0,0.1) 0px 10px 15px -3px, rgba(0,0,0,0.1) 0px 4px 6px -4px">md</div>
+        <div class="shadow-card" style="box-shadow:oklab(0.263 -0.002 0.012 / 0.1) 0px 0px 0px 1px, rgba(0,0,0,0.28) 0px 18px 36px -18px">lg · oklab ring</div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:32px">
+      <h2 id="radii">Border radii</h2>
+      <div class="sub">3-step scale: 2px (controls) · 8px (cards) · 12px (large containers).</div>
+    </div>
+    <div class="panel">
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:end">
+        <div style="text-align:center"><div class="radius-item" style="border-radius:2px">2px</div><div style="font-size:11px;color:var(--ink-3);margin-top:8px;font-family:'Berkeley Mono','JetBrains Mono',monospace">xs · controls</div></div>
+        <div style="text-align:center"><div class="radius-item" style="border-radius:8px">8px</div><div style="font-size:11px;color:var(--ink-3);margin-top:8px;font-family:'Berkeley Mono','JetBrains Mono',monospace">md · cards</div></div>
+        <div style="text-align:center"><div class="radius-item" style="border-radius:12px">12px</div><div style="font-size:11px;color:var(--ink-3);margin-top:8px;font-family:'Berkeley Mono','JetBrains Mono',monospace">lg · containers</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section id="components">
+    <div class="section-head">
+      <h2>Components</h2>
+      <div class="sub">13 detected patterns rendered live. Cursor's component set is dense: buttons, cards, inputs, links, navigation, footer, comparisons, plus a distinctive editorial-italic price label.</div>
+    </div>
+
+    <div class="preview-frame">
+
+      <div class="comp-block" id="comp-buttons">
+        <div class="comp-head"><h3>Buttons</h3><div class="comp-meta">3 variants · solid ink primary · ghost · outline secondary</div></div>
+        <div class="pv-row">
+          <button class="c-btn" data-variant="primary">Download for free</button>
+          <button class="c-btn" data-variant="secondary">See pricing</button>
+          <button class="c-btn" data-variant="ghost">Read docs ↗</button>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-cards">
+        <div class="comp-head"><h3>Cards · with editorial price</h3><div class="comp-meta">Soft ambient shadow · 8px radius · EB Garamond italic for pricing</div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+          <div class="c-card">
+            <h4>Hobby</h4>
+            <p>Best for individual learners.</p>
+            <div class="price" style="margin-top:14px">Free</div>
+          </div>
+          <div class="c-card">
+            <h4>Pro</h4>
+            <p>For professionals who need more power.</p>
+            <div class="price" style="margin-top:14px">$20<span class="unit"> / month</span></div>
+          </div>
+          <div class="c-card">
+            <h4>Business</h4>
+            <p>Privacy, security, and shared tooling.</p>
+            <div class="price" style="margin-top:14px">$40<span class="unit"> / user</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-inputs">
+        <div class="comp-head"><h3>Inputs</h3><div class="comp-meta">2px radius · focused ring uses subtle panel-tint, no chromatic glow</div></div>
+        <div class="pv-row" style="gap:20px;align-items:flex-start">
+          <div>
+            <label class="c-input-label">Email</label>
+            <input class="c-input" placeholder="you@company.com" />
+          </div>
+          <div>
+            <label class="c-input-label">Focused</label>
+            <input class="c-input" value="hello@cursor.com" autofocus />
+          </div>
+          <div>
+            <label class="c-input-label">Disabled</label>
+            <input class="c-input" placeholder="—" disabled style="opacity:0.5" />
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-badges">
+        <div class="comp-head"><h3>Badges</h3><div class="comp-meta">Berkeley Mono uppercase · 2px radius · status uses success-green</div></div>
+        <div class="pv-row">
+          <span class="c-badge">v0.43</span>
+          <span class="c-badge" data-variant="solid">New</span>
+          <span class="c-badge" data-variant="good"><span class="pip"></span> Live</span>
+          <span class="c-badge">MIT</span>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-tabs">
+        <div class="comp-head"><h3>Tabs</h3><div class="comp-meta">Segmented control with active panel surface</div></div>
+        <div class="pv-row">
+          <div class="c-tabs">
+            <button class="active">Agents</button>
+            <button>Tab completion</button>
+            <button>Code review</button>
+            <button>Cloud</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-comparison">
+        <div class="comp-head"><h3>Comparison · feature matrix</h3><div class="comp-meta">3 detected on cursor.com landing · grid with hairline dividers</div></div>
+        <div class="c-comparison">
+          <div class="col">
+            <h4 class="muted">Other editors</h4>
+            <p>Single-file context</p>
+            <p>Limited model access</p>
+            <p>Manual setup</p>
+          </div>
+          <div class="col">
+            <h4 class="featured">Cursor</h4>
+            <p><span class="check">✓</span> Full codebase context</p>
+            <p><span class="check">✓</span> Frontier models built-in</p>
+            <p><span class="check">✓</span> Works on day one</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-navigation">
+        <div class="comp-head"><h3>Navigation</h3><div class="comp-meta">5 detected nav regions · top bar + sticky on scroll</div></div>
+        <div class="c-nav">
+          <div class="c-nav-brand"><span class="mark">C</span> Cursor</div>
+          <a>Product</a>
+          <a>Pricing</a>
+          <a>Enterprise</a>
+          <a>Customers</a>
+          <a>Docs</a>
+          <span class="c-nav-spacer"></span>
+          <a style="color:var(--ink-3)">Sign in</a>
+          <button class="c-btn" data-variant="primary">Download</button>
+        </div>
+      </div>
+
+      <div class="comp-block" id="comp-footer">
+        <div class="comp-head"><h3>Footer</h3><div class="comp-meta">4-column · Berkeley Mono headings · disciplined</div></div>
+        <div class="c-footer">
+          <div class="brand">
+            <div class="name"><span style="display:inline-flex;width:18px;height:18px;background:var(--ink);color:var(--bg);align-items:center;justify-content:center;font-size:10px;font-weight:700">C</span> Cursor</div>
+            <p>The best way to code with AI. Built on a fork of VS Code with frontier models integrated end-to-end.</p>
+          </div>
+          <div><h5>Product</h5><ul><li><a>Agents</a></li><li><a>Tab</a></li><li><a>Cloud</a></li><li><a>Pricing</a></li><li><a>Changelog</a></li></ul></div>
+          <div><h5>Resources</h5><ul><li><a>Docs</a></li><li><a>Forum</a></li><li><a>Blog</a></li><li><a>Models</a></li><li><a>MCP</a></li></ul></div>
+          <div><h5>Company</h5><ul><li><a>About</a></li><li><a>Careers</a></li><li><a>Contact</a></li><li><a>Privacy</a></li><li><a>Security</a></li></ul></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- VOICE -->
+  <section id="voice">
+    <div class="section-head">
+      <h2>Voice &amp; content</h2>
+      <div class="sub">Neutral, tight Sentence-case headings. The voice leans editorial — short declarative statements; the serif italic (<span class="serif-italic">EB Garamond</span>) shows up for emphasis where most sites would use a colored pill.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="panel">
+        <h3>Sample headings</h3>
+        <div class="quote-row"><div class="quote">Cursor is the best way
+to code with AI.</div></div>
+        <div class="quote-row"><div class="quote">Built to make you
+<span class="editorial">extraordinarily</span> productive.</div></div>
+        <div class="quote-row"><div class="quote">Trusted every day by teams
+that build world-class software.</div></div>
+        <div class="quote-row"><div class="quote">Tab. Apply. Repeat.</div></div>
+      </div>
+      <div>
+        <div class="panel">
+          <h3>CTA verbs</h3>
+          <div class="tag-row">
+            <span class="verb-tag">download <span class="c">12×</span></span>
+            <span class="verb-tag">try <span class="c">5×</span></span>
+            <span class="verb-tag">see <span class="c">4×</span></span>
+            <span class="verb-tag">read <span class="c">3×</span></span>
+            <span class="verb-tag">get <span class="c">3×</span></span>
+            <span class="verb-tag">join <span class="c">2×</span></span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Voice metadata</h3>
+          <dl class="kv">
+            <dt>Tone</dt><dd>Neutral</dd>
+            <dt>Heading case</dt><dd>Sentence case</dd>
+            <dt>Heading length</dt><dd>Tight</dd>
+            <dt>Emphasis style</dt><dd>EB Garamond italic (no chromatic pill)</dd>
+            <dt>Buttons detected</dt><dd>92</dd>
+            <dt>Headings detected</dt><dd>47</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE ANATOMY -->
+  <section id="layout">
+    <div class="section-head">
+      <h2>Page anatomy</h2>
+      <div class="sub">23 sections in reading order. Cursor's homepage is unusually structured — 4 feature-grids, 2 testimonial sections, 3 comparison tables, all separated by content prose.</div>
+    </div>
+    <div class="panel">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div class="layout-bar" style="--role-color:#26251e"><span class="role">cta</span><span class="heading">Trusted every day · 7 buttons</span><span class="conf mono">0.75</span></div>
+        <div class="layout-bar" style="--role-color:#4a443b"><span class="role">nav</span><span class="heading">Product · Agents · Code Review · Cloud · Tab · Docs</span><span class="conf mono">0.90</span></div>
+        <div class="layout-bar"><span class="role">content</span><span class="heading">"Built to make you extraordinarily productive"</span><span class="conf mono">0.30</span></div>
+        <div class="layout-bar" style="--role-color:#26251e"><span class="role">comparison</span><span class="heading">Other editors vs Cursor — ×3 grids</span><span class="conf mono">0.85</span></div>
+        <div class="layout-bar" style="--role-color:#26251e"><span class="role">feature-grid</span><span class="heading">"Tab. Apply. Repeat." — feature breakdown ×4</span><span class="conf mono">0.80</span></div>
+        <div class="layout-bar"><span class="role">testimonial</span><span class="heading">Customer logos + quotes ×2</span><span class="conf mono">0.80</span></div>
+        <div class="layout-bar" style="--role-color:#4a443b"><span class="role">hero</span><span class="heading">Pricing block · Hobby / Pro / Business</span><span class="conf mono">0.40</span></div>
+        <div class="layout-bar"><span class="role">footer</span><span class="heading">4 columns · 32 links</span><span class="conf mono">0.95</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- A11Y -->
+  <section id="a11y">
+    <div class="section-head">
+      <h2>Accessibility</h2>
+      <div class="sub">82% WCAG contrast score. 2 detected pairs fail AA — both involve cool-gray <span class="mono">#b6b9be</span> as text on the warm bg.</div>
+    </div>
+    <div class="panel">
+      <div class="a11y-hero">
+        <div class="a11y-score">82%</div>
+        <div>
+          <div style="font-weight:500;font-size:15px;color:var(--ink)">WCAG contrast score</div>
+          <div style="color:var(--ink-3);font-size:13px;margin-top:4px;font-family:'Berkeley Mono','JetBrains Mono',monospace">9 passing · 2 failing pairs</div>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#f7f7f4;color:#26251e">Aa Sample</div>
+          <div class="a11y-mono">#26251e on #f7f7f4 · 1389×</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">12.7:1</span>
+          <span class="a11y-tag pass">AAA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#f7f7f4;color:#4a443b">Aa Sample</div>
+          <div class="a11y-mono">#4a443b on #f7f7f4 · 412×</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">7.9:1</span>
+          <span class="a11y-tag pass">AAA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#f7f7f4;color:#b6b9be">Aa Sample</div>
+          <div class="a11y-mono">#b6b9be on #f7f7f4 · 34×</div>
+          <span class="mono" style="font-size:12px;color:var(--ink-2)">2.2:1</span>
+          <span class="a11y-tag fail">FAIL</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div style="margin-top:60px;color:var(--ink-3);font-size:11px;text-align:center;font-family:'Berkeley Mono','JetBrains Mono',monospace">
+    designlang v12.10.0 · extracted 2026-05-14
+  </div>
+
+</div>
+
+</body>
+</html>
