@@ -10,20 +10,72 @@ A **Claude Code skill** that turns any website URL into a polished, self-referen
 
 ## Installation
 
-This is a Claude Code skill. Symlink it into your Claude config:
+The skill is just three files (`SKILL.md` + `BUILD.md` + `TEMPLATE.html`) — they describe a complete process any AI coding agent can follow. The path to install it differs by agent.
+
+**Prerequisite for all paths:** [`designlang`](https://www.npmjs.com/package/designlang) (`npm i -g designlang`, or use via `npx` on first run).
+
+### Claude Code (native plugin)
+
+In Claude Code, run:
+
+```
+/plugin install nmtrang29/extract-design-system
+```
+
+Claude Code reads `.claude-plugin/plugin.json` from this repo and registers the skill under `~/.claude/skills/extract-design-system/`. Verify by typing `/extract-design-system` — it should appear in the available skills list.
+
+### Claude Code (manual fallback)
+
+If `/plugin install` isn't available in your Claude Code version:
 
 ```bash
 git clone https://github.com/nmtrang29/extract-design-system.git
-cd extract-design-system
-ln -s "$(pwd)/skills/extract-design-system" ~/.claude/skills/extract-design-system
+ln -s "$(pwd)/extract-design-system/skills/extract-design-system" \
+      ~/.claude/skills/extract-design-system
 ```
 
-Verify by typing `/extract-design-system` in Claude Code — the skill should appear in the available list.
+### OpenAI Codex / `AGENTS.md` convention
 
-**Prerequisites:**
+Most modern agents (Codex, Continue, Aider, Cline) read an `AGENTS.md` or `CLAUDE.md`-style file from your project root for context. Reference this repo's skill there:
 
-- [`designlang`](https://www.npmjs.com/package/designlang) (`npm i -g designlang`, or use via `npx`)
+```bash
+# Inside your project
+git clone https://github.com/nmtrang29/extract-design-system.git .skills/extract-design-system
 
+# Then in your AGENTS.md, add:
+cat >> AGENTS.md <<'EOF'
+## Skill: extract-design-system
+
+When the user asks to "extract design system", "generate a design system page",
+or invokes `/extract-design-system`, follow the process documented in:
+- `.skills/extract-design-system/skills/extract-design-system/SKILL.md` — process + decisions
+- `.skills/extract-design-system/skills/extract-design-system/BUILD.md` — detailed page spec
+- `.skills/extract-design-system/skills/extract-design-system/TEMPLATE.html` — HTML scaffold
+EOF
+```
+
+### Cursor
+
+Cursor reads `.cursorrules` at your project root. Inline the skill instructions:
+
+```bash
+git clone https://github.com/nmtrang29/extract-design-system.git .tmp-eds
+cat .tmp-eds/skills/extract-design-system/SKILL.md >> .cursorrules
+echo "" >> .cursorrules
+echo "Skill files live at .tmp-eds/skills/extract-design-system/ — read BUILD.md and TEMPLATE.html when running this skill." >> .cursorrules
+```
+
+### Any AI coding agent (generic)
+
+The skill files are portable plain text. Point any agent at the SKILL.md URL and instruct it to follow the process:
+
+```
+@https://github.com/nmtrang29/extract-design-system/blob/main/skills/extract-design-system/SKILL.md
+
+Please follow this skill to extract a design system from https://yoursite.com/.
+```
+
+Agents that can fetch URLs (Claude, ChatGPT with browsing, Perplexity, Gemini, etc.) will read SKILL.md and follow its references to BUILD.md and TEMPLATE.html.
 
 ---
 

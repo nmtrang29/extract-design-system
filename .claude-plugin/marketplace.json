@@ -1,0 +1,16 @@
+{
+  "name": "extract-design-system",
+  "description": "Turn any website into a polished, self-referential design-system page.",
+  "version": "1.0.0",
+  "owner": {
+    "name": "Trang Nguyen",
+    "url": "https://github.com/nmtrang29"
+  },
+  "plugins": [
+    {
+      "name": "extract-design-system",
+      "source": "./",
+      "description": "Wraps designlang and produces a single-file HTML review styled with the extracted tokens, plus a 400-800 line DESIGN.md cataloging every detected token, heading, weight, breakpoint, and pattern."
+    }
+  ]
+}

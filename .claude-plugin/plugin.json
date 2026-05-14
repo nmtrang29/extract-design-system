@@ -1,0 +1,25 @@
+{
+  "name": "extract-design-system",
+  "description": "A Claude Code skill that wraps the designlang extractor and produces a polished, self-referential design-system review page (HTML) plus a comprehensive markdown reference (DESIGN.md) for any website URL.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Trang Nguyen",
+    "url": "https://github.com/nmtrang29"
+  },
+  "homepage": "https://github.com/nmtrang29/extract-design-system",
+  "repository": "https://github.com/nmtrang29/extract-design-system",
+  "license": "MIT",
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "design-language",
+    "claude-skill",
+    "claude-code",
+    "designlang",
+    "design-extraction",
+    "tailwind",
+    "shadcn",
+    "carbon-design-system"
+  ],
+  "skills": "./skills/"
+}
