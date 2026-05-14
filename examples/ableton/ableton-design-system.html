@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Design Review — Ableton</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- futura-pt is licensed (Adobe / Typekit). We fall back to Jost (free Futura-alike) for static review purposes. -->
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Lora:ital,wght@1,400&display=swap" rel="stylesheet" />
+<style>
+  /* =========================================================
+     THEME — values come from ableton-com-variables.css
+     ========================================================= */
+  :root {
+    /* surfaces */
+    --bg:        #f3f3f3;   /* --color-bg */
+    --panel:     #ffffff;   /* --color-bg-1 */
+    --panel-2:   #eeeeee;   /* --color-bg-2 */
+    --surface-dark: #000000;
+    /* lines */
+    --line:      #e5e5e5;   /* derived — Ableton uses #eeeeee subtle and #000000 hard */
+    --line-2:    #f0f0f0;
+    --line-hard: #000000;
+    /* text */
+    --ink:       #000000;   /* --color-text */
+    --ink-2:     #444444;   /* derived */
+    --ink-3:     #777777;   /* derived */
+    --ink-4:     #aaaaaa;   /* derived */
+    --ink-inv:   #ffffff;   /* --color-text-1 */
+    /* brand */
+    --brand-blue:   #0000ff;   /* --color-secondary, 42 uses, dominant chromatic */
+    --brand-salmon: #ff8389;   /* --color-primary, 2 uses */
+    --brand-teal:   #00d2be;   /* --color-accent, 1 use */
+    --brand-skyblue: #6dcbff;  /* --color-text-3 */
+    --accent:    var(--brand-salmon);    /* highlight pill — vibrant + reads black */
+    --link:      var(--brand-blue);      /* Ableton's iconic blue */
+    /* status (callouts) */
+    --good:      #00d2be;
+    --warn:      #eab308;
+    --bad:       #ff8389;
+    --info:      #6dcbff;
+    --idea:      #00d2be;
+    /* radii — Ableton is brutalist; detected scale = 0 */
+    --radius-card:    0px;
+    --radius-control: 0px;
+    --radius-dot:     999px;  /* exception for inline status pips */
+  }
+  [data-theme="dark"] {
+    --bg:        #000000;
+    --panel:     #0d0d0d;
+    --panel-2:   #1a1a1a;
+    --line:      #2a2a2a;
+    --line-2:    #1a1a1a;
+    --line-hard: #ffffff;
+    --ink:       #ffffff;
+    --ink-2:     #cccccc;
+    --ink-3:     #888888;
+    --ink-4:     #555555;
+    --ink-inv:   #000000;
+    --link:      #6dcbff;
+  }
+
+  /* =========================================================
+     BASE
+     ========================================================= */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Jost', 'futura-pt', 'Futura', 'Avenir Next', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; }
+  .serif-italic { font-family: 'Lora', Times, serif; font-style: italic; }
+
+  /* =========================================================
+     LAYOUT
+     ========================================================= */
+  :root { --sidebar-w: 248px; }
+  .shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 28px 96px;
+    padding-left: calc(var(--sidebar-w) + 40px);
+  }
+
+  /* =========================================================
+     SIDEBAR
+     ========================================================= */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    display: flex; flex-direction: column;
+    z-index: 40;
+    transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sidebar-head { padding: 22px 22px 14px; border-bottom: 1px solid var(--line-2); }
+  .sidebar-head .brand { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; color: var(--ink); }
+  .sidebar-head .sub { color: var(--ink-3); font-size: 11px; margin-top: 6px; line-height: 1.45; font-family: 'IBM Plex Mono', monospace; }
+
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 14px 12px 20px; }
+  .sidebar-nav::-webkit-scrollbar { width: 6px; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: var(--line); }
+
+  .nav-group { margin-top: 14px; }
+  .nav-group:first-child { margin-top: 0; }
+  .nav-group .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-4);
+    font-weight: 600;
+    line-height: 1.5;
+    padding: 6px 12px;
+  }
+  .sidebar-nav a {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--ink-2); text-decoration: none;
+    font-size: 13px; font-weight: 400; line-height: 1.5;
+    padding: 7px 12px; border-radius: var(--radius-card);
+    transition: 120ms;
+    position: relative;
+  }
+  .sidebar-nav a:hover, .sidebar-nav a.active { color: var(--ink); background: var(--panel-2); }
+  .sidebar-nav a.active::before {
+    content: ''; position: absolute; left: -12px; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 16px;
+    background: var(--accent);
+  }
+
+  .sidebar-foot {
+    border-top: 1px solid var(--line-2);
+    padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .sidebar-foot .ver { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-4); }
+  .toggle {
+    background: var(--bg); border: 1px solid var(--line); color: var(--ink);
+    padding: 6px 10px; border-radius: var(--radius-control); cursor: pointer; font-size: 12px;
+    font-family: inherit; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .toggle:hover { background: var(--panel-2); border-color: var(--ink-2); }
+
+  /* Mobile */
+  .menu-btn {
+    display: none;
+    position: fixed; top: 16px; left: 16px; z-index: 50;
+    width: 40px; height: 40px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius-card); cursor: pointer; color: var(--ink);
+    align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .scrim { display: none; position: fixed; inset: 0; z-index: 35; background: rgba(0,0,0,0.45); }
+  body.nav-open .scrim { display: block; }
+
+  /* =========================================================
+     HERO
+     ========================================================= */
+  .hero {
+    margin-top: 28px;
+    padding: 40px 32px 32px;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(900px 220px at 100% 0%, color-mix(in oklab, var(--accent) 38%, transparent) 0%, transparent 60%),
+      var(--panel);
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 39px,
+      rgba(0,0,0,0.04) 40px, rgba(0,0,0,0.04) 40px);
+    pointer-events: none;
+  }
+  .hero > * { position: relative; }
+  .hero .eyebrow { color: var(--ink-3); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+  .hero h1 {
+    font-size: clamp(38px, 7vw, 90px);
+    line-height: 1.0; font-weight: 700; letter-spacing: -0.03em;
+    margin: 10px 0 18px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    background: var(--accent);
+    padding: 0 8px;
+    color: var(--ink);
+    box-decoration-break: clone;
+  }
+  .hero .source { color: var(--ink-2); font-size: 13px; font-family: 'IBM Plex Mono', monospace; }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--panel); border: 1px solid var(--line-hard);
+    color: var(--ink-2); padding: 4px 10px; font-size: 12px;
+  }
+  .badge b { color: var(--ink); font-weight: 700; }
+  .badge .pip { width: 6px; height: 6px; background: var(--accent); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 18px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; }
+  .stat .v { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .stat .l { color: var(--ink-3); font-size: 10px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+  .stat .v.good { color: var(--good); }
+
+  /* =========================================================
+     SECTIONS
+     ========================================================= */
+  section { margin-top: 64px; scroll-margin-top: 80px; }
+  .section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+  .section-head .sub { color: var(--ink-3); font-size: 13px; max-width: 560px; line-height: 1.5; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); padding: 22px; }
+  .panel + .panel { margin-top: 12px; }
+  .panel-hard { border-color: var(--line-hard); }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .grid-6 { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+
+  /* =========================================================
+     SWATCHES
+     ========================================================= */
+  .swatch { position: relative; cursor: pointer; }
+  .swatch .chip { width: 100%; aspect-ratio: 1; border: 1px solid var(--line); }
+  .swatch.brand .chip { aspect-ratio: 1.2; }
+  .swatch .meta { padding-top: 10px; }
+  .swatch .name { font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .swatch .hex { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+  .swatch .use { font-size: 10px; color: var(--ink-4); margin-top: 2px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
+  .swatch .copy-tip {
+    position: absolute; top: 6px; right: 6px;
+    background: var(--ink); color: var(--ink-inv);
+    padding: 3px 8px; font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    opacity: 0; transition: opacity 120ms;
+    pointer-events: none;
+  }
+  .swatch .copy-tip.show { opacity: 1; }
+  .swatch.compact .chip { aspect-ratio: 1.4; }
+
+  /* Color token group (Carbon-style) */
+  .tg-jump { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+  .tg-jump a {
+    font-size: 11px; padding: 5px 10px;
+    border: 1px solid var(--line-hard); color: var(--ink);
+    text-decoration: none; font-weight: 500;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .tg-jump a:hover { background: var(--ink); color: var(--ink-inv); }
+  .tg-block { margin-top: 26px; padding: 22px; border: 1px solid var(--line); background: var(--panel); }
+  .tg-block h3 { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+  .tg-block .role { color: var(--ink-3); font-size: 12px; margin-top: 4px; line-height: 1.5; max-width: 520px; }
+  .tg-block .live { margin-top: 16px; padding: 18px; background: var(--bg); border: 1px solid var(--line); }
+  .tg-block table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 12px; }
+  .tg-block th { text-align: left; color: var(--ink-3); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  .tg-block td { padding: 10px 12px; border-bottom: 1px solid var(--line-2); vertical-align: middle; }
+  .tg-block .tg-swatch { width: 22px; height: 22px; border: 1px solid var(--line); display: inline-block; vertical-align: middle; }
+  .tg-block .tk { font-family: 'IBM Plex Mono', monospace; color: var(--ink); font-size: 12px; }
+  .tg-block .hex { font-family: 'IBM Plex Mono', monospace; color: var(--ink-3); }
+
+  /* =========================================================
+     TYPOGRAPHY
+     ========================================================= */
+  .font-pill {
+    display: inline-flex; flex-direction: column;
+    border: 1px solid var(--line-hard); padding: 12px 16px;
+    background: var(--panel); min-width: 200px;
+  }
+  .font-pill .fname { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  .font-pill .fuse { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); margin-top: 4px; }
+  .font-pill .fbar { height: 4px; background: var(--panel-2); margin-top: 8px; position: relative; }
+  .font-pill .fbar > span { display: block; height: 100%; background: var(--ink); }
+  .font-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .type-row {
+    display: grid; grid-template-columns: 96px 1fr auto;
+    gap: 24px; align-items: center;
+    padding: 22px 0; border-bottom: 1px solid var(--line-2);
+  }
+  .type-row:last-child { border-bottom: 0; }
+  .type-row .lead { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-2); }
+  .type-row .lead small { display: block; color: var(--ink-3); font-size: 10px; margin-top: 4px; }
+  .type-row .sample { color: var(--ink); line-height: 1.05; letter-spacing: -0.02em; }
+  .type-row .meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); text-align: right; line-height: 1.6; white-space: nowrap; }
+
+  /* =========================================================
+     SPACING
+     ========================================================= */
+  .space-row { display: grid; grid-template-columns: 80px 1fr 100px; align-items: center; gap: 18px; padding: 10px 0; border-bottom: 1px solid var(--line-2); }
+  .space-row:last-child { border-bottom: 0; }
+  .space-row .lbl { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink); }
+  .space-row .bar { height: 14px; background: linear-gradient(90deg, var(--accent), color-mix(in oklab, var(--accent) 60%, transparent)); }
+  .space-row .ratio { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); text-align: right; }
+
+  /* =========================================================
+     SHADOWS & RADII
+     ========================================================= */
+  .shadow-wrap { background: linear-gradient(180deg, var(--panel-2), var(--bg)); }
+  .shadow-card { background: var(--panel); padding: 22px; border: 1px solid var(--line); }
+  .shadow-card .title { font-size: 13px; font-weight: 700; }
+  .shadow-card .val { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); margin-top: 6px; word-break: break-all; }
+  .radius-item { text-align: center; }
+  .radius-item .box {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, var(--accent), color-mix(in oklab, var(--accent) 50%, var(--brand-blue)));
+    margin: 0 auto;
+  }
+  .radius-item .lbl { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-2); margin-top: 8px; }
+
+  /* =========================================================
+     MOTION
+     ========================================================= */
+  .motion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .motion-card { padding: 18px; background: var(--bg); border: 1px solid var(--line); }
+  .motion-card .name { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .motion-card .val { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); margin-top: 4px; }
+  .motion-card .demo { position: relative; height: 14px; background: var(--panel-2); margin-top: 16px; overflow: hidden; }
+  .motion-card .ball { position: absolute; top: 1px; left: 1px; width: 12px; height: 12px; background: var(--brand-blue); transition: left var(--dur, 350ms) ease; }
+  .motion-card:hover .ball { left: calc(100% - 13px); }
+  .motion-card .caption { font-size: 11px; color: var(--ink-3); margin-top: 8px; }
+
+  /* =========================================================
+     ICONS
+     ========================================================= */
+  .icon-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+  .icon-summary .cell { background: var(--bg); border: 1px solid var(--line); padding: 12px; }
+  .icon-summary .v { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .icon-summary .l { font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; font-weight: 600; }
+  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+  .icon-card { position: relative; background: var(--bg); border: 1px solid var(--line); padding: 16px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .icon-card .ic { color: var(--ink); width: 24px; height: 24px; }
+  .icon-card .nm { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--ink-3); text-align: center; }
+  .icon-card.placeholder { opacity: 0.6; }
+  .icon-card .count {
+    position: absolute; top: 4px; right: 4px;
+    background: var(--accent); color: var(--ink);
+    font-size: 9px; font-weight: 700;
+    padding: 1px 4px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* =========================================================
+     COMPONENTS (live preview)
+     ========================================================= */
+  .preview-frame {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 28px;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.025) 40px, rgba(0,0,0,0.025) 40px);
+  }
+  .comp-block { margin-bottom: 36px; }
+  .comp-block:last-child { margin-bottom: 0; }
+  .comp-block > h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .comp-block > .meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); margin-bottom: 14px; }
+  .comp-stage { padding: 22px; background: var(--bg); border: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+  /* Buttons (Ableton: sharp, blue solid, white stroke, no radii) */
+  .lf-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: inherit; font-weight: 700; font-size: 20px;
+    padding: 6px 30px; line-height: 1.5;
+    cursor: pointer; border: 2px solid transparent;
+    text-decoration: none;
+    transition: 150ms;
+  }
+  .lf-btn.primary { background: var(--brand-blue); color: #ffffff; border-color: var(--brand-blue); }
+  .lf-btn.primary:hover { background: #0000cc; border-color: #0000cc; }
+  .lf-btn.outline { background: transparent; color: var(--ink); border-color: var(--ink); }
+  .lf-btn.outline:hover { background: var(--ink); color: var(--ink-inv); }
+  .lf-btn.secondary { background: var(--ink); color: var(--ink-inv); border-color: var(--ink); }
+  .lf-btn.tertiary { background: transparent; color: var(--brand-blue); border-color: transparent; padding: 6px 0; }
+  .lf-btn.tertiary:hover { text-decoration: underline; }
+  .lf-btn.sm { font-size: 14px; padding: 4px 16px; }
+
+  /* Cards (treat detected "modals" / page cards) */
+  .lf-card { background: var(--panel); border: 1px solid var(--line-hard); padding: 22px; }
+  .lf-card .cat { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--brand-blue); }
+  .lf-card .ti { font-size: 20px; font-weight: 700; line-height: 1.25; margin-top: 10px; }
+  .lf-card .desc { font-size: 14px; color: var(--ink-2); line-height: 1.5; margin-top: 8px; }
+  .lf-card.image { padding: 0; }
+  .lf-card.image .pic { aspect-ratio: 16/9; background: var(--ink); position: relative; overflow: hidden; }
+  .lf-card.image .pic::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 40%, rgba(255,131,137,0.35), transparent 55%),
+      radial-gradient(circle at 70% 70%, rgba(0,0,255,0.4), transparent 50%),
+      linear-gradient(135deg, #1a1a1a, #000);
+  }
+  .lf-card.image .body { padding: 22px; }
+
+  /* Inputs */
+  .lf-input-wrap { display: flex; flex-direction: column; gap: 8px; max-width: 320px; }
+  .lf-input-wrap label { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .lf-input {
+    width: 100%; background: var(--panel-2); border: 0; border-bottom: 2px solid var(--line-hard);
+    padding: 10px 14px; font-size: 16px; font-family: inherit; color: var(--ink);
+    border-radius: 0;
+  }
+  .lf-input::placeholder { color: var(--ink-3); }
+  .lf-input:focus { outline: 0; border-bottom-color: var(--brand-blue); background: var(--panel); }
+  .lf-input.focused { border-bottom-color: var(--brand-blue); background: var(--panel); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 40%, transparent); }
+  .lf-input.disabled { background: var(--panel-2); color: var(--ink-4); cursor: not-allowed; }
+
+  /* Links */
+  .lf-link { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; font-weight: 700; transition: color 350ms; }
+  .lf-link:hover { color: var(--brand-blue); }
+  .lf-link.blue { color: var(--brand-blue); }
+  .lf-link.subtle { color: var(--ink-2); text-decoration-color: var(--line); }
+
+  /* Badges (sharp, no radius — confirmed 0px on source) */
+  .lf-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 700;
+    padding: 4px 10px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .lf-badge.solid { background: var(--ink); color: var(--ink-inv); }
+  .lf-badge.outline { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  .lf-badge.brand { background: var(--brand-blue); color: #ffffff; }
+  .lf-badge.accent { background: var(--accent); color: var(--ink); }
+  .lf-badge.muted { background: var(--panel-2); color: var(--ink-2); border: 1px solid var(--line); }
+  .lf-badge .pip { width: 6px; height: 6px; background: currentColor; border-radius: var(--radius-dot); }
+
+  /* Navigation (Ableton-style top nav) */
+  .lf-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; background: var(--panel); border: 1px solid var(--line-hard);
+    gap: 24px; flex-wrap: wrap;
+  }
+  .lf-nav .brand { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  .lf-nav .menu { display: flex; gap: 22px; flex-wrap: wrap; }
+  .lf-nav .menu a { color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 700; }
+  .lf-nav .menu a:hover { color: var(--brand-blue); }
+  .lf-nav .right { display: flex; gap: 12px; align-items: center; }
+
+  /* Footer (page-level component) */
+  .lf-footer { background: var(--panel); border: 1px solid var(--line-hard); padding: 32px; display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 32px; }
+  .lf-footer h4 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+  .lf-footer ul { list-style: none; margin-top: 12px; }
+  .lf-footer li { margin-top: 8px; }
+  .lf-footer a { color: var(--ink-2); text-decoration: none; font-size: 14px; }
+  .lf-footer a:hover { color: var(--ink); text-decoration: underline; }
+  .lf-footer .brand { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  .lf-footer .legal { grid-column: 1 / -1; padding-top: 24px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  @media (max-width: 720px) { .lf-footer { grid-template-columns: 1fr 1fr; } }
+
+  /* Modals (per detected pattern, 5 instances) */
+  .lf-modal-stage {
+    position: relative; padding: 60px 22px;
+    background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lf-modal { background: var(--panel); padding: 32px; max-width: 480px; width: 100%; }
+  .lf-modal h4 { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+  .lf-modal p { color: var(--ink-2); font-size: 14px; margin: 10px 0 18px; line-height: 1.5; }
+  .lf-modal .actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* =========================================================
+     VOICE & CONTENT
+     ========================================================= */
+  .quote { font-size: 32px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; padding: 14px 0; border-bottom: 1px solid var(--line-2); }
+  .quote:last-child { border-bottom: 0; }
+  .quote em { font-style: normal; background: var(--accent); padding: 0 6px; color: var(--ink); }
+  .verb-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .verb-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line-hard); color: var(--ink);
+    padding: 4px 10px; font-size: 12px; font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .verb-tag .ct { color: var(--ink-3); font-size: 10px; }
+  .kv-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-top: 8px; }
+  .kv-list dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 600; }
+  .kv-list dd { font-size: 13px; color: var(--ink); font-weight: 600; margin-top: 2px; }
+
+  /* =========================================================
+     PAGE ANATOMY
+     ========================================================= */
+  .layout-map { display: flex; flex-direction: column; gap: 8px; }
+  .layout-bar { display: grid; grid-template-columns: 140px 1fr 60px; gap: 14px; align-items: center; padding: 12px 14px; background: var(--bg); border: 1px solid var(--line); }
+  .layout-bar .role { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; padding: 3px 8px; border: 1px solid var(--ink); display: inline-block; text-align: center; }
+  .layout-bar .role.accent { background: var(--accent); color: var(--ink); border-color: transparent; }
+  .layout-bar .role.brand { background: var(--brand-blue); color: #ffffff; border-color: transparent; }
+  .layout-bar .role.muted { background: var(--panel-2); color: var(--ink-2); border-color: var(--line); }
+  .layout-bar .h { font-size: 14px; color: var(--ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .layout-bar .conf { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); text-align: right; }
+
+  /* =========================================================
+     A11Y
+     ========================================================= */
+  .a11y-hero { display: flex; align-items: center; gap: 18px; }
+  .a11y-score { font-size: 56px; font-weight: 700; letter-spacing: -0.03em; color: var(--good); line-height: 1; }
+  .a11y-row { display: grid; grid-template-columns: 1fr 200px 100px 80px; gap: 14px; align-items: center; padding: 12px; border-bottom: 1px solid var(--line-2); }
+  .a11y-row .sample { padding: 8px 12px; font-weight: 700; }
+  .a11y-row .pair { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); }
+  .a11y-row .ratio { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink); font-weight: 700; }
+  .a11y-row .tag { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 3px 8px; text-align: center; }
+  .a11y-row .tag.aaa { background: var(--good); color: var(--ink-inv); }
+  .a11y-row .tag.aa { background: var(--warn); color: var(--ink); }
+  .a11y-row .tag.fail { background: var(--bad); color: var(--ink); }
+
+  /* =========================================================
+     AUDIT FLAGS
+     ========================================================= */
+  .flag {
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 18px 22px;
+    border-left: 4px solid var(--warn);
+  }
+  .flag.good { border-left-color: var(--good); }
+  .flag.bad { border-left-color: var(--bad); }
+  .flag .eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; color: var(--warn); }
+  .flag.good .eyebrow { color: var(--good); }
+  .flag.bad .eyebrow { color: var(--bad); }
+  .flag .ti { font-size: 15px; font-weight: 700; margin-top: 6px; }
+  .flag .body { font-size: 13px; color: var(--ink-2); margin-top: 8px; line-height: 1.5; }
+
+  /* =========================================================
+     FILES
+     ========================================================= */
+  .file-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+  .file { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg); border: 1px solid var(--line); }
+  .file .ext { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; background: var(--accent); color: var(--ink); padding: 4px 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .file .nm { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--link); word-break: break-all; }
+
+  /* =========================================================
+     RESPONSIVE
+     ========================================================= */
+  @media (max-width: 960px) {
+    .shell { padding-left: 28px; }
+    .menu-btn { display: inline-flex; }
+    .sidebar { transform: translateX(-100%); box-shadow: 0 0 40px rgba(0,0,0,0.4); }
+    body.nav-open .sidebar { transform: translateX(0); }
+  }
+  @media (max-width: 720px) {
+    .shell { padding: 72px 16px 64px; }
+    .hero { padding: 26px 22px; }
+    .type-row { grid-template-columns: 1fr; gap: 8px; }
+    .a11y-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+
+<body data-theme="light">
+
+<button class="menu-btn" onclick="toggleNav()" aria-label="Toggle navigation">≡</button>
+<div class="scrim" onclick="toggleNav(false)"></div>
+
+<!-- =========================================================
+     SIDEBAR
+     ========================================================= -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="brand">Ableton Design System</div>
+    <div class="sub">ableton.com — corp site</div>
+  </div>
+
+  <nav class="sidebar-nav" id="sidebar-nav">
+    <div class="nav-group">
+      <div class="label">Overview</div>
+      <a href="#top">At a glance</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Foundations</div>
+      <a href="#colors">Colors</a>
+      <a href="#typography">Typography</a>
+      <a href="#spacing">Spacing</a>
+      <a href="#shadows">Shadows &amp; radii</a>
+      <a href="#motion">Motion</a>
+      <a href="#icons">Icons</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Components</div>
+      <a href="#comp-buttons">Buttons</a>
+      <a href="#comp-cards">Cards</a>
+      <a href="#comp-inputs">Inputs</a>
+      <a href="#comp-links">Links</a>
+      <a href="#comp-badges">Badges</a>
+      <a href="#comp-modals">Modals</a>
+      <a href="#comp-navigation">Navigation</a>
+      <a href="#comp-footer">Footer</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Voice &amp; structure</div>
+      <a href="#voice">Voice &amp; content</a>
+      <a href="#layout">Page anatomy</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Audit</div>
+      <a href="#a11y">Accessibility</a>
+    </div>
+  </nav>
+
+  <div class="sidebar-foot">
+    <span class="ver">v12.10.0</span>
+    <button class="toggle" onclick="toggleTheme()">◐ Theme</button>
+  </div>
+</aside>
+
+<!-- =========================================================
+     MAIN
+     ========================================================= -->
+<div class="shell" id="top">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Design language extracted</div>
+    <h1>Creative tools for <em>music makers</em></h1>
+    <div class="source">https://www.ableton.com/en/ · 668 elements · May 14, 2026</div>
+    <div class="badges">
+      <span class="badge"><span class="pip"></span> Intent: <b>blog-post</b> · 0.35</span>
+      <span class="badge"><span class="pip"></span> Library: <b>unknown</b> · 0.00</span>
+      <span class="badge"><span class="pip"></span> Material: <b>flat</b></span>
+      <span class="badge"><span class="pip"></span> Imagery: <b>photography</b></span>
+      <span class="badge"><span class="pip"></span> Voice: <b>friendly · third-person</b></span>
+      <span class="badge"><span class="pip"></span> Headings: <b>Title Case</b></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">7</div><div class="l">Colors</div></div>
+      <div class="stat"><div class="v">3</div><div class="l">Font families</div></div>
+      <div class="stat"><div class="v">11</div><div class="l">Spacing</div></div>
+      <div class="stat"><div class="v">0</div><div class="l">Shadows</div></div>
+      <div class="stat"><div class="v">0</div><div class="l">Radii</div></div>
+      <div class="stat"><div class="v">7</div><div class="l">Components</div></div>
+      <div class="stat"><div class="v">7</div><div class="l">Icons</div></div>
+      <div class="stat"><div class="v good">100%</div><div class="l">WCAG score</div></div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       COLORS
+       ========================================================= -->
+  <section id="colors">
+    <div class="section-head">
+      <h2>Color palette</h2>
+      <div class="sub">7 unique colors. A disciplined three-axis system: black ink, Ableton blue, and a salmon-pink pop accent — used sparingly. No gradients, no chromatic surfaces. Score: 100/100 for color discipline.</div>
+    </div>
+
+    <!-- Brand chips -->
+    <div class="panel">
+      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;font-weight:600">Brand</div>
+      <div class="grid-3">
+        <div class="swatch brand">
+          <div class="chip" style="background:#0000ff"></div>
+          <div class="meta">
+            <div class="name">Brand blue · secondary</div>
+            <div class="hex">#0000FF</div>
+            <div class="use">42 uses — dominant chromatic</div>
+          </div>
+        </div>
+        <div class="swatch brand">
+          <div class="chip" style="background:#ff8389"></div>
+          <div class="meta">
+            <div class="name">Salmon · primary</div>
+            <div class="hex">#FF8389</div>
+            <div class="use">2 uses — pop / highlight</div>
+          </div>
+        </div>
+        <div class="swatch brand">
+          <div class="chip" style="background:#00d2be"></div>
+          <div class="meta">
+            <div class="name">Teal · accent</div>
+            <div class="hex">#00D2BE</div>
+            <div class="use">1 use — rare emphasis</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Neutrals -->
+    <div class="panel">
+      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;font-weight:600">Neutrals</div>
+      <div class="grid-4">
+        <div class="swatch compact">
+          <div class="chip" style="background:#000000"></div>
+          <div class="meta">
+            <div class="name">Ink</div>
+            <div class="hex">#000000</div>
+            <div class="use">1260 uses</div>
+          </div>
+        </div>
+        <div class="swatch compact">
+          <div class="chip" style="background:#ffffff"></div>
+          <div class="meta">
+            <div class="name">Paper</div>
+            <div class="hex">#FFFFFF</div>
+            <div class="use">31 uses</div>
+          </div>
+        </div>
+        <div class="swatch compact">
+          <div class="chip" style="background:#f3f3f3"></div>
+          <div class="meta">
+            <div class="name">Surface 1</div>
+            <div class="hex">#F3F3F3</div>
+            <div class="use">page bg</div>
+          </div>
+        </div>
+        <div class="swatch compact">
+          <div class="chip" style="background:#eeeeee"></div>
+          <div class="meta">
+            <div class="name">Surface 2</div>
+            <div class="hex">#EEEEEE</div>
+            <div class="use">14 uses</div>
+          </div>
+        </div>
+        <div class="swatch compact">
+          <div class="chip" style="background:#6dcbff"></div>
+          <div class="meta">
+            <div class="name">Sky</div>
+            <div class="hex">#6DCBFF</div>
+            <div class="use">10 uses — links</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patterns -->
+    <div class="panel">
+      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;font-weight:600">Patterns &amp; surfaces</div>
+      <div class="grid-2">
+        <div style="border:1px solid var(--line-hard); aspect-ratio:16/9; background: var(--panel); position:relative; overflow:hidden;">
+          <div style="position:absolute; inset:0; background-image: repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(0,0,0,0.08) 20px, rgba(0,0,0,0.08) 20px);"></div>
+          <div style="position:absolute; bottom:14px; left:14px; font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-3)">Detected: plain (no background patterns)</div>
+        </div>
+        <div>
+          <dl class="kv-list" style="grid-template-columns: 1fr auto;">
+            <dt>Saturation</dt><dd>0.437</dd>
+            <dt>Shadow profile</dt><dd>none</dd>
+            <dt>Avg radius</dt><dd>0px</dd>
+            <dt>Pills</dt><dd>no</dd>
+            <dt>Backdrop-blur</dt><dd>no</dd>
+            <dt>Gradients</dt><dd>0</dd>
+            <dt>Imagery</dt><dd>photography (16:9 dominant)</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tokens by context (Carbon-style) -->
+    <div class="section-head" style="margin-top:40px">
+      <h2 style="font-size:22px">Tokens by context</h2>
+      <div class="sub">The CSS variables in <code class="mono">ableton-com-variables.css</code> organised by role.</div>
+    </div>
+    <div class="tg-jump">
+      <a href="#tg-surface">Surface</a>
+      <a href="#tg-text">Text</a>
+      <a href="#tg-line">Border &amp; line</a>
+      <a href="#tg-status">Status</a>
+    </div>
+
+    <div class="tg-block" id="tg-surface">
+      <h3>Surface</h3>
+      <div class="role">4 surface tokens. Strictly tonal — no chromatic backgrounds at the page level. Black is reserved for hero / video panels.</div>
+      <div class="live" style="padding:0">
+        <div style="background:#f3f3f3; padding:18px;">
+          <div style="background:#ffffff; padding:18px; border:1px solid #000;">
+            <div style="background:#eeeeee; padding:14px;">
+              <div style="display:flex; gap:8px;">
+                <span class="lf-badge brand">primary</span>
+                <span class="lf-badge accent">highlight</span>
+                <span class="lf-badge solid">ink</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th></th><th>Token</th><th>Hex</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tg-swatch" style="background:#f3f3f3"></span></td><td class="tk">--color-bg</td><td class="hex">#F3F3F3</td><td>Page background</td></tr>
+          <tr><td><span class="tg-swatch" style="background:#ffffff"></span></td><td class="tk">--color-bg-1</td><td class="hex">#FFFFFF</td><td>Card / panel</td></tr>
+          <tr><td><span class="tg-swatch" style="background:#eeeeee"></span></td><td class="tk">--color-bg-2</td><td class="hex">#EEEEEE</td><td>Sunken / divider strip</td></tr>
+          <tr><td><span class="tg-swatch" style="background:#000000"></span></td><td class="tk">--color-bg-3</td><td class="hex">#000000</td><td>Hero / video / modal scrim</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tg-block" id="tg-text">
+      <h3>Text</h3>
+      <div class="role">4 text tokens. Title Case headings sit in ink; the brand blue is the only chromatic text token, reserved for links and category labels.</div>
+      <div class="live">
+        <div style="color:#000; font-size:24px; font-weight:700; letter-spacing:-0.01em">Headline in ink</div>
+        <div style="color:#000; font-size:14px; margin-top:8px; font-weight:700">Body copy on light surface — Ableton sets body weight to 700, which is unusually heavy.</div>
+        <div style="color:#0000ff; font-size:14px; margin-top:6px; font-weight:700; text-decoration:underline">A blue link in third-person voice</div>
+        <div style="background:#000; padding:10px; margin-top:10px; color:#fff; font-size:13px">Inverted text on dark surface</div>
+      </div>
+      <table>
+        <thead><tr><th></th><th>Token</th><th>Hex</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tg-swatch" style="background:#000000"></span></td><td class="tk">--color-text</td><td class="hex">#000000</td><td>Body, headings</td></tr>
+          <tr><td><span class="tg-swatch" style="background:#ffffff; border-color:#000"></span></td><td class="tk">--color-text-1</td><td class="hex">#FFFFFF</td><td>Inverted (on dark / blue)</td></tr>
+          <tr><td><span class="tg-swatch" style="background:#0000ff"></span></td><td class="tk">--color-text-2</td><td class="hex">#0000FF</td><td>Links, category labels</td></tr>
+          <tr><td><span class="tg-swatch" style="background:#6dcbff"></span></td><td class="tk">--color-text-3</td><td class="hex">#6DCBFF</td><td>Secondary link / hover (10 uses)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tg-block" id="tg-line">
+      <h3>Border &amp; line</h3>
+      <div class="role">Lines are either fully hard (1–2px solid black) or completely absent. There is no "soft" border treatment in source — the subtle <code class="mono">#e5e5e5</code> used in this review is review-chrome only.</div>
+      <div class="live">
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <div style="border:2px solid #000; padding:14px 18px; font-size:13px; font-weight:700">Hard / 2px</div>
+          <div style="border:1px solid #000; padding:14px 18px; font-size:13px; font-weight:700">Hard / 1px</div>
+          <div style="border-bottom:2px solid #000; padding:14px 0; font-size:13px; font-weight:700">Underline only</div>
+          <div style="background:#eee; padding:14px 18px; font-size:13px; font-weight:700">No border, sunken fill</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tg-block" id="tg-status">
+      <h3>Status &amp; callout</h3>
+      <div class="role">No explicit semantic status tokens were detected (the source declares them as <code class="mono">[object Object]</code> — likely Sass map serialisation failure). The values below are inferred from the brand palette.</div>
+      <div class="live">
+        <div style="display:grid; gap:10px;">
+          <div style="border-left:4px solid #00d2be; padding:10px 14px; background:#f3f3f3"><strong>Success</strong> — Live 12.4 installed.</div>
+          <div style="border-left:4px solid #eab308; padding:10px 14px; background:#f3f3f3"><strong>Warning</strong> — Your session has 1 unsaved take.</div>
+          <div style="border-left:4px solid #ff8389; padding:10px 14px; background:#f3f3f3"><strong>Error</strong> — Could not authorise this computer.</div>
+          <div style="border-left:4px solid #6dcbff; padding:10px 14px; background:#f3f3f3"><strong>Info</strong> — Three new packs are available.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       TYPOGRAPHY
+       ========================================================= -->
+  <section id="typography">
+    <div class="section-head">
+      <h2>Typography</h2>
+      <div class="sub">A two-typeface system anchored by <strong>futura-pt</strong> at body weight 700 — an unusually heavy default that gives every page its signature confident voice. Family / size pairing below is inferred (designlang reports family usage but does not pair sizes to families).</div>
+    </div>
+
+    <!-- Families -->
+    <div class="panel">
+      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;font-weight:600">Font families · 3 detected ⚠ audit recommends ≤2</div>
+      <div class="font-row">
+        <div class="font-pill">
+          <div class="fname" style="font-family:'Jost', sans-serif">futura-pt</div>
+          <div class="fuse">614 uses · sans · display + body</div>
+          <div class="fbar"><span style="width: 100%"></span></div>
+        </div>
+        <div class="font-pill">
+          <div class="fname serif-italic">Times</div>
+          <div class="fuse">50 uses · serif · italic accent only</div>
+          <div class="fbar"><span style="width: 8%"></span></div>
+        </div>
+        <div class="font-pill">
+          <div class="fname" style="font-family:Arial">Arial</div>
+          <div class="fuse">4 uses · system fallback</div>
+          <div class="fbar"><span style="width: 0.7%"></span></div>
+        </div>
+      </div>
+      <div style="margin-top:14px; padding:12px 14px; background:var(--bg); border-left:3px solid var(--warn); font-size:12px; color:var(--ink-2)">
+        <strong>Note:</strong> <code class="mono">futura-pt</code> is licensed (Adobe Fonts / Typekit). This review renders in <code class="mono">Jost</code> — a free, geometric Futura-alike — for portability. The original site self-hosts the licensed file.
+      </div>
+    </div>
+
+    <!-- Type scale -->
+    <div class="panel">
+      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:18px;font-weight:600">Type scale</div>
+
+      <div class="type-row">
+        <div class="lead">90px<small>futura-pt · display</small></div>
+        <div class="sample" style="font-size:90px; line-height:90px; font-weight:700">Live</div>
+        <div class="meta">700 · lh 90 · H1</div>
+      </div>
+      <div class="type-row">
+        <div class="lead">40px<small>futura-pt · display</small></div>
+        <div class="sample" style="font-size:40px; line-height:48px; font-weight:700">The latest from Ableton</div>
+        <div class="meta">700 · lh 48 · H2</div>
+      </div>
+      <div class="type-row">
+        <div class="lead">30px<small>futura-pt · display</small></div>
+        <div class="sample" style="font-size:30px; line-height:42px; font-weight:700">Tutorial videos</div>
+        <div class="meta">700 · lh 42 · H3</div>
+      </div>
+      <div class="type-row">
+        <div class="lead">24px<small>futura-pt · ui</small></div>
+        <div class="sample" style="font-size:24px; line-height:36px; font-weight:700">Free downloads</div>
+        <div class="meta">700 · lh 36 · feature</div>
+      </div>
+      <div class="type-row">
+        <div class="lead">20px<small>futura-pt · body</small></div>
+        <div class="sample" style="font-size:20px; line-height:30px; font-weight:700">Body copy weighs 700 by default.</div>
+        <div class="meta">700 · lh 30 · body / H4</div>
+      </div>
+      <div class="type-row">
+        <div class="lead">16px<small>system · meta</small></div>
+        <div class="sample" style="font-size:16px; font-weight:400">A neutral 16px tier carries metadata, fine print, and HTML defaults.</div>
+        <div class="meta">400 · normal · meta</div>
+      </div>
+      <div class="type-row">
+        <div class="lead">14px<small>futura-pt · ui</small></div>
+        <div class="sample" style="font-size:14px; line-height:21px; font-weight:700">Compact UI — nav links, footer links, badges.</div>
+        <div class="meta">700 · lh 21 · UI</div>
+      </div>
+      <div class="type-row">
+        <div class="lead">13px<small>system · caption</small></div>
+        <div class="sample" style="font-size:13px; font-weight:400">Caption / form control text — values like 13.3333px have been snapped to 13.</div>
+        <div class="meta">400 · normal · caption</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       SPACING
+       ========================================================= -->
+  <section id="spacing">
+    <div class="section-head">
+      <h2>Spacing scale (base: 2px)</h2>
+      <div class="sub">11 values from 1px to 250px. The scale skips small increments entirely — no 4/6/8/12 — and jumps from 1px straight to 27px, suggesting most layout work happens at section scale rather than chrome scale.</div>
+    </div>
+    <div class="panel">
+      <div class="space-row"><div class="lbl">s0 · 1px</div><div class="bar" style="width: 2px; min-width:2px;"></div><div class="ratio">0.5×</div></div>
+      <div class="space-row"><div class="lbl">s1 · 27px</div><div class="bar" style="width: 54px;"></div><div class="ratio">13.5×</div></div>
+      <div class="space-row"><div class="lbl">s2 · 30px</div><div class="bar" style="width: 60px;"></div><div class="ratio">15×</div></div>
+      <div class="space-row"><div class="lbl">s3 · 40px</div><div class="bar" style="width: 80px;"></div><div class="ratio">20×</div></div>
+      <div class="space-row"><div class="lbl">s4 · 50px</div><div class="bar" style="width: 100px;"></div><div class="ratio">25×</div></div>
+      <div class="space-row"><div class="lbl">s5 · 53px</div><div class="bar" style="width: 106px;"></div><div class="ratio">26.5×</div></div>
+      <div class="space-row"><div class="lbl">s6 · 60px</div><div class="bar" style="width: 120px;"></div><div class="ratio">30×</div></div>
+      <div class="space-row"><div class="lbl">s7 · 107px</div><div class="bar" style="width: 214px;"></div><div class="ratio">53.5×</div></div>
+      <div class="space-row"><div class="lbl">s8 · 140px</div><div class="bar" style="width: 280px;"></div><div class="ratio">70×</div></div>
+      <div class="space-row"><div class="lbl">s9 · 180px</div><div class="bar" style="width: 360px;"></div><div class="ratio">90×</div></div>
+      <div class="space-row"><div class="lbl">s10 · 250px</div><div class="bar" style="width: 500px; max-width:100%;"></div><div class="ratio">125×</div></div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;font-weight:600">Original site tokens (rem)</div>
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:12px; line-height:1.8; color:var(--ink-2)">
+        --abl-spacing-2xs · .3125rem &nbsp;·&nbsp; --abl-spacing-xs · .625rem &nbsp;·&nbsp; --abl-spacing-s · 1.25rem &nbsp;·&nbsp; --abl-spacing-m · 1.875rem &nbsp;·&nbsp; --abl-spacing-l · 2.5rem &nbsp;·&nbsp; --abl-spacing-xl · 3.75rem &nbsp;·&nbsp; --abl-spacing-2xl · 5rem &nbsp;·&nbsp; --abl-spacing-3xl · 6.25rem &nbsp;·&nbsp; --abl-spacing-4xl · 7.5rem
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       SHADOWS & RADII
+       ========================================================= -->
+  <section id="shadows">
+    <div class="section-head">
+      <h2>Elevation</h2>
+      <div class="sub">No discrete shadow tokens detected. Ableton is strictly flat — elevation is expressed through borders and contrast, never blur.</div>
+    </div>
+    <div class="panel shadow-wrap">
+      <div class="grid-3">
+        <div class="shadow-card" style="box-shadow:none">
+          <div class="title">none / flat</div>
+          <div class="val">box-shadow: 0</div>
+          <div style="margin-top:14px; color:var(--ink-3); font-size:12px">All surfaces share one plane. Hierarchy comes from 1–2px borders.</div>
+        </div>
+        <div class="shadow-card" style="border-color:var(--line-hard); border-width:2px">
+          <div class="title">2px hard outline</div>
+          <div class="val">border: 2px solid #000</div>
+          <div style="margin-top:14px; color:var(--ink-3); font-size:12px">Elevation substitute — used on outline buttons and emphasis cards.</div>
+        </div>
+        <div class="shadow-card" style="background:var(--ink); color:var(--ink-inv); border-color:var(--ink)">
+          <div class="title" style="color:var(--ink-inv)">inversion</div>
+          <div class="val" style="color:#aaa">background: #000</div>
+          <div style="margin-top:14px; color:#bbb; font-size:12px">Hero / video panels reverse the page palette as elevation.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:32px"><h2 id="radii">Border radii</h2><div class="sub">No discrete radius tokens detected — material profile is "sharp / brutalist". Every chrome element terminates at 0px.</div></div>
+    <div class="panel">
+      <div style="display:flex; gap:18px; flex-wrap:wrap; align-items:end;">
+        <div class="radius-item">
+          <div class="box" style="border-radius:0"></div>
+          <div class="lbl">0px · everything</div>
+        </div>
+        <div class="radius-item">
+          <div class="box" style="border-radius:999px; background:linear-gradient(135deg, var(--brand-skyblue), var(--brand-blue));"></div>
+          <div class="lbl">999px · pip only<br/>(inline status dot exception)</div>
+        </div>
+      </div>
+      <div style="margin-top:18px; padding:12px 14px; background:var(--bg); border-left:3px solid var(--good); font-size:12px; color:var(--ink-2)">
+        <strong>Score: 100/100 for radius consistency</strong> — the entire system uses a single value. Zero exceptions in detected components.
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       MOTION
+       ========================================================= -->
+  <section id="motion">
+    <div class="section-head">
+      <h2>Motion</h2>
+      <div class="sub">Two duration tiers (xs / md), no explicit easing tokens. Feel is mixed; scroll-linked animations are active on the page.</div>
+    </div>
+    <div class="panel">
+      <div class="motion-grid">
+        <div class="motion-card" style="--dur: 150ms">
+          <div class="name">xs · fast</div>
+          <div class="val">150ms · ease</div>
+          <div class="demo"><div class="ball"></div></div>
+          <div class="caption">Hover transitions on links and buttons. Hover this card.</div>
+        </div>
+        <div class="motion-card" style="--dur: 350ms">
+          <div class="name">md · default</div>
+          <div class="val">350ms · ease</div>
+          <div class="demo"><div class="ball"></div></div>
+          <div class="caption">Color transitions on text + most state changes.</div>
+        </div>
+        <div class="motion-card" style="--dur: 350ms">
+          <div class="name">scroll-linked</div>
+          <div class="val">depends on viewport</div>
+          <div class="demo"><div class="ball"></div></div>
+          <div class="caption">Homepage grid + sticky nav respond to scroll position.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       ICONS
+       ========================================================= -->
+  <section id="icons">
+    <div class="section-head">
+      <h2>Icon system</h2>
+      <div class="sub">7 SVG icons, all filled. No standard icon library detected — Ableton uses custom marks (the logo, social glyphs, control glyphs). 6 of 7 sit on a 48px grid.</div>
+    </div>
+    <div class="panel">
+      <div class="icon-summary">
+        <div class="cell"><div class="v">7</div><div class="l">Total</div></div>
+        <div class="cell"><div class="v">3</div><div class="l">Fill only</div></div>
+        <div class="cell"><div class="v">4</div><div class="l">Mixed</div></div>
+        <div class="cell"><div class="v">0</div><div class="l">Stroke only</div></div>
+        <div class="cell"><div class="v">48</div><div class="l">Dominant grid</div></div>
+        <div class="cell"><div class="v">0%</div><div class="l">Rounded caps</div></div>
+      </div>
+
+      <div style="margin-top:20px">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;font-weight:600">Library — unknown (custom) · Lucide approximations</div>
+        <div class="icon-grid">
+          <div class="icon-card"><i class="ic" data-lucide="music"></i><div class="nm">music (logo)</div></div>
+          <div class="icon-card"><i class="ic" data-lucide="play"></i><div class="nm">play</div></div>
+          <div class="icon-card"><i class="ic" data-lucide="download"></i><div class="nm">download</div></div>
+          <div class="icon-card"><i class="ic" data-lucide="chevron-down"></i><div class="nm">chevron-down</div></div>
+          <div class="icon-card"><i class="ic" data-lucide="search"></i><div class="nm">search</div></div>
+          <div class="icon-card"><i class="ic" data-lucide="x"></i><div class="nm">close</div></div>
+          <div class="icon-card"><i class="ic" data-lucide="external-link"></i><div class="nm">external</div></div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;font-weight:600">Unidentified marks (placeholder cards)</div>
+        <div class="icon-grid">
+          <div class="icon-card placeholder"><div style="width:24px;height:24px;background:var(--line); "></div><div class="nm">48px · fill</div></div>
+          <div class="icon-card placeholder"><div style="width:24px;height:24px;background:var(--line);"></div><div class="nm">48px · mixed</div></div>
+          <div class="icon-card placeholder"><div style="width:24px;height:24px;background:var(--line);"></div><div class="nm">48px · mixed</div></div>
+          <div class="icon-card placeholder"><div style="width:24px;height:24px;background:var(--line);"></div><div class="nm">48px · mixed</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       COMPONENTS
+       ========================================================= -->
+  <section id="components">
+    <div class="section-head">
+      <h2>Components</h2>
+      <div class="sub">7 patterns detected: buttons · inputs · links · navigation · footer · modals · badges. Each rendered live below using the extracted tokens. CTA labels come from <code class="mono">voice.json</code>: <em>more</em>, <em>close</em>, <em>accept</em>.</div>
+    </div>
+    <div class="preview-frame">
+
+      <!-- Buttons -->
+      <div class="comp-block" id="comp-buttons">
+        <h3>Buttons</h3>
+        <div class="meta">12 instances · variants: primary, outline, default · sample labels: More, Close, Accept</div>
+        <div class="comp-stage">
+          <button class="lf-btn primary">Try Live 12 for free</button>
+          <button class="lf-btn outline">Log in or register</button>
+          <button class="lf-btn secondary">Accept</button>
+          <button class="lf-btn tertiary">More info →</button>
+        </div>
+        <div class="comp-stage" style="margin-top:8px">
+          <button class="lf-btn primary sm">More</button>
+          <button class="lf-btn outline sm">Close</button>
+          <button class="lf-btn secondary sm">Accept</button>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="comp-block" id="comp-cards">
+        <h3>Cards</h3>
+        <div class="meta">post / artist / pack tile · sharp 0px corners · 16:9 thumbnails dominate</div>
+        <div class="comp-stage" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); align-items:stretch;">
+          <div class="lf-card image">
+            <div class="pic"></div>
+            <div class="body">
+              <div class="cat">Downloads</div>
+              <div class="ti">Download the Live Set of Artefakt's New Track "Undertow"</div>
+              <div class="desc">A taster from the artist's forthcoming EP, in Live 12 format.</div>
+            </div>
+          </div>
+          <div class="lf-card image">
+            <div class="pic" style="filter:hue-rotate(60deg)"></div>
+            <div class="body">
+              <div class="cat">Tutorials</div>
+              <div class="ti">Watch dnksaus Experiment with Live 12.4's Updated Delay</div>
+              <div class="desc">Three creative tips from the 12.4 release notes.</div>
+            </div>
+          </div>
+          <div class="lf-card">
+            <div class="cat">Loop</div>
+            <div class="ti">Talks &amp; performances from Ableton's summit for music makers</div>
+            <div class="desc">A long-running editorial format that doubles as community programming.</div>
+            <div style="margin-top:14px"><button class="lf-btn outline sm">More</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inputs -->
+      <div class="comp-block" id="comp-inputs">
+        <h3>Inputs</h3>
+        <div class="meta">12 instances · #EEEEEE fill · #000 1px underline · 13–20px text</div>
+        <div class="comp-stage" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); align-items:start;">
+          <div class="lf-input-wrap">
+            <label>Default</label>
+            <input class="lf-input" placeholder="Search packs, posts, artists…" />
+          </div>
+          <div class="lf-input-wrap">
+            <label>Focused</label>
+            <input class="lf-input focused" value="Artefakt" />
+          </div>
+          <div class="lf-input-wrap">
+            <label>Disabled</label>
+            <input class="lf-input disabled" value="Locked field" disabled />
+          </div>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="comp-block" id="comp-links">
+        <h3>Links</h3>
+        <div class="meta">80 instances · underlined, ink default · blue on hover</div>
+        <div class="comp-stage" style="display:block; padding:24px 28px;">
+          <p style="font-size:20px; line-height:32px; font-weight:700; max-width:640px">
+            Learn the fundamentals of music making with <a class="lf-link">Learning Music</a>, get started with synthesis using <a class="lf-link">Learning Synths</a>, or read <a class="lf-link blue">the blog</a> for tips and interviews. <a class="lf-link subtle">All posts →</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div class="comp-block" id="comp-badges">
+        <h3>Badges</h3>
+        <div class="meta">2 instances detected · sharp · 24px / 700</div>
+        <div class="comp-stage">
+          <span class="lf-badge solid">Downloads</span>
+          <span class="lf-badge brand">New</span>
+          <span class="lf-badge outline">Tutorials</span>
+          <span class="lf-badge accent">Free</span>
+          <span class="lf-badge muted">Beta</span>
+          <span class="lf-badge solid"><span class="pip"></span> Live</span>
+        </div>
+      </div>
+
+      <!-- Modals -->
+      <div class="comp-block" id="comp-modals">
+        <h3>Modals</h3>
+        <div class="meta">5 instances · rgba(0,0,0,0.6) scrim · 1000px max-width · 0px radius</div>
+        <div class="lf-modal-stage">
+          <div class="lf-modal">
+            <h4>We use cookies</h4>
+            <p>This site uses cookies to provide essential functionality, measure performance and personalise content. Read our cookie policy for details.</p>
+            <div class="actions">
+              <button class="lf-btn outline sm">More info</button>
+              <button class="lf-btn primary sm">Accept</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="comp-block" id="comp-navigation">
+        <h3>Navigation</h3>
+        <div class="meta">51 instances · static + sticky · z-index 35 · brand mark left, CTA right</div>
+        <div class="comp-stage" style="display:block; padding:0; background:transparent; border:0;">
+          <nav class="lf-nav">
+            <div class="brand">Ableton</div>
+            <div class="menu">
+              <a href="#">Live</a>
+              <a href="#">Push</a>
+              <a href="#">Move</a>
+              <a href="#">Note</a>
+              <a href="#">Link</a>
+              <a href="#">Shop</a>
+              <a href="#">Packs</a>
+              <a href="#">Help</a>
+              <a href="#">More</a>
+            </div>
+            <div class="right">
+              <button class="lf-btn outline sm">Log in</button>
+              <button class="lf-btn primary sm">Try Live 12 for free</button>
+            </div>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="comp-block" id="comp-footer">
+        <h3>Footer</h3>
+        <div class="meta">66 instances · 4-column · Education / Community / Language sections detected</div>
+        <div class="comp-stage" style="display:block; padding:0; background:transparent; border:0;">
+          <footer class="lf-footer">
+            <div>
+              <div class="brand">Ableton</div>
+              <p style="font-size:14px; color:var(--ink-2); margin-top:14px; max-width:280px">Ableton makes software, hardware and other creative tools for a global community of music makers.</p>
+            </div>
+            <div>
+              <h4>Education</h4>
+              <ul>
+                <li><a href="#">Ableton for the Classroom</a></li>
+                <li><a href="#">Ableton for Colleges</a></li>
+                <li><a href="#">Certified Training</a></li>
+                <li><a href="#">Learning Music</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4>Community</h4>
+              <ul>
+                <li><a href="#">Loop</a></li>
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">User Groups</a></li>
+                <li><a href="#">Newsletter</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4>Company</h4>
+              <ul>
+                <li><a href="#">About Ableton</a></li>
+                <li><a href="#">Jobs</a></li>
+                <li><a href="#">Apprenticeships</a></li>
+                <li><a href="#">Press</a></li>
+              </ul>
+            </div>
+            <div class="legal">
+              <span>© 2026 Ableton AG · Made in Berlin</span>
+              <span>English · Deutsch · 日本語 · 简体中文</span>
+            </div>
+          </footer>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================================
+       VOICE & CONTENT
+       ========================================================= -->
+  <section id="voice">
+    <div class="section-head">
+      <h2>Voice &amp; content</h2>
+      <div class="sub">Friendly, third-person, Title Case. CTA verbs are remarkably short — <em>more</em>, <em>close</em>, <em>accept</em> — and almost always paired with a noun (<em>more from Ableton</em>, <em>more info</em>).</div>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;font-weight:600">Sample headings</div>
+        <div class="quote">Creative tools for <em>music makers</em></div>
+        <div class="quote"><em>Live 12.4</em> is out now — with Link Audio, updated devices and more</div>
+        <div class="quote">The latest from <em>Ableton</em></div>
+        <div class="quote">Watch dnksaus experiment with Live 12.4's updated <em>Delay</em></div>
+        <div class="quote"><em>Free</em> downloads</div>
+      </div>
+      <div>
+        <div class="panel">
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;font-weight:600">CTA verbs</div>
+          <div class="verb-row">
+            <span class="verb-tag">more <span class="ct">×2</span></span>
+            <span class="verb-tag">close <span class="ct">×1</span></span>
+            <span class="verb-tag">accept <span class="ct">×1</span></span>
+          </div>
+        </div>
+        <div class="panel">
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;font-weight:600">Common button labels</div>
+          <div class="verb-row">
+            <span class="verb-tag">more <span class="ct">×1</span></span>
+            <span class="verb-tag">close <span class="ct">×1</span></span>
+            <span class="verb-tag">accept <span class="ct">×1</span></span>
+            <span class="verb-tag">more info <span class="ct">×1</span></span>
+          </div>
+        </div>
+        <div class="panel">
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;font-weight:600">Voice metadata</div>
+          <dl class="kv-list">
+            <dt>Tone</dt><dd>Friendly</dd>
+            <dt>Pronoun posture</dt><dd>Third-person</dd>
+            <dt>Heading case</dt><dd>Title Case</dd>
+            <dt>Heading length</dt><dd>Balanced</dd>
+            <dt>Total buttons</dt><dd>4</dd>
+            <dt>Total headings</dt><dd>27</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       PAGE ANATOMY
+       ========================================================= -->
+  <section id="layout">
+    <div class="section-head">
+      <h2>Page anatomy</h2>
+      <div class="sub">Reading order detected on the homepage. Two "pricing" classifications likely reflect the dense card-grid layout rather than real pricing tables.</div>
+    </div>
+    <div class="panel">
+      <div class="layout-map">
+        <div class="layout-bar"><span class="role muted">nav</span><span class="h">More on Ableton.com:</span><span class="conf">0.40</span></div>
+        <div class="layout-bar"><span class="role muted">nav</span><span class="h">More on Ableton.com:</span><span class="conf">0.90</span></div>
+        <div class="layout-bar"><span class="role muted">content</span><span class="h">More on Ableton.com:</span><span class="conf">0.30</span></div>
+        <div class="layout-bar"><span class="role accent">feature-grid</span><span class="h">More from Ableton:</span><span class="conf">0.80</span></div>
+        <div class="layout-bar"><span class="role brand">pricing</span><span class="h">Live 12.4 is out now — with Link Audio, updated devices and more</span><span class="conf">0.40</span></div>
+        <div class="layout-bar"><span class="role muted">content</span><span class="h">The latest from Ableton</span><span class="conf">0.30</span></div>
+        <div class="layout-bar"><span class="role muted">content</span><span class="h">Tutorial videos</span><span class="conf">0.30</span></div>
+        <div class="layout-bar"><span class="role brand">pricing</span><span class="h">Free downloads</span><span class="conf">0.40</span></div>
+        <div class="layout-bar"><span class="role muted">content</span><span class="h">— (no heading)</span><span class="conf">0.30</span></div>
+        <div class="layout-bar"><span class="role muted">footer</span><span class="h">Education</span><span class="conf">0.95</span></div>
+      </div>
+      <div style="margin-top:18px; padding:12px 14px; background:var(--bg); border-left:3px solid var(--warn); font-size:12px; color:var(--ink-2)">
+        <strong>⚠ Likely heuristic miss:</strong> the two "pricing" sections are the release-banner and downloads grid — neither is a pricing table. The classifier flagged them via dense card layout + monetary signal in card metadata.
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       ACCESSIBILITY
+       ========================================================= -->
+  <section id="a11y">
+    <div class="section-head">
+      <h2>Accessibility</h2>
+      <div class="sub">Both detected colour pairs pass AAA. The black/white default and white-on-blue brand pair are both well above WCAG 2.1 thresholds.</div>
+    </div>
+    <div class="panel">
+      <div class="a11y-hero">
+        <div class="a11y-score">100%</div>
+        <div>
+          <div style="font-weight:700;font-size:15px">WCAG contrast score</div>
+          <div style="color:var(--ink-3);font-size:13px;margin-top:4px">2 passing pairs · 0 failing pairs · only 2 chromatic combinations in production</div>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="a11y-row">
+          <div class="sample" style="background:#fff; color:#000">The quick brown fox jumps over the lazy dog</div>
+          <div class="pair">#000000 on #FFFFFF</div>
+          <div class="ratio">21.00 : 1</div>
+          <div class="tag aaa">AAA</div>
+        </div>
+        <div class="a11y-row">
+          <div class="sample" style="background:#0000ff; color:#fff">The quick brown fox jumps over the lazy dog</div>
+          <div class="pair">#FFFFFF on #0000FF</div>
+          <div class="ratio">8.59 : 1</div>
+          <div class="tag aaa">AAA</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div style="margin-top:60px;color:var(--ink-4);font-size:11px;text-align:center" class="mono">
+    designlang v12.10.0 · extracted 2026-05-14 · review compiled 2026-05-14
+  </div>
+
+</div>
+
+<!-- =========================================================
+     SCRIPTS
+     ========================================================= -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+  if (window.lucide && window.lucide.createIcons) { window.lucide.createIcons(); }
+
+  function toggleTheme() {
+    const body = document.body;
+    body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  }
+
+  function toggleNav(force) {
+    const open = typeof force === 'boolean' ? force : !document.body.classList.contains('nav-open');
+    document.body.classList.toggle('nav-open', open);
+  }
+  document.querySelectorAll('#sidebar-nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.matchMedia('(max-width: 960px)').matches) toggleNav(false);
+    });
+  });
+
+  document.querySelectorAll('.swatch').forEach(el => {
+    el.addEventListener('click', () => {
+      const hex = el.querySelector('.hex')?.textContent?.trim();
+      if (!hex) return;
+      navigator.clipboard.writeText(hex).then(() => {
+        let tip = el.querySelector('.copy-tip');
+        if (!tip) { tip = document.createElement('div'); tip.className = 'copy-tip'; el.appendChild(tip); }
+        tip.textContent = 'Copied ' + hex;
+        tip.classList.add('show');
+        setTimeout(() => tip.classList.remove('show'), 1200);
+      });
+    });
+  });
+
+  const navLinks = Array.from(document.querySelectorAll('#sidebar-nav a[href^="#"]'));
+  const linkById = new Map(navLinks.map(a => [a.getAttribute('href').slice(1), a]));
+  const sections = navLinks
+    .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+    .filter(Boolean);
+  const setActive = (id) => {
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  };
+  const spy = new IntersectionObserver((entries) => {
+    const visible = entries.filter(e => e.isIntersecting)
+      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    if (visible[0]) setActive(visible[0].target.id);
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  sections.forEach(s => spy.observe(s));
+  if (linkById.has('top')) linkById.get('top').classList.add('active');
+</script>
+</body>
+</html>
