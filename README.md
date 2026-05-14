@@ -53,7 +53,7 @@ This will:
 
 ### Page styling
 
-Self-referential. The page chrome (background, borders, radii, type scale, mono font, accent treatment) is built from the *same tokens* it documents.
+Self-referential. The page chrome (background, borders, radii, type scale, mono font, accent treatment) is built from the *same tokens* it documents. Fixed left sidebar. Active section highlighted. Mobile collapses to hamburger drawer.
 
 <table>
 <tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
@@ -72,18 +72,6 @@ Two-layer view: primitive palette **+** tokens shown in context (surface, text, 
 <tr>
 <td><img src="docs/before-after/langfuse/colors-before.png" alt="Before — flat swatch grid sorted by usage count" /></td>
 <td><img src="docs/before-after/langfuse/colors-after.png" alt="After — primitive palette plus Carbon-style tokens-by-context" /></td>
-</tr>
-</table>
-
-### Nav
-
-Fixed left sidebar. Active section highlighted. Mobile collapses to hamburger drawer.
-
-<table>
-<tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
-<tr>
-<td><img src="docs/before-after/langfuse/nav-before.png" alt="Before — no nav, content flows top to bottom" /></td>
-<td><img src="docs/before-after/langfuse/nav-after.png" alt="After — fixed left sidebar with grouped section links and scrollspy" /></td>
 </tr>
 </table>
 
