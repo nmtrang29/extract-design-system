@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Branch 1: DOM-frequency tiebreaker — utrecht.jp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f5f5f1; color: #1a1a1c; padding: 32px; line-height: 1.5; }
+  .mono { font-family: 'Geist Mono', monospace; }
+  .head { max-width: 1400px; margin: 0 auto 24px; }
+  .head h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.02em; }
+  .head .meta { color: #6a6a70; font-size: 13px; font-family: 'Geist Mono', monospace; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1400px; margin: 0 auto; }
+  .col { background: #fff; border: 1px solid #e0e0d8; border-radius: 8px; padding: 24px; }
+  .col .badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; padding: 4px 10px; border-radius: 2px; display: inline-block; margin-bottom: 12px; }
+  .col.before .badge { background: #cc331414; color: #cc3314; }
+  .col.after .badge { background: #538a2e14; color: #538a2e; }
+  .col h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .col .sub { color: #6a6a70; font-size: 13px; margin-bottom: 18px; }
+
+  /* The "mock utrecht demo" preview */
+  .mock-demo { border: 1px solid #e0e0d8; border-radius: 6px; padding: 24px; font-family: 'Times', serif; font-size: 13px; min-height: 380px; }
+  .mock-demo h3 { font-family: 'Times', serif; font-size: 26px; font-weight: 400; margin-bottom: 14px; letter-spacing: -0.01em; }
+  .mock-demo h4 { font-family: 'Times', serif; font-size: 16px; font-weight: 400; margin: 16px 0 6px; }
+  .mock-demo .nav { font-size: 11px; margin-bottom: 18px; display: flex; gap: 10px; }
+  .mock-demo .nav span { padding: 2px 4px; }
+  .mock-demo .nav .active { font-weight: 600; }
+  .mock-demo p { margin-bottom: 8px; }
+  .mock-demo hr { margin: 14px 0; }
+  .mock-demo .footer { background: var(--demo-accent); color: white; padding: 10px 14px; margin: 14px -24px -24px; border-radius: 0 0 6px 6px; font-size: 11px; }
+  .mock-demo .link-row { font-size: 11px; margin-top: 10px; }
+  .mock-demo .link-row a { margin-right: 12px; text-decoration: underline; }
+
+  .col.before .mock-demo { --demo-text: #000000; --demo-line: #000000; --demo-accent: #db0000; --demo-bg: #ffffff; color: var(--demo-text); }
+  .col.before .mock-demo hr { border: 0; border-top: 1px solid var(--demo-line); }
+  .col.before .mock-demo a { color: var(--demo-text); }
+
+  .col.after .mock-demo { --demo-text: #db0000; --demo-line: #808080; --demo-accent: #db0000; --demo-bg: #ffffff; color: var(--demo-text); }
+  .col.after .mock-demo hr { border: 0; border-top: 1px solid var(--demo-line); }
+  .col.after .mock-demo a { color: var(--demo-text); }
+
+  /* Diagnosis table */
+  .diag { margin-top: 14px; }
+  .diag table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .diag th { text-align: left; color: #6a6a70; font-weight: 600; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; padding: 6px 8px; border-bottom: 1px solid #e0e0d8; }
+  .diag td { padding: 8px; border-bottom: 1px solid #ececea; vertical-align: middle; }
+  .diag tr:last-child td { border-bottom: 0; }
+  .diag .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; border: 1px solid #d0d0c8; margin-right: 6px; vertical-align: middle; }
+  .diag .hex { font-family: 'Geist Mono', monospace; font-size: 11px; }
+  .diag .src { color: #6a6a70; font-size: 11px; }
+  .diag .wrong { color: #cc3314; font-weight: 600; }
+  .diag .right { color: #538a2e; font-weight: 600; }
+
+  .annotation { margin-top: 16px; padding: 12px 16px; background: #faf9f5; border-radius: 6px; font-size: 12.5px; color: #44444a; line-height: 1.6; }
+  .annotation b { color: #1a1a1c; }
+  .annotation code { background: #fff; border: 1px solid #ececea; padding: 1px 5px; border-radius: 2px; font-family: 'Geist Mono', monospace; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>DOM-frequency tiebreaker · utrecht.jp</h1>
+  <div class="meta">Branch 1 · token-pattern-broadening · second test case · when the named token disagrees with what's actually painted to the screen</div>
+</div>
+
+<div class="grid">
+
+  <!-- BEFORE -->
+  <div class="col before">
+    <span class="badge">Before · trusts named token</span>
+    <h2>Black text on white (wrong)</h2>
+    <p class="sub">designlang reports <code class="mono">--color-text: #000000</code> from somewhere in the CSS cascade. The skill maps <code class="mono">--ink → #000000</code> at face value. <code class="mono">--line</code> falls through to ink (no semantic line token). Result doesn't match the actual site.</p>
+
+    <div class="mock-demo">
+      <div class="nav"><span>Recommend</span><span>Schedule</span><span class="active">Access</span><span>Cart</span></div>
+      <h3>Utrecht</h3>
+      <p>An art and book shop in Shibuya. Open Tuesday through Sunday from 12:00 to 19:00.</p>
+      <hr>
+      <h4>おすすめ / Recommend</h4>
+      <p>New arrivals every week. Browse the catalogue or visit us in store.</p>
+      <div class="link-row"><a>Books</a><a>Magazines</a><a>Editions</a></div>
+      <hr>
+      <p>Get in touch — see the access page for directions.</p>
+      <div class="footer">© Utrecht — Tokyo</div>
+    </div>
+
+    <div class="diag">
+      <table>
+        <thead><tr><th>Token</th><th>Hex</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td><span class="swatch" style="background:#000000"></span> --ink</td><td class="hex wrong">#000000</td><td class="src">designlang's --color-text (one cascade rule)</td></tr>
+          <tr><td><span class="swatch" style="background:#000000"></span> --line</td><td class="hex wrong">#000000</td><td class="src">defaulted to --ink (no semantic line token)</td></tr>
+          <tr><td><span class="swatch" style="background:#db0000"></span> --accent</td><td class="hex right">#db0000</td><td class="src">--color-primary (correct)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="annotation">
+      <b>The bug:</b> the demo looks like a generic black-on-white site. But utrecht.jp's actual aesthetic is <b>red text on white with gray dividers</b> — entirely missed.
+    </div>
+  </div>
+
+  <!-- AFTER -->
+  <div class="col after">
+    <span class="badge">After · DOM-frequency tiebreaker</span>
+    <h2>Red text on white (correct)</h2>
+    <p class="sub">When the named <code class="mono">--color-text</code> value disagrees with the most-used DOM color, prefer the DOM-most-used. Chrome reports body computed <code class="mono">color: rgb(219, 0, 0)</code> used on <b>411 elements</b> (vs. 149 for black). Red wins.</p>
+
+    <div class="mock-demo">
+      <div class="nav"><span>Recommend</span><span>Schedule</span><span class="active">Access</span><span>Cart</span></div>
+      <h3>Utrecht</h3>
+      <p>An art and book shop in Shibuya. Open Tuesday through Sunday from 12:00 to 19:00.</p>
+      <hr>
+      <h4>おすすめ / Recommend</h4>
+      <p>New arrivals every week. Browse the catalogue or visit us in store.</p>
+      <div class="link-row"><a>Books</a><a>Magazines</a><a>Editions</a></div>
+      <hr>
+      <p>Get in touch — see the access page for directions.</p>
+      <div class="footer">© Utrecht — Tokyo</div>
+    </div>
+
+    <div class="diag">
+      <table>
+        <thead><tr><th>Token</th><th>Hex</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td><span class="swatch" style="background:#db0000"></span> --ink</td><td class="hex right">#db0000</td><td class="src">DOM-most-used color: (411 elements) — overrides named --color-text</td></tr>
+          <tr><td><span class="swatch" style="background:#808080"></span> --line</td><td class="hex right">#808080</td><td class="src">DOM-most-used border-color on &lt;hr&gt; (10 elements)</td></tr>
+          <tr><td><span class="swatch" style="background:#db0000"></span> --accent</td><td class="hex right">#db0000</td><td class="src">--color-primary (unchanged)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="annotation">
+      <b>The fix:</b> two new rules in BUILD.md §4. <b>Value-based fallback</b> (already in this PR) plus a <b>DOM-frequency tiebreaker</b>: when a named token value disagrees with the most-used DOM color for that role, prefer the DOM. <code>--line</code> also gets a dedicated fall-through to DOM-observed border-colors before defaulting to ink. DESIGN.md annotates these decisions inline so reviewers see the trade-off.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
