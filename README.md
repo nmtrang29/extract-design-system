@@ -25,13 +25,11 @@ A **Claude Code skill** that turns any website URL into a polished, self-referen
 
 In Claude Code, run:
 
-
 ```
 /plugin install nmtrang29/extract-design-system
 ```
 
-
-Claude Code reads `.claude-plugin/plugin.json` from this repo and registers the skill under `~/.claude/skills/extract-design-system/`. Verify by typing `/extract-design-system`
+Verify by typing `/extract-design-system`
 
 ---
 
