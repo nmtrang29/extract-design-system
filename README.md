@@ -13,7 +13,7 @@ Main issues I encounter with a couple of DESIGN.md / design system extraction to
 
 ---
 
-### Principle: Count what is painted
+#### Principle: Count what is painted. 
 
 - Compare the most-painted value per role to the named token  
 - Prefer the painted value when they differ  
