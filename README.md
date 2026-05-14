@@ -1,6 +1,6 @@
 A Claude Code skill that turns any website URL into a polished, self-referential design system page.
 
-**Two additional outputs:**
+**Two main outputs:**
 + An HTML design system page styled with the extracted tokens
 + A `DESIGN.md` file cataloguing every detected token & and pattern 
 
