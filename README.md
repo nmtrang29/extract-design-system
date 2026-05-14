@@ -2,7 +2,7 @@ A Claude Code wrapper skill that turns any website URL into a polished, self-ref
 
 **Two main outputs:**
 + An HTML design system page styled with the extracted tokens
-+ A `DESIGN.md` file cataloguing every detected token & pattern 
++ A `DESIGN.md` file with analyzed patterns, tokens, and rules to be used by coding agents
 
 ---
 
