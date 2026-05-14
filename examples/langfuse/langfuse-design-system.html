@@ -1050,12 +1050,6 @@
     <div class="nav-group">
       <div class="label">Audit</div>
       <a href="#a11y">Accessibility</a>
-      <a href="#flags">Audit flags</a>
-    </div>
-
-    <div class="nav-group">
-      <div class="label">Resources</div>
-      <a href="#files">Generated files</a>
     </div>
   </nav>
 
@@ -1995,70 +1989,6 @@ any stack.</div></div>
           <span class="mono" style="font-size:12px;color:var(--ink-2)">14.72:1</span>
           <span class="a11y-tag pass">AAA</span>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- AUDIT FLAGS -->
-  <section id="flags">
-    <div class="section-head">
-      <h2>Audit flags</h2>
-      <div class="sub">Issues the extractor caught that may indicate complexity in the source or things worth simplifying.</div>
-    </div>
-    <div class="grid-2">
-      <div class="panel" style="border-left:3px solid var(--warn)">
-        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--warn);margin-bottom:8px;font-weight:600">⚠ Warning</div>
-        <div style="font-weight:500">4 font families in use</div>
-        <div style="color:var(--ink-3);font-size:13px;margin-top:4px">Recommendation: consolidate to 2 (heading + body). Geist Mono and SF Mono overlap in role.</div>
-      </div>
-      <div class="panel" style="border-left:3px solid var(--warn)">
-        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--warn);margin-bottom:8px;font-weight:600">⚠ Warning</div>
-        <div style="font-weight:500">127 <span class="mono">!important</span> rules</div>
-        <div style="color:var(--ink-3);font-size:13px;margin-top:4px">Prefer specificity over overrides — high <span class="mono">!important</span> usage signals brittle cascade ordering.</div>
-      </div>
-      <div class="panel" style="border-left:3px solid var(--warn)">
-        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--warn);margin-bottom:8px;font-weight:600">⚠ Warning</div>
-        <div style="font-weight:500">2,452 duplicate CSS declarations</div>
-        <div style="color:var(--ink-3);font-size:13px;margin-top:4px">Tailwind class fragmentation likely. Worth a sweep with a CSS bundler/optimizer.</div>
-      </div>
-      <div class="panel" style="border-left:3px solid var(--good)">
-        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--good);margin-bottom:8px;font-weight:600">✓ Strength</div>
-        <div style="font-weight:500">Strong contrast across the board</div>
-        <div style="color:var(--ink-3);font-size:13px;margin-top:4px">All 90 detected color pairs pass WCAG AA, most clear AAA.</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FILES -->
-  <section id="files">
-    <div class="section-head">
-      <h2>Generated artifacts</h2>
-      <div class="sub">22 output files in this directory. Click to open.</div>
-    </div>
-    <div class="panel">
-      <div class="file-grid">
-        <div class="file"><span class="ext">MD</span><span class="name"><a href="langfuse-com-DESIGN.md">langfuse-com-DESIGN.md</a></span></div>
-        <div class="file"><span class="ext">MD</span><span class="name"><a href="langfuse-com-design-language.md">langfuse-com-design-language.md</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-design-tokens.json">langfuse-com-design-tokens.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-figma-variables.json">langfuse-com-figma-variables.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-intent.json">langfuse-com-intent.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-visual-dna.json">langfuse-com-visual-dna.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-voice.json">langfuse-com-voice.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-icon-system.json">langfuse-com-icon-system.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-motion-tokens.json">langfuse-com-motion-tokens.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-form-states.json">langfuse-com-form-states.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-library.json">langfuse-com-library.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-mcp.json">langfuse-com-mcp.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-seo.json">langfuse-com-seo.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-stack-intel.json">langfuse-com-stack-intel.json</a></span></div>
-        <div class="file"><span class="ext">JSON</span><span class="name"><a href="langfuse-com-wordpress-theme.json">langfuse-com-wordpress-theme.json</a></span></div>
-        <div class="file"><span class="ext">CSS</span><span class="name"><a href="langfuse-com-variables.css">langfuse-com-variables.css</a></span></div>
-        <div class="file"><span class="ext">CSS</span><span class="name"><a href="langfuse-com-shadcn-theme.css">langfuse-com-shadcn-theme.css</a></span></div>
-        <div class="file"><span class="ext">JS</span><span class="name"><a href="langfuse-com-tailwind.config.js">langfuse-com-tailwind.config.js</a></span></div>
-        <div class="file"><span class="ext">JS</span><span class="name"><a href="langfuse-com-theme.js">langfuse-com-theme.js</a></span></div>
-        <div class="file"><span class="ext">TSX</span><span class="name"><a href="langfuse-com-anatomy.tsx">langfuse-com-anatomy.tsx</a></span></div>
-        <div class="file"><span class="ext">HTML</span><span class="name"><a href="langfuse-com-preview.html">langfuse-com-preview.html</a> (auto-generated)</span></div>
-        <div class="file"><span class="ext">DIR</span><span class="name"><a href="langfuse-com-prompts/">langfuse-com-prompts/</a></span></div>
       </div>
     </div>
   </section>
