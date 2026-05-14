@@ -52,7 +52,7 @@ This will:
 1. Run `npx designlang <url> --screenshots` to produce 22 raw extraction artifacts
 2. Read every relevant artifact (`*-variables.css`, `*-design-tokens.json`, `*-intent.json`, `*-voice.json`, etc.)
 3. Populate `skills/extract-design-system/TEMPLATE.html` with the extracted values
-4. Save the result as `<site>-design-system.html` (brand name only, no TLD — e.g. `langfuse-design-system.html`)
+4. Save the result as `<site>-design-system.html` 
 5. Optionally write a `CHANGELOG.md` documenting any inferred mappings or fallbacks
 
 ---
@@ -86,7 +86,7 @@ The skill is composed of three files in `skills/extract-design-system/`:
 |---|---|
 | [`SKILL.md`](skills/extract-design-system/SKILL.md) | Entry point. Defines the process, core decisions, and trigger phrases. |
 | [`BUILD.md`](skills/extract-design-system/BUILD.md) | Detailed page-structure spec. Section-by-section content, token mapping table, snapping rules. |
-| [`TEMPLATE.html`](skills/extract-design-system/TEMPLATE.html) | Pre-built HTML scaffold with `{{TOKEN}}` placeholders and `<!-- INSERT_*_HERE -->` regions. |
+| [`TEMPLATE.html`](skills/extract-design-system/TEMPLATE.html) | Pre-built HTML scaffold|
 
 Claude reads `SKILL.md`, follows the process, references `BUILD.md` for detailed rules, and populates `TEMPLATE.html` with the extracted values — instead of regenerating 2000+ lines of HTML from natural-language instructions every run.
 
