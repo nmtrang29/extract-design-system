@@ -21,7 +21,7 @@ A wrapper skill built on top of [`designlang`](https://www.npmjs.com/package/des
 
 ## Installation
 
-**Prerequisite:** 
+Prerequisite: 
 ```
 npm i designlang
 ```
