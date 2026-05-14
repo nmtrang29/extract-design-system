@@ -10,27 +10,34 @@ A **Claude Code skill** that turns any website URL into a polished, self-referen
 
 ## Installation
 
-The skill is just three files (`SKILL.md` + `BUILD.md` + `TEMPLATE.html`), describing a complete process any coding agent can follow. 
-
-**Prerequisite for all paths:** [`designlang`](https://www.npmjs.com/package/designlang) (`npm i -g designlang`, or use via `npx` on first run).
-
-### Claude Code 
+**Prerequisite:** [`designlang`](https://www.npmjs.com/package/designlang) (`npm i -g designlang`, or use via `npx` on first run).
 
 In Claude Code, run:
+
 
 ```
 /plugin install nmtrang29/extract-design-system
 ```
 
+
 Claude Code reads `.claude-plugin/plugin.json` from this repo and registers the skill under `~/.claude/skills/extract-design-system/`. Verify by typing `/extract-design-system`
 
-### Claude Code (manual fallback)
+---
+
+## Usage
 
 ```bash
-git clone https://github.com/nmtrang29/extract-design-system.git
-ln -s "$(pwd)/extract-design-system/skills/extract-design-system" \
-      ~/.claude/skills/extract-design-system
+/extract-design-system https://yoursite.com/
 ```
+
+This will:
+
+1. Run `npx designlang <url> --screenshots` to produce 22 raw extraction artifacts
+2. Read every relevant artifact (`*-variables.css`, `*-design-tokens.json`, `*-intent.json`, `*-voice.json`, etc.)
+3. Populate `skills/extract-design-system/TEMPLATE.html` with the extracted values
+4. Generate a design system preview: `./design-extract-output/<site>/<site>-design-system.html` 
+5. Write a comprehensive `DESIGN.md` (400–800 lines) into the same folder with every detected token, heading, weight, breakpoint, and pattern. Any inferred mappings or font fallbacks are noted inline.
+
 ---
 
 ## What's different from [design-extract](https://github.com/Manavarya09/design-extract)
@@ -121,34 +128,17 @@ Default theme matches the source site, not Claude's preference.
 
 ---
 
-## Usage
-
-```bash
-# In Claude Code
-/extract-design-system https://yoursite.com/
-```
-
-This will:
-
-1. Run `npx designlang <url> --screenshots` to produce 22 raw extraction artifacts
-2. Read every relevant artifact (`*-variables.css`, `*-design-tokens.json`, `*-intent.json`, `*-voice.json`, etc.)
-3. Populate `skills/extract-design-system/TEMPLATE.html` with the extracted values
-4. Save the result inside a per-site folder: `./design-extract-output/<site>/<site>-design-system.html` (e.g. `./design-extract-output/langfuse/langfuse-design-system.html`)
-5. Write a comprehensive `DESIGN.md` (400–800 lines) into the same folder — every detected token, heading, weight, breakpoint, and pattern. Any inferred mappings or font fallbacks are noted inline.
-
----
-
 ## How it works
 
 The skill is composed of three files in `skills/extract-design-system/`:
 
 | File | Role |
 |---|---|
-| [`SKILL.md`](skills/extract-design-system/SKILL.md) | Entry point. Defines the process, core decisions, and trigger phrases. |
+| [`SKILL.md`](skills/extract-design-system/SKILL.md) | Entry point. |
 | [`BUILD.md`](skills/extract-design-system/BUILD.md) | Detailed page-structure spec. Section-by-section content, token mapping table, snapping rules. |
 | [`TEMPLATE.html`](skills/extract-design-system/TEMPLATE.html) | Pre-built HTML scaffold|
 
-Claude reads `SKILL.md`, follows the process, references `BUILD.md` for detailed rules, and populates `TEMPLATE.html` with the extracted values — instead of regenerating 2000+ lines of HTML from natural-language instructions every run.
+Claude reads `SKILL.md`, follows the process, references `BUILD.md` for detailed rules, and populates `TEMPLATE.html` with the extracted values.
 
 ---
 
