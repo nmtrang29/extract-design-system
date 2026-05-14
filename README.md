@@ -1,6 +1,6 @@
 # extract-design-system
 
-A fork of [design-extract](https://github.com/Manavarya09/design-extract) that turns the raw extraction output into a **polished, self-referential design system**.
+Extract the design system from any website, turn raw materaials into a **polished, self-referential design system page**.
 
 ![Hero screenshot](docs/before-after/hero-after.png)
 
