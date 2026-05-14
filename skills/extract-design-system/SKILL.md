@@ -51,14 +51,14 @@ The general rule: **if the extraction contains a token, color, heading, weight, 
 These are the choices that make the output a coherent design-system page rather than a token dump:
 
 - **Sidebar:** fixed left, 248px, with grouped section labels. Active section highlighted via scrollspy. Mobile → hamburger drawer.
-- **Default theme:** match the source site (most marketing sites are light by default).
-- **Pattern depth:** render *every* detected component pattern with live examples, not just the 3 with full anatomy data.
-- **Color organization:** primitive palette (Brand / Neutrals / Patterns) **plus** Carbon-style tokens-by-context with 6 groups (Surface, Text, Border, Status, Code, Shadcn primitives).
-- **Icons:** real rendered SVGs via the Lucide CDN, not a text list.
-- **Type scale:** show font family per row (inferred from family usage counts).
-- **Radii:** snap every chrome radius to the detected scale (typically 2px + 6px only). Replace all 999px pills with 2px.
-- **Typography snap:** every font size must exist in the detected scale. Bulk-convert half-pixel sizes.
-- **Accent treatment:** brand accent (typically a bright yellow) used as a **background highlight pill**, never as text color.
+- **Default theme:** match the source site's detected default (light or dark, based on `body.classList`, `data-theme`, or `prefers-color-scheme`).
+- **Pattern depth:** render every component pattern that's *actually detected* (anatomy.tsx + detected-patterns line), not a fixed list. Skip patterns the extractor didn't find.
+- **Color organization:** primitive palette (Brand / Neutrals / Patterns) **plus** tokens-by-context. Detect groups by token-name pattern (`--surface-*`, `--text-*`, `--line-*`, etc.) — omit any group with zero matches.
+- **Icons:** real rendered SVGs from whatever library `icon-system.json` detected. Fall back to dim placeholder cards if the library is unknown.
+- **Type scale:** show font family per row, inferred from family usage counts. Mark the mapping as inferred.
+- **Radii:** snap every chrome radius to the nearest value in the **detected** scale — don't hardcode 2/6. Replace 999px pills with the largest detected radius *only if* `visual-dna.json` reports `hasPill: false`.
+- **Typography snap:** every font size must be in the detected scale. No half-pixel sizes. Map review-chrome by role (hero = largest, section h2 = 3rd-largest, eyebrow = smallest) rather than by absolute number.
+- **Accent treatment:** decide by **luminance**. Near-white accents (luminance ≥ 0.75) → background highlight pill. Saturated accents → use as text color directly.
 
 ## Trigger phrases
 

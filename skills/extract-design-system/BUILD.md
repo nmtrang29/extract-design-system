@@ -29,7 +29,7 @@ Map directly from `*-variables.css`. The placeholders in `TEMPLATE.html` are:
 | `{{RADIUS_CARD}}` | `--radius-md` | `6px` |
 | `{{RADIUS_CONTROL}}` | `--radius-xs` | `2px` |
 
-**Dark theme:** If the source has a native dark theme (e.g., `--dark-*` tokens), use it. Otherwise, build a Langfuse-style dark from the **code-block surfaces** (`--surface-code`, `--surface-code-grey`, `--surface-code-button`, `--line-cta`, `--text-code-secondary`).
+**Dark theme:** If the source has native dark tokens (`--dark-*`, `.dark { ... }` block, or a media-query dark scheme), use them. Otherwise, build a **code-surface-derived dark** from whatever code-block tokens the source defines (look for `--surface-code*`, `--code-bg`, `--syntax-bg`, `.hljs`, `pre` styles, etc.). If the source has no code surfaces either, fall back to a neutral inverted ramp built from the ink/surface tokens.
 
 ---
 
@@ -37,7 +37,9 @@ Map directly from `*-variables.css`. The placeholders in `TEMPLATE.html` are:
 
 ```
 [Brand title]               ← {{SITE_NAME}} + " Design System"
-{{SCOPE_LABEL}}             ← e.g. "Corp Site" — ask once if ambiguous, default to "Corp Site"
+{{SCOPE_LABEL}}             ← Optional one-line scope. Only set if a clear scope is detectable
+                              (e.g. "Docs" if the URL is /docs/*, "App" if the URL is app.*).
+                              For corporate root pages, leave empty rather than guessing.
 
 OVERVIEW
   At a glance               → #top
@@ -87,16 +89,21 @@ RESOURCES
 
 ## 3. Hero
 
-- **H1:** `font-size: clamp(38px, 6vw, <largest-detected-size>); font-weight: 500;`
-- Wrap a 1–2 word emphasis (the site's product noun) in `<em>`. Style it as a **yellow highlight pill**:
-  ```css
-  em { background: var(--accent); padding: 0 6px; border-radius: 2px; color: var(--ink); }
-  ```
-  **Never use the accent as text color** — it's typically near-white on white and unreadable.
-- Source line (Geist Mono, 13px): `<url> · <element-count> elements · <date>`
-- Badge row (6 outlined pills): intent · library · material · imagery style · voice tone · heading case
-- Stats grid (8 cells): Colors, Font families, Spacing, Shadows, Radii, Components, Icons, WCAG score. WCAG cell uses `--callout-success` if ≥90%.
-- **Background:** layer the line-grid pattern from `visual-dna.json` at low opacity (~0.08) over `--panel`, plus a radial-accent glow in the top-right at ~28% alpha.
+- **H1:** `font-size: clamp(38px, 6vw, <largest-detected-size>); font-weight: <detected H1 weight>;`
+- Optionally wrap a 1–2 word emphasis (the site's product noun, derived from the most-repeated noun across detected headings) in `<em>`. **Choose the emphasis treatment based on the accent's luminance:**
+  - **Low-contrast accent** (near-white: yellow, lime, pale cyan — luminance > 0.75): style as a background pill so it reads against the page bg.
+    ```css
+    em { background: var(--accent); padding: 0 6px; border-radius: var(--radius-control); color: var(--ink); }
+    ```
+  - **Saturated / dark accent** (blue, red, purple, deep teal — luminance < 0.75): use directly as text color.
+    ```css
+    em { color: var(--accent); font-style: normal; }
+    ```
+  If unsure, default to the safer pill treatment (works for both).
+- Source line in the detected mono family, body-small: `<url> · <element-count> elements · <date>`
+- Badge row: one outlined pill per detection that's present in the extraction. Skip any whose source data is missing (e.g., no `imagery` detection → no imagery pill).
+- Stats grid: one cell per non-empty category. Auto-populate from `{Colors, Font families, Spacing, Shadows, Radii, Components, Icons, WCAG score}` — drop any with count 0. WCAG cell uses `--good` if ≥90%, `--warn` 70–90%, `--bad` <70%.
+- **Background:** if `visual-dna.json` `backgroundPatterns.labels` contains a pattern, layer it at ~0.08 opacity over `--panel`. Otherwise just `--panel`. Add a radial glow only if the accent is low-contrast enough to read at 28% alpha.
 
 ---
 
@@ -108,43 +115,43 @@ RESOURCES
 - **Neutrals** as compact 76px swatches with usage counts
 - **Patterns & gradients** panel with the detected line-grid demo + visual-DNA kv (saturation, shadow profile, avg radius, pills, backdrop blur, gradients)
 
-### Layer 2: Tokens by context (Carbon-style)
+### Layer 2: Tokens by context
 
-Intro panel with **quick-jump pills** to each group, then 6 panels:
+Intro panel with **quick-jump pills** to each non-empty group, then one panel per group. **Detect tokens by pattern, not by exact name.** Groups are populated by scanning `*-variables.css` for variables matching the patterns below; skip any group whose patterns match nothing.
 
-| Group | Tokens to surface | Live example |
+| Group | Pattern to match in `*-variables.css` | Live example |
 |---|---|---|
-| **Surface** | `--surface-1`, `--surface-bg`, `--surface-2`, `--surface-beige-accent`, `--surface-cta-primary`, `--surface-code`, `--surface-code-grey`, `--surface-code-button`, `--surface-button-grey` | Nested-box layering demo (page → card → sunken, with accent/yellow/dark pills inside) |
-| **Text** | `--text-primary`, `--text-secondary`, `--text-tertiary`, `--text-disabled`, `--text-links`, `--text-code-secondary` | Sample paragraph with each tone in hierarchy; call out the link color as the only chromatic text token |
-| **Border & line** | `--line-structure`, `--line-cta`, `--line-divider-dash`, `--line-code-border` | 4 sample cards with each border treatment |
-| **Status & callout** | `--callout-success/error/warning/info/idea` | 5 Carbon-style left-border callout blocks with sample copy |
-| **Code syntax** | `--text-code-orange/pink/blue`, `--color-fd-diff-add(-symbol)`, `--color-fd-diff-remove(-symbol)`, `--button-icon-color` | A highlighted code snippet on dark surface + a diff block with `+`/`−` markers |
-| **Shadcn primitives** | `--primary(-foreground)`, `--secondary/--accent/--muted` (these often collapse to the same hex), `--destructive`, `--background`, `--foreground`, `--card/--popover`, `--border/--input/--ring`, `--muted-foreground` | Paired fg/bg cards showing each combination; HSL captions |
+| **Surface** | `--surface-*`, `--bg-*`, `--background*`, `--canvas*`, plus any neutral color used >50× as a background in the DOM | Nested-box layering demo: outer (page bg) → middle (card surface) → inner (sunken / hover). If multiple "layered" surfaces detected, include all. |
+| **Text** | `--text-*`, `--ink-*`, `--foreground*`, `--color-text-*`, `--*-foreground` (where the role is text) | Sample paragraph with each tone shown in visual hierarchy. Call out any text token that's clearly chromatic (saturated, not in the neutral ramp) — this is usually the link color. |
+| **Border & line** | `--line-*`, `--border-*`, `--divider-*`, `--ring*`, `--outline*` | One sample card per distinct border treatment (default, strong, dashed, code, etc.). |
+| **Status & callout** | `--callout-*`, `--status-*`, `--alert-*`, plus any token whose name contains `success`, `error`, `warning`, `info`, `danger`, `destructive`, `idea`, `tip` | One left-border callout block per status. Skip the group entirely if the source has no status tokens. |
+| **Code syntax** | `--text-code-*`, `--syntax-*`, `--hl-*`, `--code-*`, framework-specific (e.g., `--color-fd-*` for Fumadocs, `--shiki-*` for Shiki, `--prism-*` for Prism), plus diff-add/remove tokens | A syntax-highlighted snippet (use any test code) + a diff block with `+`/`−` markers. Skip if no code tokens detected. |
+| **Library primitives** | `--primary*`, `--secondary*`, `--accent*`, `--muted*`, `--destructive*`, `--card*`, `--popover*`, `--input*`, `--ring*` — the shadcn naming convention. Detect by checking `library.json` for shadcn/ui or by presence of these names. | Paired fg/bg cards showing each combination. Label captions with the raw value (HSL, hex, OKLCH — whatever the source uses). |
 
 **Each group has the same scaffold:**
 1. Header — group name + token count + 1-line role description
 2. Live example panel
-3. Compact reference table: `[swatch · token name · hex · "used for"]`
+3. Compact reference table: `[swatch · token name · raw value · "used for"]`
 
-**Skip any group whose tokens aren't in the extraction.**
+**Hard rule:** if a group's pattern matches nothing, omit the group entirely (including its quick-jump pill). Don't render empty groups.
 
 ---
 
 ## 5. Typography
 
-- **Font families** as outlined pills (2px radius, NOT 999px) with usage counts and a tiny progress bar. Surface the audit recommendation if >2 families ("⚠ Audit recommends limiting to 2 families").
+- **Font families** as outlined pills (use `--radius-control`, never 999px unless `visual-dna.json` reports `hasPill: true`) with usage counts and a tiny progress bar. Surface the audit recommendation if >2 families (pull text from `*-design-language.md` "Don'ts" if present, otherwise default to "Consider limiting to 2 families: heading + body.").
 - **Type scale rows.** Grid `96px 1fr auto`:
-  - Left column (stacked): size in mono + **font family** label underneath (e.g., `68px` / `f37 Analog · display`)
-  - Middle: live sample text rendered at that size. Use actual site copy where possible.
-  - Right: weight · line-height · semantic role (`500 · lh 71.4 · H1`)
+  - Left column (stacked): size in detected mono + inferred font family label underneath (e.g., `<largest-size>` / `<display-family> · display`)
+  - Middle: live sample text rendered at that size. Use actual site copy from `intent.json` heading samples where possible.
+  - Right: weight · line-height · semantic role.
 
-**Font → size mapping** (inferred — designlang counts family usage but doesn't pair sizes to families):
-- Largest 3 sizes → display face if detected (e.g., f37 Analog)
-- Body / UI sizes → primary body face (e.g., Inter)
-- 12px mono samples → detected mono face (e.g., Geist Mono)
+**Font → size mapping** (designlang counts family usage but doesn't pair sizes to families, so this is inferred):
+- Largest 3 sizes → display face if a distinct one is detected (i.e., a family with a high "all"/"heading" coverage and lower count than the body face)
+- Body / UI sizes → primary body face (the family with the highest usage count)
+- Mono-coded sizes (12px range, when used in `<pre>`, `<code>`) → detected mono face
 - Caption / eyebrow → body face
 
-Mark the mapping as **inferred** in the section description, not directly extracted.
+Mark the mapping as **inferred** in the section description.
 
 ---
 
@@ -159,16 +166,14 @@ Mark the mapping as **inferred** in the section description, not directly extrac
 
 ## 7. Icons
 
-- **Stats grid (6 mini-cards):** total · stroke-only · fill-only · avg stroke width · dominant grid · rounded-caps fraction
-- **Lucide CDN:**
-  ```html
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script>lucide.createIcons();</script>
-  ```
-- **Each icon:** `<i data-lucide="<name>"></i>` inside an `.icon-card` at 24px / stroke-width 2 / ink color
-- **Repeated icons** get a yellow count badge (2px radius, top-right corner)
-- **Renamed Lucide icons:** map known renames (e.g., `circle-question-mark` → `circle-help`) but display the original detected name as the label
-- **Unidentified icons:** dimmed placeholder cards labeled with their attributes ("16px · mixed style ×7")
+- **Stats grid (6 mini-cards):** total · stroke-only · fill-only · avg stroke width · dominant grid · rounded-caps fraction. Omit any cell whose source data is zero.
+- **Render the actual icons.** Branch on `icon-system.json.library`:
+  - `lucide` → load Lucide via CDN (`https://unpkg.com/lucide@latest/dist/umd/lucide.min.js`) and render each as `<i data-lucide="<name>"></i>` inside an `.icon-card`. Map known Lucide renames (e.g., `circle-question-mark` → `circle-help`) but display the original detected name.
+  - `heroicons` → load Heroicons via the same pattern (CDN or inline SVG).
+  - `phosphor` / `tabler` / `feather` / other detected → use the matching CDN or inline SVGs.
+  - `unknown` / `null` → render dimmed placeholder cards labeled with each icon's detected attributes (grid, stroke width, style). No CDN call.
+- **Size and weight:** match the detected dominant grid (24px is common but not assumed) and `avgStrokeWidth`. Color with `--ink`.
+- **Repeated icons** get a count badge using the accent color (background pill if accent is low-contrast, solid swatch otherwise).
 
 ---
 
@@ -200,9 +205,9 @@ Skip patterns not in the extraction. For patterns with anatomy data, mirror the 
 
 Two-column layout:
 
-- **Left:** 5 sample headings rendered at 32px / weight 500. Wrap noun emphasis (e.g., "LLM", "developers", "agents") in yellow-pill `<em>`.
+- **Left:** up to 5 sample headings (from `voice.json.sampleHeadings` deduplicated) rendered at the detected H3 size and weight. Wrap noun emphasis on the most-repeated nouns across detected headings in `<em>`, styled per the accent-treatment rule (background pill if accent is low-contrast, text color if saturated). If no clearly-repeated noun, render headings plain.
 - **Right (stacked):**
-  - CTA verbs as 2px-radius outlined pills with counts
+  - CTA verbs as outlined pills (`--radius-control`) with counts
   - Common button labels as pills
   - Voice metadata kv list: tone · pronoun posture · heading case · heading length · total buttons · total headings
 
@@ -216,9 +221,13 @@ Linear flow of sections from `intent.json` `readingOrder`. Each row:
 [role badge — color-coded]  [heading text]  [confidence in mono]
 ```
 
-Color-code roles: accent yellow for `pricing-table` / `feature-grid` / `cta`, neutral grey for `nav` / `content` / `testimonial`, light grey for `footer`.
+**Color-code roles by class, not by exact name:**
+- **Marketing / action** (any role matching `cta`, `hero`, `pricing*`, `feature*`, `signup`, `subscribe`) → accent color
+- **Editorial / content** (`content`, `article`, `blog-post`, `testimonial`, `quote`, `gallery`) → ink-muted neutral
+- **Structural** (`nav`, `header`, `footer`, `sidebar`, `aside`, `breadcrumb`) → light neutral
+- **Unrecognized** → fall back to ink-tertiary
 
-Caption any obvious heuristic false positives ("⚠ 6 'pricing-table' sections in a row likely indicates dense card-grid misclassification").
+Caption any obvious heuristic false positives **when the same role appears 4+ times in a row** with no intervening role change — this typically indicates a misclassification (e.g., dense card grids being read as repeated pricing tables). Write the caption based on what's actually detected, not a hardcoded example.
 
 ---
 
@@ -233,16 +242,17 @@ Caption any obvious heuristic false positives ("⚠ 6 'pricing-table' sections i
 ## 12. Audit flags
 
 Two-column grid of cards. Each card:
-- Left border in matching callout color (`--warn` for warnings, `--good` for strengths)
-- Eyebrow label in matching color (10/600/0.1em uppercase)
+- Left border in matching callout color (`--warn` for warnings, `--good` for strengths, `--bad` for errors if any)
+- Eyebrow label in matching color (eyebrow-token uppercase styling)
 - Title + explanation in ink-secondary
 
-Pull warnings directly from the "Don'ts" section of `*-design-language.md`:
-- "X font families in use" → recommend ≤2
-- "X !important rules" → prefer specificity
-- "X duplicate CSS declarations" → bundler/optimizer
+**Render whatever is actually in the extraction:**
+- Pull every entry from the "Don'ts" section of `*-design-language.md` and render one card per warning. Don't hardcode specific warning categories — the extractor decides what to surface.
+- Pull strengths from the "Do's" section + any high scores (WCAG ≥ 90%, single font family, all radii in detected scale, etc.).
+- If the source has no Don'ts, omit the warnings column and lead with strengths.
+- If the source has no Do's and no warnings, omit the section entirely.
 
-Always include at least one strength block ("✓ Strong contrast across the board" if a11y score is high).
+Suggested severity classification: counts >100 of any anti-pattern → severity high; 10–100 → medium; <10 → low.
 
 ---
 
@@ -262,29 +272,24 @@ Small `<div>` with designlang version + extraction date in Geist Mono, ink-muted
 
 ### Radii
 
-- **Snap everything outside the component preview to the detected scale** (typically just 2px and 6px).
-- Conversion table:
-  - 18px → 6px
-  - 12px–14px → 6px
-  - 10px → 6px
-  - 8px → 6px
-  - 4px → 2px
-  - **999px pills → 2px** (most modern systems report `hasPill: false` in `visual-dna.json`)
-- **Exception:** tiny status dots inside `.lf-badge .pip` may stay 999px (legitimate inline indicators).
+- **Snap every chrome radius to the nearest value in the detected scale** (from `design-tokens.json` `radius`). The detected scale defines the system's vocabulary — any chrome radius outside it is a violation.
+- For each radius the template specifies, pick the nearest detected token. Snap *down* for ambiguous distances (a 5px target with detected 2 and 6 → snap to 2) to bias toward the squarer end, which reads as more architectural.
+- **Pills (`border-radius: 999px`):** check `visual-dna.json` `hasPill`.
+  - `hasPill: false` → snap pills to the largest detected token (typically 6px) or to `--radius-card`.
+  - `hasPill: true` → leave 999px.
+- **Exception:** tiny inline status dots (e.g., `.pip` inside `.lf-badge`) may stay circular regardless — they're inline indicators, not shapes.
 
 ### Font sizes
 
-- Every size must exist in the detected scale (typically 10/11/12/13/14/15/16/20/32/50/68).
-- **No half-pixel sizes.** Bulk-convert:
-  - `10.5 → 11`, `11.5 → 12`, `12.5 → 13`, `13.5 → 13`
-- Map review-chrome elements:
-  - Section H2 → 32 / 500 (the H3 token)
-  - Stat values → 32 / 500
-  - Quotes → 32 / 500
-  - Hero H1 → largest detected size / 500
-  - Eyebrow / panel sub-headings → 10 / 600 / uppercase / 0.1em letter-spacing
-  - Body → 13 or 14 / 400
-  - Mono captions → 11 or 12
+- **Every size must exist in the detected scale** (from `design-tokens.json` `typography` / `*-variables.css` `--text-*` and explicit heading sizes). The detected scale defines what's allowed.
+- **No half-pixel sizes** — round each to the nearest detected token.
+- Map review-chrome elements **by role to the detected scale**, not by absolute number:
+  - Hero H1 → largest detected size, detected H1 weight
+  - Section H2 → 3rd-largest detected size (or detected H3 if there are fewer than 3 display sizes), detected heading weight
+  - Stat values, voice quotes → same as section H2 (or one tier smaller if H2 is already very large)
+  - Eyebrow / panel sub-headings → smallest detected size, weight 600+, uppercase with `tracking-wider` letter-spacing
+  - Body → detected body size (usually 14–16)
+  - Mono captions → smallest body-size token (usually 11–12)
 
 ### Fonts
 
@@ -294,26 +299,37 @@ Small `<div>` with designlang version + extraction date in Geist Mono, ink-muted
 
 ### Accent treatment
 
-- The brand accent is typically a near-white color (yellow, lime, etc.).
-- Don't use it as text — it's unreadable on light backgrounds.
-- Use it as a **background highlight pill** for emphasis (yellow bg + ink text + 2px radius + 0 6px padding).
-- Apply to: hero H1 `<em>`, voice quote highlights, icon count badges, file extension chips.
+**Decide by accent luminance:**
+
+```
+luminance(accent) = 0.2126·R + 0.7152·G + 0.0722·B   (normalized 0–1)
+```
+
+- **Low-contrast accent** (luminance ≥ 0.75 — yellow, lime, pale cyan, etc.): use as a **background highlight pill**.
+  ```css
+  .emphasis { background: var(--accent); color: var(--ink); padding: 0 6px; border-radius: var(--radius-control); }
+  ```
+  Apply to: hero H1 `<em>`, voice quote highlights, icon count badges, file extension chips.
+
+- **High-contrast accent** (luminance < 0.75 — saturated blue/red/purple/teal, dark accents): use **directly as text color**.
+  ```css
+  .emphasis { color: var(--accent); }
+  ```
+  Apply to the same elements, but as text not background.
+
+If unsure (e.g., medium luminance ~0.5), default to background pill — it's safer because it always has a contrasting `--ink` text on top.
 
 ### Pattern background
 
-The line-grid pattern from `visual-dna.json` should appear:
-- At full opacity inside the component preview frame
-- At low opacity (~0.08) layered over the hero surface
+Check `visual-dna.json` `backgroundPatterns`. **Render whatever's detected — or nothing:**
 
-```css
-background-image: repeating-linear-gradient(
-  315deg,
-  var(--panel),
-  var(--panel) 2px,
-  rgba(108, 103, 96, 0.1) 4px,
-  var(--panel) 4px
-);
-```
+- `line-grid` (samples will be `repeating-linear-gradient(...)`) → use the actual sample string at full opacity in the component preview frame, ~0.08 opacity over the hero.
+- `dot-grid` → use the detected radial-gradient or SVG pattern at the same opacities.
+- `noise` → apply the detected noise filter / SVG.
+- `mesh` / `svg-pattern` → embed the source.
+- **No pattern detected (`labels` is empty)** → leave both the preview frame and hero as solid `--panel`. Don't invent a pattern.
+
+Always read the actual pattern value from `backgroundPatterns.samples` rather than hardcoding angles or colors.
 
 ---
 
