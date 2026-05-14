@@ -6,14 +6,16 @@ A skill built on top of [`designlang`](https://www.npmjs.com/package/designlang)
 
 <table>
 <tr>
-<td width="33%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html"><b>▶ Langfuse</b></a></td>
-<td width="33%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/ableton/ableton-design-system.html"><b>▶ Ableton</b></a></td>
-<td width="33%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html"><b>▶ Claude</b></a></td>
+<td width="25%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html"><b>▶ Langfuse</b></a></td>
+<td width="25%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/ableton/ableton-design-system.html"><b>▶ Ableton</b></a></td>
+<td width="25%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html"><b>▶ Claude</b></a></td>
+<td width="25%" align="center"><a href="https://nmtrang29.github.io/extract-design-system/examples/utrecht/utrecht-design-system.html"><b>▶ Utrecht</b></a></td>
 </tr>
 <tr>
 <td><a href="https://nmtrang29.github.io/extract-design-system/examples/langfuse/langfuse-design-system.html"><img src="docs/before-after/langfuse/hero-after.png" alt="Langfuse demo — warm beige, yellow accent, shadcn" /></a></td>
 <td><a href="https://nmtrang29.github.io/extract-design-system/examples/ableton/ableton-design-system.html"><img src="docs/before-after/ableton/hero.png" alt="Ableton demo — brutalist, 0 radii, custom CSS" /></a></td>
 <td><a href="https://nmtrang29.github.io/extract-design-system/examples/claude/claude-design-system.html"><img src="docs/before-after/claude/tokens-by-context.png" alt="Claude demo — tokens by context section" /></a></td>
+<td><a href="https://nmtrang29.github.io/extract-design-system/examples/utrecht/utrecht-design-system.html"><img src="docs/before-after/utrecht/hero.png" alt="Utrecht demo — minimal red on white, gray hairlines, Shopify storefront" /></a></td>
 </tr>
 </table>
 

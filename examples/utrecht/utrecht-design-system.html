@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Design Review — Utrecht</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ---------- THEME · mapped to utrecht.jp tokens ---------- */
+  /*
+    Utrecht's actual aesthetic is red text on white with gray dividers.
+    designlang named --color-text as #000000 (from one upstream cascade
+    rule), but the COMPUTED body color is #db0000 (red), used on 411 DOM
+    elements vs 149 for black. Per the DOM-frequency tiebreaker rule
+    (branch-1 PR), --ink resolves to red. No semantic --line-* token
+    exists, so --line falls through to DOM-observed <hr> borders: gray.
+  */
+  :root {
+    /* surfaces — utrecht has no panel/bg distinction */
+    --bg:        #ffffff;   /* --color-bg / 245 uses */
+    --panel:     #ffffff;
+    --panel-2:   #ffffff;
+    /* lines — DOM-observed gray hairlines on <hr>, not black */
+    --line:      #808080;   /* 10 <hr> borders. No semantic --line-* token. */
+    --line-2:    #808080;
+    /* text — DOM-frequency tiebreaker: red, not the named black */
+    --ink:       #db0000;   /* DOM-most-used color: 411 elements (vs 149 for black) */
+    --ink-2:     #db0000;
+    --ink-3:     #808080;   /* --color-text-2 / muted gray */
+    --ink-4:     #808080;
+    /* brand */
+    --accent:    #db0000;   /* --color-primary / 836 uses · THE color */
+    --link:      #db0000;
+    /* status — no callout-* / status-* tokens detected in source */
+    /* radii — empty radius scale {} → no border-radius anywhere */
+    --radius-card:    0px;
+    --radius-control: 0px;
+  }
+  [data-theme="dark"] {
+    /* No native dark detected. Inverted from the same 4 tokens. */
+    --bg:        #000000;
+    --panel:     #000000;
+    --panel-2:   #000000;
+    --line:      #808080;
+    --line-2:    #808080;
+    --ink:       #ff5050;   /* lifted red for dark-bg legibility */
+    --ink-2:     #ff5050;
+    --ink-3:     #808080;
+    --ink-4:     #808080;
+    --link:      #ff5050;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, 'Noto Sans JP', BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; }
+  .jp { font-family: 'Noto Sans JP', sans-serif; font-weight: 400; }
+
+  /* ---------- LAYOUT ---------- */
+  :root { --sidebar-w: 248px; }
+  .shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 35px 29px 88px;
+    padding-left: calc(var(--sidebar-w) + 40px);
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--bg);
+    border-right: 1px solid var(--ink);
+    display: flex; flex-direction: column;
+    z-index: 40;
+    transition: transform 600ms cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  .sidebar-head { padding: 29px 24px 20px; border-bottom: 1px solid var(--ink); }
+  .sidebar-head .brand {
+    display: flex; flex-direction: column; gap: 4px;
+    font-weight: 700; font-size: 14px; letter-spacing: 0.01em;
+  }
+  .sidebar-head .brand .jp { color: var(--accent); font-size: 14px; font-weight: 700; }
+  .sidebar-head .sub { color: var(--ink-3); font-size: 14px; margin-top: 8px; font-weight: 400; }
+
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 20px 0; }
+  .sidebar-nav::-webkit-scrollbar { width: 6px; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: var(--line-2); }
+
+  .nav-group { margin-top: 20px; }
+  .nav-group:first-child { margin-top: 0; }
+  .nav-group .label {
+    font-size: 14px; font-weight: 700; line-height: 1;
+    color: var(--ink); padding: 4px 24px;
+    margin-bottom: 4px;
+  }
+  .sidebar-nav a {
+    display: block;
+    color: var(--ink); text-decoration: none;
+    font-size: 14px; font-weight: 400;
+    padding: 4px 24px; line-height: 1.4;
+    transition: 600ms cubic-bezier(0.19, 1, 0.22, 1);
+    position: relative;
+  }
+  .sidebar-nav a:hover { color: var(--accent); }
+  .sidebar-nav a.active { color: var(--accent); font-weight: 700; }
+  .sidebar-nav a.active::before {
+    content: '→ '; position: absolute; left: 8px;
+    color: var(--accent);
+  }
+
+  .sidebar-foot {
+    border-top: 1px solid var(--ink);
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .sidebar-foot .ver { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink-3); }
+  .toggle {
+    background: transparent; border: 1px solid var(--ink); color: var(--ink);
+    padding: 4px 10px; cursor: pointer; font-size: 14px;
+    font-family: inherit; font-weight: 400;
+  }
+  .toggle:hover { background: var(--ink); color: var(--bg); }
+
+  /* mobile menu */
+  .menu-btn {
+    display: none;
+    position: fixed; top: 16px; left: 16px; z-index: 50;
+    width: 40px; height: 40px;
+    background: var(--bg); border: 1px solid var(--ink);
+    cursor: pointer; color: var(--ink);
+    align-items: center; justify-content: center; font-size: 18px;
+  }
+  .scrim { display: none; position: fixed; inset: 0; z-index: 35; background: rgba(0,0,0,0.6); }
+  body.nav-open .scrim { display: block; }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    padding: 58px 0 76px;
+    border-bottom: 1px solid var(--ink);
+    position: relative;
+  }
+  .hero .eyebrow {
+    color: var(--ink); font-size: 14px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 29px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero .eyebrow::before {
+    content: ''; width: 24px; height: 1px; background: var(--accent);
+  }
+  .hero h1 {
+    /*
+      Source detected H1 = 14px / 400. Using a much larger size here for
+      review-page navigability is a deliberate, documented deviation.
+      The actual utrecht.jp design has no display tier — every page-level
+      heading is set at 14px and stacked via spacing only.
+    */
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    font-size: clamp(40px, 6vw, 88px);
+    line-height: 1; font-weight: 700;
+    letter-spacing: -0.04em;
+    margin-bottom: 29px;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero h1 .jp { font-weight: 400; font-size: 0.6em; display: block; margin-bottom: 8px; color: var(--ink); }
+  .hero .source { color: var(--ink); font-size: 14px; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .badges { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 29px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1px solid var(--ink);
+    color: var(--ink); padding: 4px 12px; font-size: 14px; font-weight: 400;
+  }
+  .badge b { color: var(--accent); font-weight: 700; }
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    margin-top: 58px;
+    border: 1px solid var(--ink);
+  }
+  .stat {
+    background: var(--bg); padding: 20px 24px;
+    border-right: 1px solid var(--ink);
+  }
+  .stat:last-child { border-right: none; }
+  .stat .v {
+    font-size: 40px; font-weight: 700; letter-spacing: -0.03em; line-height: 1;
+    color: var(--ink);
+  }
+  .stat .v.good { color: var(--accent); }
+  .stat .l { color: var(--ink); font-size: 14px; margin-top: 8px; font-weight: 400; }
+  @media (max-width: 720px) {
+    .stat { border-right: 0; border-bottom: 1px solid var(--ink); }
+    .stat:last-child { border-bottom: 0; }
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section { padding: 76px 0; border-bottom: 1px solid var(--ink); scroll-margin-top: 80px; }
+  section:last-of-type { border-bottom: 0; }
+  .section-head { margin-bottom: 29px; }
+  .section-head .num {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: var(--accent); font-size: 14px; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .section-head h2 {
+    font-size: 40px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05;
+  }
+  .section-head h2 em { font-style: normal; color: var(--accent); }
+  .section-head .sub { color: var(--ink); font-size: 14px; max-width: 620px; line-height: 1.5; margin-top: 12px; }
+
+  .panel { background: var(--bg); border: 1px solid var(--ink); padding: 24px; }
+  .panel + .panel { margin-top: -1px; }
+  .panel-head {
+    font-size: 14px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--ink); margin-bottom: 20px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--ink);
+  }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); border: 1px solid var(--ink); }
+  .grid-2 > * { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .grid-2 > *:last-child { border-right: 0; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border: 1px solid var(--ink); }
+  .grid-3 > * { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); border: 1px solid var(--ink); }
+  .grid-4 > * { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+
+  /* ---------- COLOR SWATCH ---------- */
+  .swatch {
+    background: var(--bg); cursor: pointer;
+    transition: 600ms cubic-bezier(0.19, 1, 0.22, 1);
+    position: relative;
+  }
+  .swatch:hover .chip { transform: scale(1.04); }
+  .swatch .chip {
+    height: 158px;
+    transition: 600ms cubic-bezier(0.19, 1, 0.22, 1);
+    transform-origin: center;
+  }
+  .swatch .meta { padding: 12px 16px; }
+  .swatch .hex { font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .swatch .role { color: var(--ink); font-size: 14px; margin-top: 4px; }
+  .swatch .use { color: var(--ink-3); font-size: 14px; margin-top: 4px; }
+
+  .copy-tip {
+    position: absolute; top: 8px; right: 8px;
+    background: var(--ink); color: var(--bg);
+    font-size: 14px; padding: 3px 8px;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .copy-tip.show { opacity: 1; }
+
+  /* ---------- TOKENS BY CONTEXT ---------- */
+  .tg-intro {
+    background: var(--bg);
+    border: 1px solid var(--ink);
+    padding: 24px;
+    margin-top: 29px;
+  }
+  .tg-intro h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .tg-intro p { color: var(--ink); font-size: 14px; max-width: 640px; line-height: 1.5; }
+  .tg-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .tg-jump a {
+    display: inline-flex; align-items: center; gap: 8px;
+    text-decoration: none; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--ink);
+    padding: 4px 12px; font-size: 14px;
+    transition: 600ms cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  .tg-jump a:hover { background: var(--ink); color: var(--bg); }
+  .tg-jump a .pip { width: 10px; height: 10px; border: 1px solid var(--ink); }
+
+  .token-group {
+    background: var(--bg);
+    border: 1px solid var(--ink);
+    padding: 24px;
+    margin-top: -1px;
+    scroll-margin-top: 80px;
+  }
+  .tg-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .tg-head h4 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .tg-count { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink-3); }
+  .tg-desc { color: var(--ink); font-size: 14px; max-width: 640px; line-height: 1.5; margin-bottom: 20px; }
+
+  .tg-live { margin-top: 20px; border: 1px solid var(--ink); }
+  .tg-live-label {
+    background: var(--bg);
+    padding: 8px 16px;
+    font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .tg-table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 14px; }
+  .tg-table th {
+    text-align: left; color: var(--ink); font-weight: 700; font-size: 14px;
+    padding: 8px 12px; border-bottom: 1px solid var(--ink);
+  }
+  .tg-table td { padding: 12px; border-bottom: 1px solid var(--ink); vertical-align: middle; color: var(--ink); }
+  .tg-table tr:last-child td { border-bottom: 0; }
+  .tg-table .tk-swatch {
+    width: 20px; height: 20px; border: 1px solid var(--ink);
+    display: inline-block; vertical-align: middle; flex: none;
+  }
+  .tg-table .tk-name { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink); font-weight: 500; }
+  .tg-table .tk-hex { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink-3); }
+
+  /* Surface stack demo */
+  .surface-stack { padding: 24px; background: #ffffff; color: #000000; font: 14px 'Inter', sans-serif; }
+  .surface-stack .lbl { font: 700 14px 'JetBrains Mono', monospace; color: #000000; margin-bottom: 8px; }
+  .surface-stack .box { border: 1px solid #000000; padding: 20px; }
+  .surface-stack .box.inner { background: #ffffff; margin-top: 16px; }
+  .surface-stack .row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
+  .surface-stack .pill {
+    padding: 4px 12px; border: 1px solid #000000;
+    font: 400 14px 'Inter', sans-serif;
+  }
+  .surface-stack .pill.red { background: #db0000; color: #ffffff; border-color: #db0000; }
+  .surface-stack .pill.black { background: #000000; color: #ffffff; }
+
+  /* Text demo */
+  .text-demo { padding: 24px; background: #ffffff; font: 14px 'Inter', sans-serif; color: #000000; line-height: 1.5; }
+  .text-demo h5 { color: #000000; font-size: 14px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .text-demo h5::after { content: ''; display: block; height: 1px; background: #000000; margin-top: 8px; }
+  .text-demo p { margin-bottom: 8px; }
+  .text-demo a { color: #db0000; text-decoration: underline; }
+
+  /* Line/border demo */
+  .line-demo {
+    padding: 24px; background: #ffffff;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px;
+  }
+  .line-demo .item { font: 14px 'Inter', sans-serif; color: #000000; }
+  .line-demo .item .lbl { font-family: 'JetBrains Mono', monospace; color: #808080; font-size: 14px; margin-top: 8px; }
+  .line-demo .sample-card { background: #ffffff; padding: 20px; color: #000000; font-size: 14px; font-weight: 400; }
+
+  /* ---------- TYPOGRAPHY ---------- */
+  .type-row {
+    display: grid; grid-template-columns: 110px 1fr auto;
+    align-items: baseline; gap: 24px;
+    padding: 20px 0; border-bottom: 1px solid var(--line-2);
+  }
+  .type-row:last-child { border-bottom: 0; }
+  .type-row .size-col { display: flex; flex-direction: column; gap: 4px; align-self: center; }
+  .type-row .size { font-family: 'JetBrains Mono', monospace; color: var(--ink); font-size: 14px; font-weight: 700; line-height: 1; }
+  .type-row .font { color: var(--ink-3); font-size: 14px; line-height: 1.4; }
+  .type-row .font b { color: var(--ink); font-weight: 700; }
+  .type-row .sample { color: var(--ink); letter-spacing: -0.01em; }
+  .type-row .meta { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 14px; white-space: nowrap; }
+
+  .font-pill {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: var(--bg); border: 1px solid var(--ink);
+    padding: 8px 16px; font-size: 14px;
+    margin: 0 8px 8px 0;
+  }
+  .font-pill .count { color: var(--ink-3); font-size: 14px; }
+  .font-pill .bar { width: 88px; height: 4px; background: var(--bg); border: 1px solid var(--ink); overflow: hidden; }
+  .font-pill .bar > i { display: block; height: 100%; background: var(--accent); }
+
+  /* ---------- SPACING ---------- */
+  .space-row {
+    display: grid; grid-template-columns: 110px 1fr 88px;
+    align-items: center; gap: 16px; padding: 8px 0;
+  }
+  .space-row .lbl { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink); }
+  .space-row .bar {
+    background: var(--accent);
+    height: 20px;
+  }
+  .space-row .ratio { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 14px; text-align: right; }
+
+  /* ---------- MOTION ---------- */
+  .motion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); border: 1px solid var(--ink); }
+  .motion-card {
+    background: var(--bg); padding: 20px;
+    border-right: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .motion-card .name { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  .motion-card .val { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink-3); margin-top: 4px; }
+  .motion-demo {
+    height: 40px; margin-top: 16px; position: relative;
+    background: var(--bg); border: 1px solid var(--ink); overflow: hidden;
+  }
+  .motion-demo .ball {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 30px;
+    background: var(--accent);
+  }
+  .motion-card:hover .motion-demo .ball { left: calc(100% - 30px); }
+  .motion-card .motion-demo .ball { transition-property: left; }
+
+  /* ---------- COMPONENTS PREVIEW ---------- */
+  .preview-frame {
+    background: #ffffff;
+    color: #000000;
+    padding: 40px 32px;
+    border: 1px solid #000000;
+  }
+  .preview-frame h3 {
+    color: #000000; font-size: 14px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 20px;
+    padding-bottom: 8px; border-bottom: 1px solid #000000;
+  }
+  .pv-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-bottom: 32px; }
+
+  /* Buttons — utrecht style: red bg, white text, no radius, GT America */
+  .ut-btn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    border-radius: 0;
+    padding: 10px 24px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    border: 1px solid #db0000;
+    transition: 600ms cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  .ut-btn[data-variant="primary"]   { background: #db0000; color: #ffffff; }
+  .ut-btn[data-variant="primary"]:hover { background: #ffffff; color: #db0000; }
+  .ut-btn[data-variant="outline"]   { background: transparent; color: #db0000; }
+  .ut-btn[data-variant="outline"]:hover { background: #db0000; color: #ffffff; }
+  .ut-btn[data-variant="black"]     { background: #000000; color: #ffffff; border-color: #000000; }
+  .ut-btn[data-variant="black"]:hover { background: #ffffff; color: #000000; }
+  .ut-btn[data-variant="black-outline"] { background: transparent; color: #000000; border-color: #000000; }
+  .ut-btn[data-variant="black-outline"]:hover { background: #000000; color: #ffffff; }
+
+  /* component scaffolding */
+  .comp-block { scroll-margin-top: 24px; padding-top: 4px; }
+  .comp-block + .comp-block { border-top: 1px solid #000000; padding-top: 32px; margin-top: 32px; }
+  .comp-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+  .comp-head h3 {
+    font-family: 'Inter', sans-serif;
+    color: #000000; font-size: 20px; font-weight: 700;
+    text-transform: none; letter-spacing: -0.02em;
+    border: 0; padding: 0;
+  }
+  .comp-meta { font-family: 'JetBrains Mono', monospace; color: #808080; font-size: 14px; }
+
+  /* Inputs */
+  .ut-input {
+    background: #ffffff;
+    border: 1px solid #000000;
+    border-radius: 0;
+    padding: 8px 14px;
+    font: 13.3333px 'Inter', sans-serif;
+    color: #000000;
+    width: 280px; max-width: 100%;
+    transition: 600ms cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  .ut-input::placeholder { color: #808080; }
+  .ut-input:focus { outline: none; border-color: #db0000; color: #db0000; }
+  .ut-input-label { display: block; font-size: 14px; color: #000000; margin-bottom: 8px; font-weight: 700; }
+  .ut-form-row { display: flex; flex-direction: column; }
+
+  /* Links */
+  .ut-link { color: #db0000; text-decoration: underline; font-size: 14px; font-weight: 400; }
+  .ut-link.muted { color: #808080; }
+
+  /* Navigation — bilingual JP/EN, hairline borders, no chrome */
+  .ut-nav {
+    background: #ffffff;
+    border: 1px solid #000000;
+    padding: 20px 29px;
+    display: flex; align-items: baseline; gap: 32px;
+    font: 400 14px 'Inter', sans-serif;
+    color: #000000;
+    flex-wrap: wrap;
+  }
+  .ut-nav-brand {
+    display: inline-flex; flex-direction: column; gap: 4px;
+    font-weight: 700; font-size: 14px;
+  }
+  .ut-nav-brand .jp { color: #db0000; font-size: 14px; font-weight: 700; font-family: 'Noto Sans JP', sans-serif; }
+  .ut-nav a { color: #000000; text-decoration: none; }
+  .ut-nav a:hover { color: #db0000; }
+  .ut-nav .ut-nav-spacer { flex: 1; }
+  .ut-nav a.cart { color: #db0000; font-weight: 700; }
+
+  /* Modals */
+  .ut-modal {
+    background: #ffffff;
+    border: 1px solid #000000;
+    width: 100%; max-width: 440px;
+  }
+  .ut-modal-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid #000000;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ut-modal-head .title { font: 700 14px 'Inter', sans-serif; color: #000000; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ut-modal-head .close { background: none; border: 0; cursor: pointer; color: #000000; font-size: 18px; line-height: 1; }
+  .ut-modal-body { padding: 20px; font: 14px 'Inter', sans-serif; color: #000000; line-height: 1.55; }
+  .ut-modal-foot {
+    padding: 16px 20px; border-top: 1px solid #000000;
+    display: flex; justify-content: flex-end; gap: 12px;
+  }
+
+  /* Footer (utrecht: red bg, white text) */
+  .ut-footer {
+    background: #db0000;
+    border: 1px solid #db0000;
+    padding: 58px 32px 24px;
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: 40px;
+    font: 400 14px 'Inter', sans-serif;
+    color: #ffffff;
+  }
+  .ut-footer .ut-foot-brand { display: flex; flex-direction: column; gap: 12px; }
+  .ut-footer .ut-foot-brand .name {
+    font-weight: 700; color: #ffffff; font-size: 20px;
+    display: flex; flex-direction: column; gap: 4px; letter-spacing: -0.02em;
+  }
+  .ut-footer .ut-foot-brand .name .jp { font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 400; }
+  .ut-footer .ut-foot-brand p { color: #ffffff; font-size: 14px; line-height: 1.55; }
+  .ut-footer h5 {
+    font: 700 14px 'Inter', sans-serif;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+    padding-bottom: 8px; border-bottom: 1px solid #ffffff;
+  }
+  .ut-footer ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .ut-footer a { color: #ffffff; text-decoration: none; }
+  .ut-footer a:hover { text-decoration: underline; }
+  .ut-footer-bottom {
+    grid-column: 1 / -1;
+    border-top: 1px solid #ffffff;
+    padding-top: 20px; margin-top: 16px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    font-size: 14px; color: #ffffff;
+  }
+  @media (max-width: 720px) { .ut-footer { grid-template-columns: 1fr 1fr; } }
+
+  /* ---------- VOICE ---------- */
+  .quote {
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    white-space: pre-line;
+    color: var(--ink);
+  }
+  .quote .jp { font-family: 'Noto Sans JP', sans-serif; color: var(--ink); }
+  .quote-row { padding: 20px 0; border-bottom: 1px solid var(--line-2); }
+  .quote-row:last-child { border: 0; }
+  .quote .em { color: var(--accent); }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .verb-tag {
+    background: var(--bg); border: 1px solid var(--ink);
+    padding: 4px 12px; font-size: 14px;
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--ink);
+  }
+  .verb-tag .c { color: var(--ink-3); font-size: 14px; }
+
+  /* ---------- LAYOUT MAP ---------- */
+  .layout-map { display: flex; flex-direction: column; }
+  .layout-bar {
+    display: grid; grid-template-columns: 120px 1fr 76px;
+    align-items: center; gap: 16px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border: 1px solid var(--ink);
+    border-top: 0;
+    font-size: 14px;
+  }
+  .layout-bar:first-child { border-top: 1px solid var(--ink); }
+  .layout-bar .role { font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .layout-bar .role::before {
+    content: ''; width: 8px; height: 8px;
+    background: var(--role-color, var(--ink));
+  }
+  .layout-bar .heading { color: var(--ink); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .layout-bar .conf { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 14px; text-align: right; }
+
+  /* ---------- ICONS ---------- */
+  .icon-summary {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    border: 1px solid var(--ink);
+  }
+  .icon-stat {
+    background: var(--bg); padding: 20px;
+    border-right: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .icon-stat .v { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .icon-stat .l { color: var(--ink-3); font-size: 14px; margin-top: 4px; }
+
+  /* ---------- A11Y ---------- */
+  .a11y-hero { display: flex; align-items: baseline; gap: 24px; }
+  .a11y-score { font-size: 88px; font-weight: 700; letter-spacing: -0.04em; color: var(--accent); line-height: 1; }
+  .a11y-row {
+    display: grid; grid-template-columns: 160px 1fr 70px 60px;
+    align-items: center; gap: 16px;
+    padding: 14px 16px;
+    background: var(--bg); border: 1px solid var(--ink);
+    border-top: 0;
+    font-size: 14px;
+  }
+  .a11y-row:first-child { border-top: 1px solid var(--ink); }
+  .a11y-sample { padding: 6px 14px; font-weight: 700; text-align: center; }
+  .a11y-mono { font-family: 'JetBrains Mono', monospace; color: var(--ink-3); font-size: 14px; }
+  .a11y-tag { font-size: 14px; font-weight: 700; padding: 4px 10px; text-align: center; }
+  .a11y-tag.pass { background: var(--accent); color: var(--bg); }
+
+  /* ---------- KV ---------- */
+  .kv { display: grid; grid-template-columns: 180px 1fr; row-gap: 8px; column-gap: 20px; font-size: 14px; }
+  .kv dt { color: var(--ink-3); }
+  .kv dd { color: var(--ink); }
+
+  /* ---------- FILES ---------- */
+  .file-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    border: 1px solid var(--ink);
+  }
+  .file {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg);
+    border-right: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    font-size: 14px;
+  }
+  .file .ext {
+    font-family: 'JetBrains Mono', monospace; font-size: 14px;
+    background: var(--accent); color: var(--bg); padding: 2px 8px;
+    font-weight: 700;
+  }
+  .file .name { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file a { color: var(--accent); text-decoration: none; }
+  .file a:hover { text-decoration: underline; }
+
+  /* ---------- AUDIT FLAGS ---------- */
+  .flag-card {
+    padding: 20px; background: var(--bg);
+    border: 1px solid var(--ink);
+    border-left: 4px solid var(--accent);
+  }
+  .flag-card.warn { border-left-color: var(--accent); }
+  .flag-card.good { border-left-color: #000000; }
+  .flag-card .eyebrow {
+    font-size: 14px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; margin-bottom: 8px;
+  }
+  .flag-card.warn .eyebrow { color: var(--accent); }
+  .flag-card.good .eyebrow { color: var(--ink); }
+  .flag-card .title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+  .flag-card .body { color: var(--ink); font-size: 14px; line-height: 1.55; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 960px) {
+    .shell { padding-left: 28px; }
+    .menu-btn { display: inline-flex; }
+    .sidebar { transform: translateX(-100%); }
+    body.nav-open .sidebar { transform: translateX(0); }
+  }
+  @media (max-width: 720px) {
+    .shell { padding: 72px 16px 64px; }
+    .type-row { grid-template-columns: 60px 1fr; }
+    .type-row .meta { display: none; }
+    .a11y-row { grid-template-columns: 120px 1fr 50px; }
+    .a11y-row .a11y-mono { display: none; }
+  }
+</style>
+</head>
+<body data-theme="light">
+
+<button class="menu-btn" onclick="toggleNav()" aria-label="Toggle navigation">≡</button>
+<div class="scrim" onclick="toggleNav(false)"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="brand">
+      <span class="jp">ユトレヒト</span>
+      <span>Utrecht — Design System</span>
+    </div>
+    <div class="sub">Jingumae, Shibuya · Shopify storefront</div>
+  </div>
+
+  <nav class="sidebar-nav" id="sidebar-nav">
+    <div class="nav-group">
+      <div class="label">Overview</div>
+      <a href="#top">At a glance</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Foundations</div>
+      <a href="#colors">Colors</a>
+      <a href="#typography">Typography</a>
+      <a href="#spacing">Spacing</a>
+      <a href="#motion">Motion</a>
+      <a href="#icons">Icons</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Components</div>
+      <a href="#comp-buttons">Buttons</a>
+      <a href="#comp-inputs">Inputs</a>
+      <a href="#comp-links">Links</a>
+      <a href="#comp-navigation">Navigation</a>
+      <a href="#comp-modals">Modals</a>
+      <a href="#comp-footer">Footer</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Voice &amp; structure</div>
+      <a href="#voice">Voice &amp; content</a>
+      <a href="#layout">Page anatomy</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Audit</div>
+      <a href="#a11y">Accessibility</a>
+      <a href="#flags">Audit flags</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="label">Resources</div>
+      <a href="#files">Generated files</a>
+    </div>
+  </nav>
+
+  <div class="sidebar-foot">
+    <span class="ver">v12.10.0</span>
+    <button class="toggle" onclick="toggleTheme()">◐ Theme</button>
+  </div>
+</aside>
+
+<div class="shell" id="top">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Design language extracted</div>
+    <h1>
+      <span class="jp">ユトレヒト ·</span>
+      Tokyo art books, <em>one red</em>.
+    </h1>
+    <div class="source">https://utrecht.jp/ · 687 elements · 2026-05-14</div>
+    <div class="badges">
+      <span class="badge">Intent: <b>landing</b> · 0.29</span>
+      <span class="badge">Material: <b>flat</b> · 0.55</span>
+      <span class="badge">Library: <b>unknown</b> · Shopify-hosted</span>
+      <span class="badge">Voice: <b>friendly · third-person</b></span>
+      <span class="badge">Headings: <b>Sentence case · tight</b></span>
+      <span class="badge">Stack: <b>Shopify</b> (keyframe signatures)</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v">4</div><div class="l">Colors</div></div>
+      <div class="stat"><div class="v">4</div><div class="l">Font families</div></div>
+      <div class="stat"><div class="v">11</div><div class="l">Spacing</div></div>
+      <div class="stat"><div class="v">0</div><div class="l">Shadows · radii</div></div>
+      <div class="stat"><div class="v">6</div><div class="l">Components</div></div>
+      <div class="stat"><div class="v">2</div><div class="l">Icons</div></div>
+      <div class="stat"><div class="v good">100%</div><div class="l">WCAG</div></div>
+      <div class="stat"><div class="v">74</div><div class="l">Score (C)</div></div>
+    </div>
+  </div>
+
+  <!-- COLORS -->
+  <section id="colors">
+    <div class="section-head">
+      <div class="num">01 · Color</div>
+      <h2>Four colors. <em>That's it.</em></h2>
+      <div class="sub">Red <span class="mono">#db0000</span> (836 uses) carries the brand entirely — used for text, borders, and full-bleed surfaces. Black ink, white surface, and a single mid-grey complete the palette. No tints, no shades, no semantic ramps.</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">Brand &amp; neutrals</div>
+      <div class="grid-4">
+        <div class="swatch"><div class="chip" style="background:#db0000"></div>
+          <div class="meta"><div class="hex">#db0000</div><div class="role">Primary · the red</div><div class="use">836 uses · hsl(0 100% 43%)</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#000000"></div>
+          <div class="meta"><div class="hex">#000000</div><div class="role">Ink · text &amp; borders</div><div class="use">299 uses</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#ffffff;border-right:1px solid var(--ink);border-left:1px solid var(--ink)"></div>
+          <div class="meta"><div class="hex">#ffffff</div><div class="role">Surface · page</div><div class="use">245 uses</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#808080"></div>
+          <div class="meta"><div class="hex">#808080</div><div class="role">Muted · captions</div><div class="use">20 uses</div></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">Material profile</div>
+      <dl class="kv">
+        <dt>Saturation</dt><dd>0.25 (the red dominates one chromatic position)</dd>
+        <dt>Shadow profile</dt><dd>none · 0 detected shadow tokens</dd>
+        <dt>Avg radius</dt><dd>0px · sharp corners everywhere</dd>
+        <dt>Max radius</dt><dd>0px</dd>
+        <dt>Has pills</dt><dd>no</dd>
+        <dt>Backdrop blur</dt><dd>no</dd>
+        <dt>Gradients</dt><dd>0 · no gradient surfaces</dd>
+        <dt>Background patterns</dt><dd>plain · 0 noise / dot / line / mesh / svg-pattern</dd>
+        <dt>Imagery</dt><dd>mixed · 2 raster images detected (full-width banners)</dd>
+      </dl>
+    </div>
+
+    <div class="tg-intro">
+      <h3>Tokens by context</h3>
+      <p>The palette is small enough to enumerate inline. <span class="mono">--color-text-*</span> reuses the brand red as the link / accent text token; <span class="mono">--color-bg-1</span> is the same red, used as a full-bleed footer background. Note: <span class="mono">success / warning / error / info</span> tokens are declared in the source but serialize as <span class="mono">[object Object]</span> — the extractor couldn't read them, so they're documented as absent.</p>
+      <div class="tg-jump">
+        <a href="#tg-surface"><span class="pip" style="background:#ffffff"></span> Surface</a>
+        <a href="#tg-text"><span class="pip" style="background:#000000;border-color:transparent"></span> Text</a>
+        <a href="#tg-line"><span class="pip" style="background:#000000"></span> Borders</a>
+        <a href="#tg-status"><span class="pip" style="background:#db0000;border-color:transparent"></span> Status (declared but unresolved)</a>
+      </div>
+    </div>
+
+    <!-- SURFACE -->
+    <div class="token-group" id="tg-surface">
+      <div class="tg-head"><h4>Surface</h4><span class="tg-count">2 tokens</span></div>
+      <p class="tg-desc">Just two: a pure white page surface and a pure red full-bleed (used for the footer band and the primary CTA button). No mid-tone, no panel-2, no sunken state.</p>
+
+      <div class="tg-live">
+        <div class="tg-live-label">Layering</div>
+        <div class="surface-stack">
+          <div class="lbl">--color-bg · page</div>
+          <div class="box inner">
+            <div class="lbl">white-on-white — no inner card surface exists; structure is drawn with hairline borders</div>
+            <div class="row">
+              <span class="pill">#ffffff (surface)</span>
+              <span class="pill red">#db0000 (--color-bg-1)</span>
+              <span class="pill black">#000000 (ink)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table class="tg-table">
+        <thead><tr><th>Token</th><th>Hex</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tk-swatch" style="background:#ffffff"></span> <span class="tk-name">--color-bg</span></td><td class="tk-hex">#ffffff</td><td>Page background, default card surface (245 uses)</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#db0000"></span> <span class="tk-name">--color-bg-1</span></td><td class="tk-hex">#db0000</td><td>Footer band, primary button surface</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TEXT -->
+    <div class="token-group" id="tg-text">
+      <div class="tg-head"><h4>Text</h4><span class="tg-count">4 tokens</span></div>
+      <p class="tg-desc">Black ink for body, the brand red for links and special headings, a single grey for muted, white for reversed-out type on the red footer.</p>
+
+      <div class="tg-live">
+        <div class="tg-live-label">In context</div>
+        <div class="text-demo">
+          <h5>おすすめ / Recommend</h5>
+          <p><span class="mono">--color-text</span> · #000000 — body text. The system mostly stays here.</p>
+          <p style="color:#808080"><span class="mono">--color-text-2</span> · #808080 — muted captions, metadata.</p>
+          <p>Inline <a href="#">link colored with --color-text-1</a> reuses the brand red.</p>
+          <p>This sentence sits at 14px / 400 — Utrecht's only body size.</p>
+        </div>
+      </div>
+
+      <table class="tg-table">
+        <thead><tr><th>Token</th><th>Hex</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tk-swatch" style="background:#000000"></span> <span class="tk-name">--color-text</span></td><td class="tk-hex">#000000</td><td>Body text, headings (299 uses)</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#db0000"></span> <span class="tk-name">--color-text-1</span></td><td class="tk-hex">#db0000</td><td>Links, navigation, brand emphasis (836 uses — text+border+bg combined)</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#808080"></span> <span class="tk-name">--color-text-2</span></td><td class="tk-hex">#808080</td><td>Muted captions, metadata (20 uses)</td></tr>
+          <tr><td><span class="tk-swatch" style="background:#ffffff;border:1px solid var(--ink)"></span> <span class="tk-name">--color-text-3</span></td><td class="tk-hex">#ffffff</td><td>Reversed-out text on the red footer</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BORDER / LINE -->
+    <div class="token-group" id="tg-line">
+      <div class="tg-head"><h4>Borders</h4><span class="tg-count">1 effective token</span></div>
+      <p class="tg-desc">Utrecht draws all structural separation with a black 1px hairline. No detected <span class="mono">--line-*</span> or <span class="mono">--border-*</span> tokens — the border color is just <span class="mono">#000000</span> applied inline.</p>
+
+      <div class="tg-live">
+        <div class="tg-live-label">Border variants</div>
+        <div class="line-demo">
+          <div class="item">
+            <div class="sample-card" style="border:1px solid #000000">Default hairline</div>
+            <div class="lbl">1px #000000</div>
+          </div>
+          <div class="item">
+            <div class="sample-card" style="border:1px solid #db0000;color:#db0000">Red hairline (input focus)</div>
+            <div class="lbl">1px #db0000</div>
+          </div>
+          <div class="item">
+            <div class="sample-card" style="background:#db0000;border:1px solid #db0000;color:#ffffff">Full-bleed red</div>
+            <div class="lbl">--color-bg-1 surface</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="token-group" id="tg-status">
+      <div class="tg-head"><h4>Status &amp; callout</h4><span class="tg-count">0 resolvable</span></div>
+      <p class="tg-desc">The source CSS declares <span class="mono">success</span>, <span class="mono">warning</span>, <span class="mono">error</span>, and <span class="mono">info</span> but the extractor serialized them as <span class="mono">[object Object]</span> — the values weren't readable. With no resolvable status tokens and a 4-color palette, all status states in the real product likely collapse to the same brand red (errors) or omit color entirely.</p>
+    </div>
+  </section>
+
+  <!-- TYPOGRAPHY -->
+  <section id="typography">
+    <div class="section-head">
+      <div class="num">02 · Type</div>
+      <h2>One face. <em>One size.</em></h2>
+      <div class="sub">GT America Standard owns 536 of 687 elements. Every detected heading sits at <span class="mono">14px / 400</span> — the same as body. The system has no display tier; hierarchy is built with spacing and color, not type scale.</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">Font families</div>
+      <div>
+        <span class="font-pill"><b>GT America Standard</b> <span class="bar"><i style="width:100%"></i></span> <span class="count">536×</span></span>
+        <span class="font-pill"><b>Times</b> <span class="bar"><i style="width:27%"></i></span> <span class="count">145×</span></span>
+        <span class="font-pill"><b>Arial</b> <span class="bar"><i style="width:1%"></i></span> <span class="count">4×</span></span>
+        <span class="font-pill"><b>GTStandard-M</b> <span class="bar"><i style="width:1%"></i></span> <span class="count">2×</span></span>
+      </div>
+      <div style="margin-top:16px;font-size:14px;color:var(--ink);line-height:1.55">
+        ⚠ Audit recommends <b>limiting to 2 families</b>. Times and Arial appear to be fallback artifacts; GTStandard-M is an alternate weight loaded as a separate family. <br/>
+        GT America is a <b>commercial face</b> from Grilli Type. This preview falls back to <b>Inter</b>; the proportions and tight 14px/14px metrics are preserved.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">Type scale (all 2 sizes)</div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">14px</span><span class="font"><b>GT America</b> · body, h1</span></span>
+        <span class="sample" style="font-size:14px;font-weight:400;line-height:14px">Everything — page title, section headings, body, navigation — sits here.</span>
+        <span class="meta">400 · lh 14 · all</span>
+      </div>
+      <div class="type-row">
+        <span class="size-col"><span class="size">13.33px</span><span class="font"><b>GT America</b> · input</span></span>
+        <span class="sample" style="font-size:13.3333px;font-weight:400">Form field default — rem-derived (0.833rem at 16px root).</span>
+        <span class="meta">400 · input</span>
+      </div>
+      <div style="margin-top:20px;font-size:14px;color:var(--ink);line-height:1.55">
+        <b>Note:</b> the source contains 700-weight glyphs (40 detected uses) but designlang did not surface a 700-size pairing — likely used inline on the same 14px base. The review's own larger H1 / H2 sizes (32–88px) are review-chrome decisions, not source tokens. Utrecht's actual page would render this entire review at 14px.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">Weights in use</div>
+      <div style="display:flex;gap:32px;flex-wrap:wrap">
+        <div><span style="font-size:24px;font-weight:400">Aa</span><div style="font:700 14px 'JetBrains Mono',monospace;color:var(--ink-3);margin-top:4px">400 · regular · 647×</div></div>
+        <div><span style="font-size:24px;font-weight:700">Aa</span><div style="font:700 14px 'JetBrains Mono',monospace;color:var(--ink-3);margin-top:4px">700 · bold · 40×</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPACING -->
+  <section id="spacing">
+    <div class="section-head">
+      <div class="num">03 · Spacing</div>
+      <h2>An <em>arbitrary</em> scale.</h2>
+      <div class="sub">11 detected values from 4px hairline to 497px section gap — but the steps don't follow a base unit. The audit flag "No consistent spacing base unit detected — values appear arbitrary" reflects an editorial / per-page authoring style rather than a tokenized scale.</div>
+    </div>
+    <div class="panel">
+      <div class="space-row"><span class="lbl">s0 · 4px</span><div class="bar" style="width:8px;min-width:4px"></div><span class="ratio">hairline</span></div>
+      <div class="space-row"><span class="lbl">s1 · 29px</span><div class="bar" style="width:58px"></div><span class="ratio">7.25×</span></div>
+      <div class="space-row"><span class="lbl">s2 · 58px</span><div class="bar" style="width:116px"></div><span class="ratio">14.5×</span></div>
+      <div class="space-row"><span class="lbl">s3 · 76px</span><div class="bar" style="width:152px"></div><span class="ratio">19×</span></div>
+      <div class="space-row"><span class="lbl">s4 · 88px</span><div class="bar" style="width:176px"></div><span class="ratio">22×</span></div>
+      <div class="space-row"><span class="lbl">s5 · 114px</span><div class="bar" style="width:228px"></div><span class="ratio">28.5×</span></div>
+      <div class="space-row"><span class="lbl">s6 · 131px</span><div class="bar" style="width:240px"></div><span class="ratio">32.75×</span></div>
+      <div class="space-row"><span class="lbl">s7 · 158px</span><div class="bar" style="width:240px"></div><span class="ratio">39.5×</span></div>
+      <div class="space-row"><span class="lbl">s8 · 233px</span><div class="bar" style="width:240px"></div><span class="ratio">58.25×</span></div>
+      <div class="space-row"><span class="lbl">s9 · 345px</span><div class="bar" style="width:240px"></div><span class="ratio">86×</span></div>
+      <div class="space-row"><span class="lbl">s10 · 497px</span><div class="bar" style="width:240px"></div><span class="ratio">124×</span></div>
+    </div>
+  </section>
+
+  <!-- SHADOWS / RADII — both empty per extraction → mention then skip render -->
+  <section id="elevation">
+    <div class="section-head">
+      <div class="num">04 · Elevation &amp; shape</div>
+      <h2>None. <em>Flat by commitment.</em></h2>
+      <div class="sub">No shadow tokens, no radius tokens, no gradients. The radius scale in <span class="mono">design-tokens.json</span> is literally <span class="mono">{}</span>. Cards, modals, buttons, inputs — all sharp-cornered, all bordered with a 1px line, all no-shadow. The system uses the void of elevation as elevation.</div>
+    </div>
+    <div class="panel">
+      <dl class="kv">
+        <dt>Shadow scale</dt><dd>0 tokens · <span class="mono">{}</span></dd>
+        <dt>Radius scale</dt><dd>0 tokens · <span class="mono">{}</span></dd>
+        <dt>Gradient count</dt><dd>0</dd>
+        <dt>Pill use (hasPill)</dt><dd>no</dd>
+        <dt>Backdrop blur</dt><dd>no</dd>
+        <dt>Inset shadows</dt><dd>0</dd>
+        <dt>Z-index layers</dt><dd>8 (just two effective layers: sticky 10–12 and base −100 to 9)</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- MOTION -->
+  <section id="motion">
+    <div class="section-head">
+      <div class="num">05 · Motion</div>
+      <h2>One duration. <em>One curve.</em></h2>
+      <div class="sub">Hover any card. A single 600ms <span class="mono">cubic-bezier(0.19, 1, 0.22, 1)</span> ease-out (the "expo-out" curve) handles transforms and background transitions. Linear handles utility transitions like visibility / opacity.</div>
+    </div>
+    <div class="panel">
+      <div class="motion-grid">
+        <div class="motion-card">
+          <div class="name">lg</div>
+          <div class="val">600ms · cubic-bezier(0.19, 1, 0.22, 1) · expo-out</div>
+          <div class="motion-demo"><div class="ball" style="transition-duration:600ms;transition-timing-function:cubic-bezier(0.19, 1, 0.22, 1)"></div></div>
+        </div>
+        <div class="motion-card">
+          <div class="name">utility</div>
+          <div class="val">linear · visibility / opacity</div>
+          <div class="motion-demo"><div class="ball" style="transition-duration:600ms;transition-timing-function:linear"></div></div>
+        </div>
+        <div class="motion-card" style="border-right:0">
+          <div class="name">feel</div>
+          <div class="val">mechanical · scroll-linked: yes</div>
+          <div style="font:14px 'Inter',sans-serif;color:var(--ink);margin-top:8px;line-height:1.5">
+            The 0.19/1/0.22/1 curve is a strong expo-out: instant at the start, easing into a long settle. Reads as deliberate and editorial.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">Keyframes detected</div>
+      <ul style="list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;font:14px 'Inter',sans-serif">
+        <li><b>shopify-rotator</b> · 0° → 270° rotate</li>
+        <li><b>shopify-dash</b> · stroke-dashoffset animation</li>
+        <li><b>acceleratedCheckoutLoadingSkeleton</b> · opacity pulse 1 → 0.5 → 1</li>
+      </ul>
+      <div style="margin-top:14px;font-size:14px;color:var(--ink-3)">These keyframe names are Shopify defaults — confirms the storefront platform even though stack-intel didn't flag it.</div>
+    </div>
+  </section>
+
+  <!-- ICONS -->
+  <section id="icons">
+    <div class="section-head">
+      <div class="num">06 · Icons</div>
+      <h2>Two. <em>Both filled.</em></h2>
+      <div class="sub">Only 2 SVG icons detected — both fill-only, both bespoke, both larger than the typical UI 24px grid (size class <span class="mono">xl</span>). Probably the logo mark and a single decorative glyph. The product itself relies on text labels rather than iconography.</div>
+    </div>
+    <div class="panel">
+      <div class="icon-summary">
+        <div class="icon-stat"><div class="v">2</div><div class="l">Total icons</div></div>
+        <div class="icon-stat"><div class="v">2</div><div class="l">Fill only</div></div>
+        <div class="icon-stat"><div class="v">0</div><div class="l">Stroke only</div></div>
+        <div class="icon-stat"><div class="v">0px</div><div class="l">Avg stroke</div></div>
+        <div class="icon-stat"><div class="v">xl</div><div class="l">Size class</div></div>
+        <div class="icon-stat"><div class="v">red/white</div><div class="l">Colors</div></div>
+      </div>
+      <div style="margin-top:20px;font-size:14px;color:var(--ink);line-height:1.55">
+        The detected icons have empty class attributes — they're inline-authored SVGs rather than a library set. <span class="mono">icon-system.library = unknown</span>. The dominant color is <span class="mono">rgb(219, 0, 0)</span> (the brand red) with <span class="mono">rgb(255, 255, 255)</span> for the inverted footer instance.
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section id="components">
+    <div class="section-head">
+      <div class="num">07 · Components</div>
+      <h2>Six patterns. <em>All hairline.</em></h2>
+      <div class="sub">Detected: buttons, inputs, links, navigation, footer, modals. No cards, badges, dropdowns, accordions, tabs, tooltips, or switches. Every primitive shares the same shape vocabulary — sharp corners, 1px borders, GT America at 14px.</div>
+    </div>
+
+    <div class="preview-frame">
+
+      <!-- Buttons -->
+      <div class="comp-block" id="comp-buttons">
+        <div class="comp-head">
+          <h3>Buttons</h3>
+          <div class="comp-meta">2 instances detected · 1 anatomy variant · red-on-white default</div>
+        </div>
+        <div class="pv-row">
+          <button class="ut-btn" data-variant="primary">Submit</button>
+          <button class="ut-btn" data-variant="outline">Read more</button>
+          <button class="ut-btn" data-variant="black">Add to cart</button>
+          <button class="ut-btn" data-variant="black-outline">View details</button>
+        </div>
+      </div>
+
+      <!-- Inputs -->
+      <div class="comp-block" id="comp-inputs">
+        <div class="comp-head">
+          <h3>Inputs</h3>
+          <div class="comp-meta">6 instances · sharp corners · black hairline → red on focus</div>
+        </div>
+        <div class="pv-row" style="gap:24px;align-items:flex-start">
+          <div class="ut-form-row">
+            <label class="ut-input-label">Email — メールアドレス</label>
+            <input class="ut-input" placeholder="you@utrecht.jp" />
+          </div>
+          <div class="ut-form-row">
+            <label class="ut-input-label">Focused</label>
+            <input class="ut-input" value="hello@utrecht.jp" autofocus />
+          </div>
+          <div class="ut-form-row">
+            <label class="ut-input-label">Disabled</label>
+            <input class="ut-input" placeholder="—" disabled style="color:#808080;border-color:#808080" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="comp-block" id="comp-links">
+        <div class="comp-head">
+          <h3>Links</h3>
+          <div class="comp-meta">94 instances · red underline · only the muted variant escapes to gray</div>
+        </div>
+        <div class="pv-row" style="margin-bottom:0">
+          <a class="ut-link" href="#">All Products</a>
+          <a class="ut-link" href="#">TOKYO ART BOOK FAIR</a>
+          <a class="ut-link" href="#">アクセス / Access</a>
+          <a class="ut-link muted" href="#">Subscribe to our newsletter</a>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="comp-block" id="comp-navigation">
+        <div class="comp-head">
+          <h3>Navigation</h3>
+          <div class="comp-meta">34 instances · 5 nav rows detected on the page · bilingual JP/EN</div>
+        </div>
+        <div class="ut-nav">
+          <div class="ut-nav-brand">
+            <span class="jp">ユトレヒト</span>
+            <span>Utrecht</span>
+          </div>
+          <a href="#">All Products</a>
+          <a href="#">Categories</a>
+          <a href="#">Publishers</a>
+          <a href="#">Sale</a>
+          <a href="#">Search</a>
+          <span class="ut-nav-spacer"></span>
+          <a href="#">Access</a>
+          <a href="#">News</a>
+          <a href="#" class="cart">Log in</a>
+        </div>
+      </div>
+
+      <!-- Modals -->
+      <div class="comp-block" id="comp-modals">
+        <div class="comp-head">
+          <h3>Modals</h3>
+          <div class="comp-meta">13 instances · sharp corners · z-index 1000 (declared in product CSS)</div>
+        </div>
+        <div class="pv-row" style="margin-bottom:0;align-items:flex-start">
+          <div class="ut-modal">
+            <div class="ut-modal-head">
+              <div class="title">ニュースレター登録 / Subscribe</div>
+              <button class="close" aria-label="Close">✕</button>
+            </div>
+            <div class="ut-modal-body">
+              <p>新しい本の入荷情報や、TOKYO ART BOOK FAIR のお知らせをお届けします。</p>
+              <p style="margin-top:8px;color:#808080">Get notified about new arrivals and Tokyo Art Book Fair announcements.</p>
+            </div>
+            <div class="ut-modal-foot">
+              <button class="ut-btn" data-variant="black-outline">Later</button>
+              <button class="ut-btn" data-variant="primary">Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="comp-block" id="comp-footer">
+        <div class="comp-head">
+          <h3>Footer</h3>
+          <div class="comp-meta">6 instances · full-bleed red band · white reversed-out type</div>
+        </div>
+        <div class="ut-footer">
+          <div class="ut-foot-brand">
+            <div class="name">
+              <span class="jp">ユトレヒト</span>
+              <span>Utrecht</span>
+            </div>
+            <p>東京都渋谷区神宮前。書籍の販売や流通、ブックセレクト、TOKYO ART BOOK FAIR の共同開催など。</p>
+            <p style="opacity:0.85">Jingumae, Shibuya-ku, Tokyo. Bookselling, curation, and the Tokyo Art Book Fair.</p>
+          </div>
+          <div>
+            <h5>Shop</h5>
+            <ul>
+              <li><a>All Products</a></li>
+              <li><a>Categories</a></li>
+              <li><a>Publishers</a></li>
+              <li><a>Sale</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5>About</h5>
+            <ul>
+              <li><a>Access</a></li>
+              <li><a>News</a></li>
+              <li><a>TOKYO ART BOOK FAIR</a></li>
+              <li><a>Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5>Newsletter</h5>
+            <ul>
+              <li><a>Subscribe</a></li>
+              <li><a>Instagram</a></li>
+              <li><a>Twitter</a></li>
+            </ul>
+          </div>
+          <div class="ut-footer-bottom">
+            <span>© 2026 Utrecht · ユトレヒト · All rights reserved</span>
+            <span>Powered by Shopify</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- VOICE -->
+  <section id="voice">
+    <div class="section-head">
+      <div class="num">08 · Voice</div>
+      <h2><em>Friendly, third-person, bilingual.</em></h2>
+      <div class="sub">The site addresses the reader in the third person (typical of Japanese commercial copy) and pairs every Japanese heading with an English translation. Only one CTA verb was detected — <span class="mono">submit</span> — because the page is structurally minimal: most "actions" are direct links.</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel" style="border:0">
+        <div class="panel-head">Sample headings</div>
+        <div class="quote-row"><div class="quote"><span class="jp">おすすめ</span> / <span class="em">Recommend</span></div></div>
+        <div class="quote-row"><div class="quote"><span class="jp">再入荷商品</span> / <span class="em">Restock</span></div></div>
+        <div class="quote-row"><div class="quote"><span class="jp">ユトレヒト</span> / <span class="em">Utrecht</span></div></div>
+      </div>
+
+      <div>
+        <div class="panel" style="border:0;border-bottom:1px solid var(--ink)">
+          <div class="panel-head">CTA verbs &amp; button labels</div>
+          <div class="tag-row">
+            <span class="verb-tag">submit <span class="c">1×</span></span>
+          </div>
+          <div style="margin-top:12px;font-size:14px;color:var(--ink-3)">A single verb across the entire surface. Almost every other interaction is a styled link with a literal label ("All Products", "Categories", "Access").</div>
+        </div>
+        <div class="panel" style="border:0">
+          <div class="panel-head">Voice metadata</div>
+          <dl class="kv">
+            <dt>Tone</dt><dd>Friendly</dd>
+            <dt>Pronoun posture</dt><dd>Third-person</dd>
+            <dt>Heading case</dt><dd>Sentence case</dd>
+            <dt>Heading length</dt><dd>Tight</dd>
+            <dt>Total buttons</dt><dd>1</dd>
+            <dt>Total headings</dt><dd>2 detected (more exist; the extractor matched 2)</dd>
+            <dt>Bilingual</dt><dd>Yes — every heading pairs JP / EN</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAYOUT MAP -->
+  <section id="layout">
+    <div class="section-head">
+      <div class="num">09 · Anatomy</div>
+      <h2>5 nav layers, <em>one body, one footer</em>.</h2>
+      <div class="sub">The reading order has nav-nav-nav-nav-nav-content-footer-nav — five nav sections in a row at the top. This is the brand wordmark + utility row + main menu + breadcrumb + login row pattern typical of Japanese commercial sites. The single "content" section runs ~5,000px tall before the red footer band.</div>
+    </div>
+    <div class="panel" style="padding:0;border:0">
+      <div class="layout-map">
+        <div class="layout-bar" style="--role-color:#000000"><span class="role">nav</span><span class="heading">Brand wordmark · Access (header utility row)</span><span class="conf mono">0.40</span></div>
+        <div class="layout-bar" style="--role-color:#000000"><span class="role">nav</span><span class="heading">Access</span><span class="conf mono">0.90</span></div>
+        <div class="layout-bar" style="--role-color:#000000"><span class="role">nav</span><span class="heading">News</span><span class="conf mono">0.90</span></div>
+        <div class="layout-bar" style="--role-color:#000000"><span class="role">nav</span><span class="heading">All Products · Categories · Publishers · Sale · Search</span><span class="conf mono">0.90</span></div>
+        <div class="layout-bar" style="--role-color:#000000"><span class="role">nav</span><span class="heading">Log in</span><span class="conf mono">0.90</span></div>
+        <div class="layout-bar" style="--role-color:#db0000"><span class="role">content</span><span class="heading">おすすめ / Recommend · 再入荷商品 / Restock · ~5064px tall</span><span class="conf mono">0.30</span></div>
+        <div class="layout-bar" style="--role-color:#000000"><span class="role">footer</span><span class="heading">Site footer · 941px band</span><span class="conf mono">0.95</span></div>
+        <div class="layout-bar" style="--role-color:#000000"><span class="role">nav</span><span class="heading">ニュースレターに登録 / Subscribe to our newsletter</span><span class="conf mono">0.90</span></div>
+      </div>
+      <div style="padding:16px;font-size:14px;color:var(--ink);line-height:1.55;border-left:1px solid var(--ink);border-right:1px solid var(--ink);border-bottom:1px solid var(--ink)">
+        <b>Note:</b> 6 of 8 sections are classified <span class="mono">nav</span> — a heuristic stretch. In practice the first 5 nav rows form the multi-tier header, and the trailing nav is the newsletter footer block. <span class="mono">intent.json</span> flagged <span class="mono">needsSmart: true</span> on most sections for this reason.
+      </div>
+    </div>
+  </section>
+
+  <!-- A11Y -->
+  <section id="a11y">
+    <div class="section-head">
+      <div class="num">10 · Accessibility</div>
+      <h2><em>100%.</em> One pair, one pass.</h2>
+      <div class="sub">Only one foreground/background pair was detected by the extractor: white on red. It clears WCAG AA at 5.23:1. The rest of the page (black on white, etc.) wasn't enumerated by the run — but those pairs clear AAA trivially.</div>
+    </div>
+    <div class="panel">
+      <div class="a11y-hero">
+        <div class="a11y-score">100%</div>
+        <div>
+          <div style="font-weight:700;font-size:18px">WCAG contrast score</div>
+          <div style="color:var(--ink);font-size:14px;margin-top:4px">1 passing pair · 0 failing · across 687 elements</div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px">
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#db0000;color:#ffffff">Aa Sample text</div>
+          <div class="a11y-mono">#ffffff on #db0000 · footer</div>
+          <span class="mono" style="font-size:14px;color:var(--ink)">5.23:1</span>
+          <span class="a11y-tag pass">AA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#ffffff;color:#000000;border:1px solid #000000">Aa Sample text</div>
+          <div class="a11y-mono">#000000 on #ffffff · body</div>
+          <span class="mono" style="font-size:14px;color:var(--ink)">21.0:1</span>
+          <span class="a11y-tag pass">AAA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#ffffff;color:#db0000;border:1px solid #db0000">Aa Sample text</div>
+          <div class="a11y-mono">#db0000 on #ffffff · link</div>
+          <span class="mono" style="font-size:14px;color:var(--ink)">5.23:1</span>
+          <span class="a11y-tag pass">AA</span>
+        </div>
+        <div class="a11y-row">
+          <div class="a11y-sample" style="background:#ffffff;color:#808080;border:1px solid #808080">Aa Sample text</div>
+          <div class="a11y-mono">#808080 on #ffffff · muted</div>
+          <span class="mono" style="font-size:14px;color:var(--ink)">3.95:1</span>
+          <span class="a11y-tag pass">AA-lg</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUDIT FLAGS -->
+  <section id="flags">
+    <div class="section-head">
+      <div class="num">11 · Audit</div>
+      <h2>Design Score: <em>74 / 100</em> (C).</h2>
+      <div class="sub">Five issues — most are CSS hygiene rather than visual design problems. The typography and spacing scores drag the overall grade, but the actual visual coherence is high (single accent color, perfect WCAG, consistent sharp-corner shape vocabulary).</div>
+    </div>
+    <div class="grid-2">
+      <div class="flag-card warn">
+        <div class="eyebrow">⚠ Warning · Medium</div>
+        <div class="title">4 font families</div>
+        <div class="body">Recommendation: limit to 2 (heading + body). Times, Arial, and GTStandard-M look like fallback artifacts — only GT America Standard is actively designed.</div>
+      </div>
+      <div class="flag-card warn">
+        <div class="eyebrow">⚠ Warning · High</div>
+        <div class="title">No consistent spacing base unit</div>
+        <div class="body">Values appear arbitrary (4, 29, 58, 76, 88, 114, 131, 158, 233, 345, 497). Likely page-by-page editorial authoring rather than a tokenized system.</div>
+      </div>
+      <div class="flag-card warn">
+        <div class="eyebrow">⚠ Warning · Medium</div>
+        <div class="title">34 <span class="mono">!important</span> rules</div>
+        <div class="body">Prefer specificity over overrides. Common in Shopify themes where theme CSS competes with global stylesheets.</div>
+      </div>
+      <div class="flag-card warn">
+        <div class="eyebrow">⚠ Warning · Medium</div>
+        <div class="title">87% of CSS unused</div>
+        <div class="body">A purge step (PurgeCSS / Shopify theme cleanup) would meaningfully reduce shipped stylesheet weight.</div>
+      </div>
+      <div class="flag-card warn">
+        <div class="eyebrow">⚠ Warning · High</div>
+        <div class="title">1,774 duplicate CSS declarations</div>
+        <div class="body">Multiple stylesheet entry points emitting overlapping rules. Bundler-level dedupe is the cheap fix.</div>
+      </div>
+      <div class="flag-card good">
+        <div class="eyebrow">✓ Strength</div>
+        <div class="title">Tight, disciplined color palette</div>
+        <div class="body">Only 4 colors. Brand red anchors 836 uses. Color discipline score: 100/100.</div>
+      </div>
+      <div class="flag-card good">
+        <div class="eyebrow">✓ Strength</div>
+        <div class="title">Consistent border radii</div>
+        <div class="body">0 radius tokens, 0 detected radius uses — the system commits fully to sharp corners. Radius discipline: 100/100.</div>
+      </div>
+      <div class="flag-card good">
+        <div class="eyebrow">✓ Strength</div>
+        <div class="title">Strong accessibility compliance</div>
+        <div class="body">Every detected pair clears WCAG. A11y score: 100/100.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FILES -->
+  <section id="files">
+    <div class="section-head">
+      <div class="num">12 · Resources</div>
+      <h2>Generated artifacts.</h2>
+      <div class="sub">23 output files in this directory. Click to open.</div>
+    </div>
+    <div class="panel" style="padding:0;border:0">
+      <div class="file-grid">
+        <div class="file"><span class="ext">MD</span><span class="name"><a href="utrecht-jp-DESIGN.md">utrecht-jp-DESIGN.md</a></span></div>
+        <div class="file"><span class="ext">MD</span><span class="name"><a href="DESIGN.md">DESIGN.md (full reference)</a></span></div>
+        <div class="file"><span class="ext">MD</span><span class="name"><a href="utrecht-jp-design-language.md">utrecht-jp-design-language.md</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-design-tokens.json">utrecht-jp-design-tokens.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-figma-variables.json">utrecht-jp-figma-variables.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-intent.json">utrecht-jp-intent.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-visual-dna.json">utrecht-jp-visual-dna.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-voice.json">utrecht-jp-voice.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-icon-system.json">utrecht-jp-icon-system.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-motion-tokens.json">utrecht-jp-motion-tokens.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-form-states.json">utrecht-jp-form-states.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-library.json">utrecht-jp-library.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-mcp.json">utrecht-jp-mcp.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-seo.json">utrecht-jp-seo.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-stack-intel.json">utrecht-jp-stack-intel.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-screenshots.json">utrecht-jp-screenshots.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-logo.json">utrecht-jp-logo.json</a></span></div>
+        <div class="file"><span class="ext">JSON</span><span class="name"><a href="utrecht-jp-wordpress-theme.json">utrecht-jp-wordpress-theme.json</a></span></div>
+        <div class="file"><span class="ext">CSS</span><span class="name"><a href="utrecht-jp-variables.css">utrecht-jp-variables.css</a></span></div>
+        <div class="file"><span class="ext">CSS</span><span class="name"><a href="utrecht-jp-shadcn-theme.css">utrecht-jp-shadcn-theme.css</a></span></div>
+        <div class="file"><span class="ext">JS</span><span class="name"><a href="utrecht-jp-tailwind.config.js">utrecht-jp-tailwind.config.js</a></span></div>
+        <div class="file"><span class="ext">JS</span><span class="name"><a href="utrecht-jp-theme.js">utrecht-jp-theme.js</a></span></div>
+        <div class="file"><span class="ext">SVG</span><span class="name"><a href="utrecht-jp-logo.svg">utrecht-jp-logo.svg</a></span></div>
+        <div class="file"><span class="ext">HTML</span><span class="name"><a href="utrecht-jp-preview.html">utrecht-jp-preview.html</a> (auto-generated)</span></div>
+        <div class="file"><span class="ext">DIR</span><span class="name"><a href="utrecht-jp-prompts/">utrecht-jp-prompts/</a></span></div>
+      </div>
+    </div>
+  </section>
+
+  <div style="margin-top:58px;color:var(--ink);font-size:14px;text-align:center;border-top:1px solid var(--ink);padding-top:20px" class="mono">
+    designlang v12.10.0 · extracted 2026-05-14 · review compiled 2026-05-14
+  </div>
+
+</div>
+
+<script>
+  function toggleTheme() {
+    const root = document.body;
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+  }
+  function toggleNav(force) {
+    const open = typeof force === 'boolean' ? force : !document.body.classList.contains('nav-open');
+    document.body.classList.toggle('nav-open', open);
+  }
+  document.querySelectorAll('#sidebar-nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.matchMedia('(max-width: 960px)').matches) toggleNav(false);
+    });
+  });
+
+  document.querySelectorAll('.swatch').forEach(el => {
+    el.addEventListener('click', () => {
+      const hex = el.querySelector('.hex')?.textContent?.trim();
+      if (!hex) return;
+      navigator.clipboard.writeText(hex).then(() => {
+        let tip = el.querySelector('.copy-tip');
+        if (!tip) { tip = document.createElement('div'); tip.className = 'copy-tip'; el.appendChild(tip); }
+        tip.textContent = 'Copied ' + hex;
+        tip.classList.add('show');
+        setTimeout(() => tip.classList.remove('show'), 1200);
+      });
+    });
+  });
+
+  const navLinks = Array.from(document.querySelectorAll('#sidebar-nav a[href^="#"]'));
+  const linkById = new Map(navLinks.map(a => [a.getAttribute('href').slice(1), a]));
+  const sections = navLinks
+    .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+    .filter(Boolean);
+  const setActive = (id) => navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  const spy = new IntersectionObserver((entries) => {
+    const visible = entries.filter(e => e.isIntersecting)
+      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    if (visible[0]) setActive(visible[0].target.id);
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  sections.forEach(s => spy.observe(s));
+  if (linkById.has('top')) linkById.get('top').classList.add('active');
+</script>
+</body>
+</html>
