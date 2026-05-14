@@ -58,7 +58,7 @@ These are the choices that make the output a coherent design-system page rather 
 - **Type scale:** show font family per row, inferred from family usage counts. Mark the mapping as inferred.
 - **Radii:** snap every chrome radius to the nearest value in the **detected** scale — don't hardcode 2/6. Replace 999px pills with the largest detected radius *only if* `visual-dna.json` reports `hasPill: false`.
 - **Typography snap:** every font size must be in the detected scale. No half-pixel sizes. Map review-chrome by role (hero = largest, section h2 = 3rd-largest, eyebrow = smallest) rather than by absolute number.
-- **Accent treatment:** decide by **WCAG contrast ratio** against both the bg and the ink, not by luminance bucket. Whichever pairing (`accent on bg` or `ink on accent`) passes AA wins; if both pass, prefer text color (smaller footprint); if neither passes, pick the higher-contrast option and flag it.
+- **Accent treatment:** the accent only appears where the *source* uses it (detected emphasis in headings, accent-colored buttons in the DOM, etc.) — don't synthesize emphasis. When the accent IS placed, pick between text-color vs background-fill by WCAG contrast ratio: whichever pairing passes AA wins; both pass → prefer text color (smaller footprint); neither passes → pick the higher and flag it.
 
 ## Trigger phrases
 

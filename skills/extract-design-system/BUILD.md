@@ -90,7 +90,14 @@ RESOURCES
 ## 3. Hero
 
 - **H1:** `font-size: clamp(38px, 6vw, <largest-detected-size>); font-weight: <detected H1 weight>;`
-- Optionally wrap a 1–2 word emphasis (the site's product noun, derived from the most-repeated noun across detected headings) in `<em>`. **Apply the accent treatment rule** (see the "Accent treatment" section under Snapping rules below) — it picks between `color: var(--accent)` and `background: var(--accent)` based on WCAG contrast against the surrounding `--bg` and `--ink`. Use the chosen treatment for the `<em>` and any other accent-emphasized text in the page (voice quote highlights, icon count badges, file-extension chips).
+- **Default: no inline emphasis.** Render the H1 as plain `--ink` text. Most marketing headlines don't have emphasis — synthesizing a colored word or pill is creative invention, not extraction.
+
+  **Mirror the source if it actually has emphasis.** Check the detected sample headings (`voice.json.sampleHeadings` + `intent.json` hero text) for `<em>`, `<strong>`, or `<span>` children whose computed `color` or `background-color` differs from the parent heading. If detected:
+  - `<em>` / `<strong>` / `<span>` with `color` matching `--accent` → mirror as `<em style="color: var(--accent)">`
+  - `<span>` / `<em>` with `background` matching `--accent` and contrasting `color` → mirror as the pill treatment
+  - When both signals are present, defer to the **Accent treatment rule** (Snapping rules below) for which one — pick the higher-contrast option.
+
+  **If nothing detected:** no `<em>` in the hero. Use the rendered hero copy verbatim, plain.
 - Source line in the detected mono family, body-small: `<url> · <element-count> elements · <date>`
 - Badge row: one outlined pill per detection that's present in the extraction. Skip any whose source data is missing (e.g., no `imagery` detection → no imagery pill).
 - Stats grid: one cell per non-empty category. Auto-populate from `{Colors, Font families, Spacing, Shadows, Radii, Components, Icons, WCAG score}` — drop any with count 0. WCAG cell uses `--good` if ≥90%, `--warn` 70–90%, `--bad` <70%.
@@ -367,10 +374,19 @@ Small `<div>` with designlang version + extraction date in Geist Mono, ink-muted
 
 ### Accent treatment
 
-The accent (`--accent`) is the brand's signature highlight color. Two viable treatments exist:
+**Scope: this rule applies only when something *needs* to be rendered with the accent color.** It's not a directive to "always emphasize" — most page chrome should use `--ink` and `--bg`. The accent shows up in specific places:
+
+- Hero `<em>` emphasis **only if the source has detected emphasis** (see §3 Hero)
+- Buttons / CTAs where the source uses an accent-colored button
+- Status dots inside badges
+- Icon usage-count badges (in the icons section)
+- File-extension chips (in the audit/files section if present)
+- Voice quote highlights **only if the source has emphasis in headings**
+
+When you're committed to placing accent somewhere, two viable treatments exist:
 
 - **Text color**: `color: var(--accent)`
-- **Background pill**: `background: var(--accent); color: var(--ink); padding: 0 6px; border-radius: var(--radius-control)`
+- **Background fill / pill**: `background: var(--accent); color: var(--ink); padding: 0 6px; border-radius: var(--radius-control)`
 
 **Decide by WCAG contrast ratio, not by luminance bucket.** Luminance alone misclassifies saturated mid-tones like salmon (`#ff8389`, lum ~0.66) and peach — they look "below the threshold" but fail AA as text on a light bg.
 
@@ -412,11 +428,7 @@ The old luminance bucket misclassified Ableton's salmon — saturated mid-tones 
 
 #### Where to apply the chosen treatment
 
-- Hero H1 `<em>` (the noun emphasis)
-- Voice section quote highlights
-- Icon usage-count badges (when accent-pill works for them, otherwise use ink/inverse)
-- File-extension chips
-- Status dots inside badges (use whichever pairing has the better contrast)
+For each accent-colored element listed in the scope intro above, apply the chosen treatment. **Don't add accent-colored elements that aren't either detected in the source or required by the template (badges, status dots).** Adding a yellow pill to a hero where the source has plain text is invention.
 
 ### Pattern background
 
