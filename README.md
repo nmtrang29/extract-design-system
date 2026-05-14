@@ -127,14 +127,6 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 
 Default theme matches the source site, not Claude's preference.
 
-<table>
-<tr><td width="50%" align="center"><sub><b>Before</b></sub></td><td width="50%" align="center"><sub><b>After</b></sub></td></tr>
-<tr>
-<td><img src="docs/before-after/langfuse/theme-before.png" alt="Before — dark theme default" /></td>
-<td><img src="docs/before-after/langfuse/theme-after.png" alt="After — light default matching langfuse.com" /></td>
-</tr>
-</table>
-
 ---
 
 ## How it works
