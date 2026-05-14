@@ -34,7 +34,7 @@ Add `--depth 3` for multi-page crawling. Add `--dark` for dark-mode parity.
 | `*-library.json` | Component library detection (shadcn, etc.) |
 | `*-design-language.md` | Audit warnings (font count, !important, duplicate CSS) |
 
-**3. Build the review HTML** by copying `TEMPLATE.html` to `<site-slug>-review.html` in the same output directory and replacing every `{{TOKEN}}` placeholder with values from the extracted files. **Do not modify `*-preview.html`** — leave it in place as the basic reference.
+**3. Build the design-system HTML** by copying `TEMPLATE.html` to `<site>-design-system.html` in the same output directory and replacing every `{{TOKEN}}` placeholder with values from the extracted files. Use just the brand name (no TLD) — e.g. `langfuse.com` → `langfuse-design-system.html`, `vercel.com` → `vercel-design-system.html`. **Do not modify `*-preview.html`** — leave it in place as the basic reference.
 
 The full page structure, token mapping, snapping rules, and copy decisions are in **[BUILD.md](./BUILD.md)** — read it before populating the template.
 
@@ -68,7 +68,7 @@ These are the choices that make the output a coherent design-system page rather 
 
 | File | Purpose |
 |---|---|
-| `<slug>-review.html` | **Primary output** — the polished, self-styled design-system review |
+| `<site>-design-system.html` | **Primary output** — the polished, self-styled design-system page (brand name only, no TLD) |
 | `<slug>-*.{md,json,css,js,tsx,html}` | Original 22 designlang artifacts (kept) |
 | `CHANGELOG.md` | Optional — provenance + decisions log |
 

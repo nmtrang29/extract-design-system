@@ -7,7 +7,7 @@ A fork of [design-extract](https://github.com/Manavarya09/design-extract) that t
 
 ![Hero screenshot](docs/before-after/hero-after.png)
 
-[**▶ See the live example: langfuse.com review**](examples/langfuse-com-review.html)
+[**▶ See the live example: langfuse-design-system.html**](examples/langfuse-design-system.html)
 
 ---
 
@@ -58,7 +58,7 @@ This will:
 1. Run `npx designlang <url> --screenshots` to produce 22 raw extraction artifacts
 2. Read every relevant artifact (`*-variables.css`, `*-design-tokens.json`, `*-intent.json`, `*-voice.json`, etc.)
 3. Populate `skills/extract-design-system/TEMPLATE.html` with the extracted values
-4. Save the result as `<site-slug>-review.html` in the output directory
+4. Save the result as `<site>-design-system.html` (brand name only, no TLD — e.g. `langfuse-design-system.html`)
 5. Optionally write a `CHANGELOG.md` documenting any inferred mappings or fallbacks
 
 ---
@@ -67,7 +67,7 @@ This will:
 
 ```
 design-extract-output/
-├── <slug>-review.html          ← the polished review page (what this skill adds)
+├── <site>-design-system.html   ← the polished design-system page (what this skill adds, e.g. langfuse-design-system.html)
 ├── <slug>-preview.html         ← the basic preview from designlang (left in place)
 ├── <slug>-DESIGN.md
 ├── <slug>-design-tokens.json
@@ -128,7 +128,7 @@ See [`SKILL.md`](skills/extract-design-system/SKILL.md) for the full list.
 
 - Forked from [Manavarya09/design-extract](https://github.com/Manavarya09/design-extract) — the underlying `designlang` extractor.
 - Colors-by-context layout inspired by [Carbon Design System](https://carbondesignsystem.com/elements/color/overview/).
-- Reference output: built against [langfuse.com](https://langfuse.com/) during a multi-iteration design session — see [`examples/langfuse-com-review.html`](examples/langfuse-com-review.html) and [`examples/langfuse-com-CHANGELOG.md`](examples/langfuse-com-CHANGELOG.md).
+- Reference output: built against [langfuse.com](https://langfuse.com/) during a multi-iteration design session — see [`examples/langfuse-design-system.html`](examples/langfuse-design-system.html) and [`examples/langfuse-CHANGELOG.md`](examples/langfuse-CHANGELOG.md).
 
 ---
 

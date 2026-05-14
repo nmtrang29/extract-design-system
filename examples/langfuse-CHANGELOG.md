@@ -1,10 +1,10 @@
 # Langfuse Design System Review — Changelog
 
-A session-by-session log of how `langfuse-com-review.html` was built up from the raw `/extract-design` output, with the intent and motivation behind each change.
+A session-by-session log of how `langfuse-design-system.html` was built up from the raw `/extract-design` output, with the intent and motivation behind each change.
 
 - **Source extraction:** `/extract-design https://langfuse.com/` (designlang v12.10.0)
 - **Output directory:** `/Users/trang.nguyen/design-extract-output/`
-- **Primary artifact:** `langfuse-com-review.html`
+- **Primary artifact:** `langfuse-design-system.html`
 - **Session date:** 2026-05-14
 
 ---
@@ -15,7 +15,7 @@ A session-by-session log of how `langfuse-com-review.html` was built up from the
 
 **Why:** The extractor produced **22 raw artifacts** — JSON tokens, markdown reports, a CSS variable dump, a TSX component anatomy file. Reviewing extraction quality across that many files requires opening each in turn and mentally cross-referencing, which is slow and error-prone. A single visual surface lets you spot gaps ("the icon section is just names, not icons"), inconsistencies, and false positives at a glance — and lets you evaluate whether the extraction is good enough to act on.
 
-**What I did:** Created `langfuse-com-review.html` consolidating every relevant artifact into one scrollable page — hero with extraction metadata, color palette (Brand / Neutrals / Patterns), type scale, spacing, shadows, radii, motion (hover-to-play), live-rendered components, voice + CTA verbs, page anatomy reading order, icons, WCAG accessibility, audit flags, file index. Dark theme initially, Google-hosted Inter + JetBrains Mono, click-to-copy hex on swatches, top-anchored TOC.
+**What I did:** Created `langfuse-design-system.html` consolidating every relevant artifact into one scrollable page — hero with extraction metadata, color palette (Brand / Neutrals / Patterns), type scale, spacing, shadows, radii, motion (hover-to-play), live-rendered components, voice + CTA verbs, page anatomy reading order, icons, WCAG accessibility, audit flags, file index. Dark theme initially, Google-hosted Inter + JetBrains Mono, click-to-copy hex on swatches, top-anchored TOC.
 
 ---
 
@@ -219,4 +219,4 @@ Specifically:
 
 ---
 
-_Generated 2026-05-14. Source: `langfuse-com-review.html` and the 22 extraction artifacts in this directory._
+_Generated 2026-05-14. Source: `langfuse-design-system.html` and the 22 extraction artifacts in this directory._
