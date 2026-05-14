@@ -46,6 +46,13 @@ The general rule: **if the extraction contains a token, color, heading, weight, 
 
 Any inferred mappings, font fallbacks, or other decisions that weren't directly extracted should be **noted inline in DESIGN.md** (typically in the §1 Overview, §14 fallbacks, or §15 Audit findings sections) — not split into a separate CHANGELOG file.
 
+## What this skill never inserts
+
+- **No logos, marks, or brand-glyphs anywhere.** No sidebar mark, no nav-brand swatch, no footer brand mark, no `<img>` of the source logo. Use the brand name as plain text. The site identity comes from tokens (color, type, spacing, radii) — not from a recreated wordmark.
+- **No synthesized decoration on the hero** (radial accent glows, repeating staff lines, oblique stripes, conic shapes). Decoration must come from a detected source feature — see BUILD.md §3.
+- **No invented inline emphasis** in headings. No "make one word colored" unless the source actually paints it that way — see SKILL.md Accent treatment.
+- **No white card chrome** when the painted source doesn't use it. Surface tiebreaker in BUILD.md §4 decides.
+
 ## Core decisions (baked in — do not re-ask)
 
 These are the choices that make the output a coherent design-system page rather than a token dump:

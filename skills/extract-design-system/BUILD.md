@@ -36,10 +36,10 @@ Map directly from `*-variables.css`. The placeholders in `TEMPLATE.html` are:
 ## 2. Sidebar (fixed left, 248px)
 
 ```
-[Brand title]               ← {{SITE_NAME}} + " Design System"
-{{SCOPE_LABEL}}             ← Optional one-line scope. Only set if a clear scope is detectable
-                              (e.g. "Docs" if the URL is /docs/*, "App" if the URL is app.*).
-                              For corporate root pages, leave empty rather than guessing.
+[site link]                 ← Small, muted, mono. Just the source URL as a clickable link
+                              (e.g. "ableton.com", "mistral.ai"). No "<Site> Design System"
+                              title. No subtitle / scope label. The design system page itself
+                              is implicit in the chrome — there's no need to repeat the noun.
 
 OVERVIEW
   At a glance               → #top
