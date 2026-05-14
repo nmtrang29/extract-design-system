@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Branch 2: Docs-site detection — MUI demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f5f5f1; color: #1a1a1c; padding: 32px; line-height: 1.5; }
+  .mono { font-family: 'Geist Mono', monospace; }
+  .head { max-width: 1380px; margin: 0 auto 24px; }
+  .head h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.02em; }
+  .head .meta { color: #6a6a70; font-size: 13px; font-family: 'Geist Mono', monospace; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1380px; margin: 0 auto; }
+  .col { background: #fff; border: 1px solid #e0e0d8; border-radius: 8px; padding: 24px; }
+  .col .badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; padding: 4px 10px; border-radius: 2px; display: inline-block; margin-bottom: 12px; }
+  .col.before .badge { background: #cc331414; color: #cc3314; }
+  .col.after .badge { background: #538a2e14; color: #538a2e; }
+  .col h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .col .sub { color: #6a6a70; font-size: 13px; margin-bottom: 18px; }
+
+  /* Mock skill output renderings */
+  .mock { background: #faf9f5; border: 1px solid #e0e0d8; border-radius: 6px; padding: 18px; margin-bottom: 14px; }
+  .mock .label { font-size: 10px; color: #6a6a70; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 10px; }
+  .mock-hero { background: #1976d2; color: white; padding: 20px; border-radius: 4px; margin-bottom: 12px; }
+  .mock-hero h3 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .mock-hero p { font-size: 12px; opacity: 0.85; }
+  .wrong-section { background: #fff; border: 1px dashed #cc3314; border-radius: 6px; padding: 14px; margin-bottom: 10px; }
+  .wrong-section h4 { font-size: 13px; font-weight: 600; color: #cc3314; margin-bottom: 4px; }
+  .wrong-section p { font-size: 12px; color: #44444a; margin-bottom: 6px; }
+  .wrong-section .components-stub { display: flex; gap: 6px; flex-wrap: wrap; }
+  .wrong-section .chip { background: #f5f5f1; border: 1px solid #e0e0d8; padding: 3px 8px; border-radius: 2px; font-size: 11px; font-family: 'Geist Mono', monospace; color: #44444a; }
+  .verdict { margin-top: 12px; padding: 12px 16px; border-radius: 6px; font-size: 12.5px; line-height: 1.6; }
+  .verdict.bad { background: #cc331410; color: #44444a; border-left: 3px solid #cc3314; }
+  .verdict.good { background: #538a2e14; color: #44444a; border-left: 3px solid #538a2e; }
+  .verdict b { color: #1a1a1c; }
+
+  .banner { background: #fff8e1; border: 1px solid #e09d00; border-left: 4px solid #e09d00; padding: 12px 16px; border-radius: 4px; margin-bottom: 12px; }
+  .banner .title { font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #5d3a00; }
+  .banner .body { font-size: 12px; color: #5d3a00; }
+
+  .token-sources { background: #fff; border: 1px solid #e0e0d8; border-radius: 6px; padding: 16px; }
+  .token-sources h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .token-sources ul { list-style: none; }
+  .token-sources li { padding: 7px 0; border-bottom: 1px solid #ececea; font-size: 12px; display: flex; gap: 8px; align-items: center; }
+  .token-sources li:last-child { border-bottom: 0; }
+  .token-sources .tag { background: #f5f5f1; border: 1px solid #e0e0d8; font-size: 10px; padding: 1px 6px; border-radius: 2px; font-family: 'Geist Mono', monospace; color: #6a6a70; }
+  .token-sources a { color: #0969da; text-decoration: none; font-family: 'Geist Mono', monospace; }
+
+  .signals { background: #faf9f5; border-radius: 6px; padding: 12px 16px; font-size: 12px; line-height: 1.8; margin-bottom: 12px; }
+  .signals .check { color: #538a2e; font-weight: 600; }
+  .signals .x { color: #cc3314; font-weight: 600; opacity: 0.4; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>Docs-site detection · MUI (mui.com/material-ui/)</h1>
+  <div class="meta">Branch 2 · docs-site-detection · target: Material UI docs · component-heavy taxonomy</div>
+</div>
+
+<div class="grid">
+
+  <!-- BEFORE -->
+  <div class="col before">
+    <span class="badge">Before · current spec</span>
+    <h2>Polished page produced for MUI's docs site</h2>
+    <p class="sub">Current spec doesn't distinguish "product/marketing site" from "design-system docs site". It runs the full skill pipeline. The output describes <b>the docs site's UI</b>, not Material UI itself.</p>
+
+    <div class="mock">
+      <div class="label">Generated output</div>
+      <div class="mock-hero">
+        <h3>Move fast<br/>with React UI.</h3>
+        <p>https://mui.com/material-ui/ · 4,200 elements · 2026-05-14</p>
+      </div>
+      <div class="wrong-section">
+        <h4>Components · 14 detected</h4>
+        <p>Renders patterns the skill found in the docs DOM:</p>
+        <div class="components-stub">
+          <span class="chip">Buttons</span>
+          <span class="chip">Breadcrumbs</span>
+          <span class="chip">Sidebar nav</span>
+          <span class="chip">TOC list</span>
+          <span class="chip">Version picker</span>
+          <span class="chip">Search modal</span>
+          <span class="chip">Code block</span>
+          <span class="chip">Anchor link</span>
+          <span class="chip">Theme toggle</span>
+          <span class="chip">Footer</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict bad">
+      <b>The problem:</b> none of those are Material UI's components. They're the components of the MUI docs <i>site</i>. Material UI itself documents 30+ components (DataGrid, Stepper, Slider, Autocomplete, Snackbar, Speed Dial, etc.) — the skill rendered the wrong set.
+    </div>
+  </div>
+
+  <!-- AFTER -->
+  <div class="col after">
+    <span class="badge">After · docs-site detection</span>
+    <h2>Audit-mode landing for MUI's docs site</h2>
+    <p class="sub">New spec checks 7 signals before running the full pipeline. When ≥3 fire, the skill enters audit mode: a banner warns about the limitation, the live component frame is suppressed, and a new section surfaces the actual token sources.</p>
+
+    <div class="mock">
+      <div class="label">Detection signals</div>
+      <div class="signals">
+        <div><span class="check">✓</span> Docs URL path matches <code class="mono">/material-ui/getting-started</code></div>
+        <div><span class="check">✓</span> Sidebar nav with 230+ links detected</div>
+        <div><span class="check">✓</span> 84 code blocks on the page</div>
+        <div><span class="check">✓</span> Docs taxonomy headings: "Getting started", "Components", "Customization", "API"</div>
+        <div><span class="check">✓</span> Storybook iframe present</div>
+        <div><span class="x">✗</span> Library confidence: 0.71 (MUI detected — this signal won't fire on its own docs)</div>
+        <div><span class="x">✗</span> Component-list density: low (this isn't a list page)</div>
+        <div><b>5 of 7 signals fired → docs-site mode.</b></div>
+      </div>
+
+      <div class="banner">
+        <div class="title">⚠ This is a docs site</div>
+        <div class="body">The rendered components below reflect the docs UI, not Material UI itself. See the Detected token sources section for actual design tokens.</div>
+      </div>
+
+      <div class="token-sources">
+        <h4>Detected token sources</h4>
+        <ul>
+          <li><span class="tag">npm</span><a>@mui/material/styles</a></li>
+          <li><span class="tag">link</span><a>https://mui.com/static/material-ui/themes.json</a></li>
+          <li><span class="tag">inline</span><a>style block @ line 247 — 180+ tokens</a></li>
+          <li><span class="tag">storybook</span><a>https://mui.com/material-ui/storybook</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="verdict good">
+      <b>The improvement:</b> the polished page now explicitly tells the user this is a docs site, surfaces the actual token sources they probably want, and suppresses the misleading component render. A user reading the page gets an accurate picture instead of polished misinformation.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

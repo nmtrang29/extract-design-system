@@ -20,6 +20,31 @@ npx designlang <url> --screenshots --out ./design-extract-output/<site>/
 
 Add `--depth 3` for multi-page crawling. Add `--dark` for dark-mode parity.
 
+**1b. Detect whether the URL is a design-system docs site (vs a product site).** This matters because the skill defaults assume a product/marketing page — the components it renders are the product's components, the voice samples come from the product's hero copy, etc. On a docs site, applying these defaults produces a polished page that *documents the docs site's UI* instead of the system being documented.
+
+Score the page using these signals — if 3+ fire, treat the URL as a docs site:
+
+| Signal | How to detect |
+|---|---|
+| Docs URL path | URL or detected `*-DESIGN.md` source URL contains `/docs/`, `/design/`, `/components/`, `/system/`, `/foundations/`, `/getting-started/` |
+| Heavy sidebar nav | `*-intent.json` reports an `<aside>` with `role: nav` or `role: sidebar` containing **50+ links** |
+| High code density | `*-intent.json` or `*-design-language.md` reports >20 `<pre>` / `<code>` blocks |
+| Low library confidence | `*-library.json` `confidence < 0.3` (the page doesn't *use* a system; it *describes* systems) |
+| Docs-taxonomy headings | `*-voice.json` sample headings include 2+ of: "Get started", "Foundations", "Components", "Patterns", "Tokens", "Guidelines", "Resources", "Anatomy", "Behavior" |
+| Storybook iframe | DOM contains `iframe[src*="storybook"]` or `[id^="storybook-"]` |
+| Component-list density | `*-anatomy.tsx` reports 15+ distinct patterns AND `*-intent.json` reports `feature-grid` as the most common section role |
+
+**Docs-site mode adjustments:**
+- Add a banner to the top of the polished HTML: *"⚠ This is a docs site. The rendered components below reflect the docs UI, not the system being documented. See the Detected token sources section below for actual design tokens."*
+- In the polished HTML, **skip the live component rendering frame** (or render it but caption it as "docs-site chrome, not the system itself"). The components extracted from a docs site are the documentation patterns (TOC entries, version pickers, breadcrumbs), not the system's primitives.
+- Add a new section **Detected token sources** that surfaces:
+  - Direct links to any `tokens.json`, `tokens.css`, `theme.json`, `*.figma-tokens.json` files referenced from the page (`<link>` tags, `<script>` srcs)
+  - Tokens detected in DOM `<style>` blocks if the page inlines them
+  - npm package names if `package.json` is mentioned (`@cds/styles`, `@spectrum-web-components/styles`, etc.)
+- In `DESIGN.md`, lead the Overview with a "Docs-site mode" note explaining the limitation.
+
+**Skipping detection on small sites:** if the page has <100 elements (`*-intent.json` `elements_analyzed`), assume it's a marketing/landing page even if some signals fire. Too sparse to be a docs site.
+
 **2. Read every relevant artifact in `./design-extract-output/<site>/`** before writing the review:
 
 | File | What to extract |
