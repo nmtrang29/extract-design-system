@@ -4,7 +4,24 @@ Extract the design system from any website, turn raw materaials into a **polishe
 
 ![Hero screenshot](docs/before-after/hero-after.png)
 
-[**▶ Live example**](examples/langfuse/langfuse-design-system.html)
+---
+
+## Installation
+
+This is a Claude Code skill. Symlink it into your Claude config:
+
+```bash
+git clone https://github.com/nmtrang29/extract-design-system.git
+cd extract-design-system
+ln -s "$(pwd)/skills/extract-design-system" ~/.claude/skills/extract-design-system
+```
+
+Verify by typing `/extract-design-system` in Claude Code — the skill should appear in the available list.
+
+**Prerequisites:**
+
+- [`designlang`](https://www.npmjs.com/package/designlang) (`npm i -g designlang`, or use via `npx`)
+
 
 ---
 
@@ -93,24 +110,6 @@ Default theme matches the source site, not Claude's preference.
 <td><img src="docs/before-after/theme-after.png" alt="After — light default matching langfuse.com" /></td>
 </tr>
 </table>
-
----
-
-## Installation
-
-This is a Claude Code skill. Symlink it into your Claude config:
-
-```bash
-git clone https://github.com/nmtrang29/extract-design-system.git
-cd extract-design-system
-ln -s "$(pwd)/skills/extract-design-system" ~/.claude/skills/extract-design-system
-```
-
-Verify by typing `/extract-design-system` in Claude Code — the skill should appear in the available list.
-
-**Prerequisites:**
-
-- [`designlang`](https://www.npmjs.com/package/designlang) (`npm i -g designlang`, or use via `npx`)
 
 ---
 
