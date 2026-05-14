@@ -80,10 +80,14 @@ This will:
 4. Save the page at `./design-extract-output/<site>/<site>-design-system.html`
 5. Write a comprehensive `DESIGN.md`
 
-Want inspirations of websites that are less generic? Browse some here
+#### Insprirations
+Additional inspirations if you want websites that don’t feel like another SaaS landing page
 
 - https://brutalistwebsites.com/
 - https://www.siteinspire.com/
+- https://www.awwwards.com/websites/experimental
+- https://theindex.website/
+
 
 
 ---
@@ -156,11 +160,3 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 - Custom display fonts (e.g., f37 Analog, GT America, Söhne...) aren't auto-loaded. 
 - Design-system docs sites currently produce confused output.
 
----
-
-#### Additional inspirations if you want websites that don’t feel like another SaaS landing page
-
-- https://brutalistwebsites.com/
-- https://www.siteinspire.com/
-- https://www.awwwards.com/websites/experimental
-- https://theindex.website/
