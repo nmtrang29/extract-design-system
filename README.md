@@ -8,6 +8,8 @@ A **Claude Code skill** that turns any website URL into a polished, self-referen
 
 ![Ableton design system page — brutalist, 0 radii + 0 shadows, custom CSS](docs/before-after/ableton/hero.png)
 
+![Claude design system page — warm bone surface, Source Serif display, clay-orange accent, Tailwind base](docs/before-after/claude/hero.png)
+
 ---
 
 ## Installation
