@@ -57,34 +57,6 @@ This will:
 
 ---
 
-## Output
-
-Each website gets its own folder so artifacts from different runs never mix:
-
-```
-design-extract-output/
-├── langfuse/
-│   ├── langfuse-design-system.html   ← the polished design-system page (what this skill adds)
-│   ├── langfuse-com-preview.html     ← the basic preview from designlang (left in place)
-│   ├── langfuse-com-DESIGN.md
-│   ├── langfuse-com-design-tokens.json
-│   ├── langfuse-com-variables.css    ← richest semantic-token source
-│   ├── langfuse-com-intent.json
-│   ├── langfuse-com-voice.json
-│   ├── langfuse-com-anatomy.tsx
-│   ├── langfuse-com-icon-system.json
-│   ├── ... (13 more designlang artifacts)
-│   └── CHANGELOG.md                  ← optional provenance log
-├── vercel/                           ← next site you run on
-│   └── ...
-└── shopify/
-    └── ...
-```
-
-Folder name = brand only, no TLD (`langfuse.com → langfuse/`, `vercel.com → vercel/`).
-
----
-
 ## How it works
 
 The skill is composed of three files in `skills/extract-design-system/`:
