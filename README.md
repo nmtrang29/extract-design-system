@@ -1,17 +1,10 @@
 # extract-design-system
 
-Extract design system from any website, turn raw materials into a **polished, self-referential design system page**.
+A **Claude Code skill** that turns any website URL into a polished, self-referential design-system reference. Built on top of [`designlang`](https://www.npmjs.com/package/designlang) and produces two outputs:
+  + a single-file HTML review styled with the extracted tokens
+  + a 400–800 line `DESIGN.md` cataloguing every detected token, heading, weight, breakpoint, and pattern)
 
 ![Hero screenshot](docs/before-after/langfuse/hero-after.png)
-
-## Live examples
-
-| Site | Polished page | DESIGN.md reference |
-|---|---|---|
-| **Langfuse** — modern shadcn site, warm beige + yellow accent | [`examples/langfuse/langfuse-design-system.html`](examples/langfuse/langfuse-design-system.html) | [`examples/langfuse/DESIGN.md`](examples/langfuse/DESIGN.md) (715 lines) |
-| **Ableton** — brutalist editorial, 0 radii + 0 shadows, custom CSS | [`examples/ableton/ableton-design-system.html`](examples/ableton/ableton-design-system.html) | [`examples/ableton/DESIGN.md`](examples/ableton/DESIGN.md) (622 lines) |
-
-The two examples are stress tests of the same skill on opposite design languages — proving the spec produces brand-faithful output without bleeding aesthetics between sites.
 
 ---
 
@@ -135,7 +128,7 @@ This will:
 2. Read every relevant artifact (`*-variables.css`, `*-design-tokens.json`, `*-intent.json`, `*-voice.json`, etc.)
 3. Populate `skills/extract-design-system/TEMPLATE.html` with the extracted values
 4. Save the result inside a per-site folder: `./design-extract-output/<site>/<site>-design-system.html` (e.g. `./design-extract-output/langfuse/langfuse-design-system.html`)
-5. Optionally write a `CHANGELOG.md` documenting any inferred mappings or fallbacks
+5. Write a comprehensive `DESIGN.md` (400–800 lines) into the same folder — every detected token, heading, weight, breakpoint, and pattern. Any inferred mappings or font fallbacks are noted inline.
 
 ---
 
@@ -178,5 +171,5 @@ See [`SKILL.md`](skills/extract-design-system/SKILL.md) for the full list.
 
 ## Credits
 
-- Forked from [Manavarya09/design-extract](https://github.com/Manavarya09/design-extract) — the underlying `designlang` extractor.
+- Built on top of [`designlang`](https://www.npmjs.com/package/designlang) by [Manavarya09](https://github.com/Manavarya09/design-extract) the upstream extractor that produces the 22 raw artifacts this skill reads.
 - Colors-by-context layout inspired by [IBM Carbon Design System](https://carbondesignsystem.com/elements/color/overview/).
