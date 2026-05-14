@@ -1,4 +1,4 @@
-A **Claude Code skill** that turns any website URL into a polished, self-referential design-system reference. Built on top of [`designlang`](https://www.npmjs.com/package/designlang) and produces two additional outputs:
+A wrapper skill built on top of [`designlang`](https://www.npmjs.com/package/designlang) that turns any website URL into a polished, self-referential design system. This produces two additional outputs:
   + a html design system page styled with the extracted tokens
   + A richer `DESIGN.md` cataloguing every detected token, heading, weight, breakpoint, and pattern
 
