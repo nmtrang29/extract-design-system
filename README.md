@@ -1,6 +1,6 @@
 ## Extract Design System
 
-A Claude Code wrapper that turns any URL into a truthful, self-referential design system.
+A Claude Code skill that turns any URL into a truthful, self-referential design system.
 
 ---
 
