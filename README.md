@@ -27,10 +27,10 @@ A Claude Code skill built on top of [`designlang`](https://www.npmjs.com/package
 
 ### Installation
 
-Prerequisite [`designlang`](https://www.npmjs.com/package/designlang) `npm i -g designlang` 
+Prerequisite [`designlang`](https://www.npmjs.com/package/designlang)
 
 
-In Claude Code (native plugin)
+In Claude Code
 
 ```
 /plugin install nmtrang29/extract-design-system
