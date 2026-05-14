@@ -1,8 +1,31 @@
-A Claude Code wrapper skill that turns any website URL into a polished, self-referential design system page.
+## Extract Design System
 
-**Two main outputs**
-+ An HTML design system page styled with the extracted tokens
-+ A `DESIGN.md` file with analyzed patterns, tokens, and rules to be used by coding agents
+A Claude Code wrapper that turns any URL into a truthful, self-referential design system.
+
+---
+
+### Problem
+
+Issues I encounter with a couple of DESIGN.md / extraction tools 
+
+1. **No visual fidelity**: Design system preview doesn’t reflect the original brand, tokens, or patterns. Making it hard to visualise unless you're familiar with the source.  
+2. **Token ≠ reality**: Real usage sometimes diverges from detected values  
+
+---
+
+### Principle: Count what is painted
+
+- Compare the most-painted value per role to the named token  
+- Prefer the painted value when they differ  
+- Log both in `DESIGN.md` for auditability  
+- Role tiebreakers live in [`BUILD.md`](skills/extract-design-system/BUILD.md) and rely on extraction evidence (not hardcoded rules)
+
+→ See [`SKILL.md`](skills/extract-design-system/SKILL.md) for full details
+
+
+**Main Outputs**
+- An HTML design system page 
+- A `DESIGN.md` documenting patterns, tokens, and rules for coding agents
 
 #### Live demos
 
@@ -126,21 +149,6 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 <td><img src="docs/before-after/langfuse/typography-after.png" alt="After — type scale with font family per row" /></td>
 </tr>
 </table>
-
-
-#### Summary of baked-in decisions
-
-- **Copy**: Analysed and taken from the source site.
-- **Sidebar:** fixed left, hamburger on mobile
-- **Default theme:** matches the source site's detected default
-- **Pattern depth:** render every detected component pattern with live examples (not a fixed list)
-- **Colors:** primitive palette + tokens-by-context across role groups
-- **Icons:** real rendered SVGs from whatever library is detected
-- **Type scale:** show font family per row (inferred from family usage counts)
-- **Radii:** snap every chrome radius to the detected
-- **Typography:** snap to detected scale, dynamic content matches the source site's tone of voice
-
-See [`SKILL.md`](skills/extract-design-system/SKILL.md) & [`BUILD.md`](skills/extract-design-system/BUILD.md)  for the full list.
 
 
 #### Known limitations
