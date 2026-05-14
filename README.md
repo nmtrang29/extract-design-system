@@ -21,7 +21,10 @@ A wrapper skill built on top of [`designlang`](https://www.npmjs.com/package/des
 
 ## Installation
 
-**Prerequisite:** (`npm i designlang`).
+**Prerequisite:** 
+```
+npm i designlang
+```
 
 In Claude Code, run:
 
