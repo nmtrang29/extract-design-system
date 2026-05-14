@@ -25,6 +25,12 @@ A Claude Code wrapper skill that turns any website URL into a polished, self-ref
 </tr>
 </table>
 
+Additional inspirations if you want websites that don’t feel like another SaaS landing page
+
+- https://brutalistwebsites.com/
+- https://www.siteinspire.com/
+- https://www.awwwards.com/websites/experimental
+  
 ---
 
 ### Installation
