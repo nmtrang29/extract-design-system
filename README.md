@@ -122,7 +122,7 @@ Each type-scale row labels which font is used (display vs body vs UI vs code).
 ### Other changes
 + Token-name pattern match broadening. Plus a tiebreaker that prefers DOM-observed colors when named tokens disagree with what's painted. 
 + Pattern catalogue 11 → 33** — adds toasts, data tables, pagination, switches, sliders, avatars, breadcrumbs, modals, drawers, skeletons, empty states, steppers, date pickers, color pickers, etc.
-+ Default theme matches the source site, not Claude's preference. 
++ Default theme matches the source site.
 
 ---
 
