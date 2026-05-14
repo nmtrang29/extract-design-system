@@ -44,7 +44,7 @@ The full page structure, token mapping, snapping rules, and copy decisions are i
 
 The general rule: **if the extraction contains a token, color, heading, weight, breakpoint, or pattern, it must appear in DESIGN.md** — organized so "in use" data leads and "available but unused" data follows. Don't filter for top-N. The HTML page can curate; DESIGN.md cannot.
 
-**5. Write an optional `CHANGELOG.md`** alongside (at `./design-extract-output/<site>/CHANGELOG.md`) documenting which choices were derived from the extraction and which had to fall back (e.g., custom display fonts that aren't free-to-host).
+Any inferred mappings, font fallbacks, or other decisions that weren't directly extracted should be **noted inline in DESIGN.md** (typically in the §1 Overview, §14 fallbacks, or §15 Audit findings sections) — not split into a separate CHANGELOG file.
 
 ## Core decisions (baked in — do not re-ask)
 
@@ -83,8 +83,7 @@ All output lives inside a per-site folder so multiple extractions never mix:
     ├── <slug>-design-tokens.json
     ├── <slug>-variables.css
     ├── <slug>-preview.html              ← basic preview (untouched)
-    ├── ... (18 more designlang artifacts)
-    └── CHANGELOG.md                     ← optional provenance log
+    └── ... (18 more designlang artifacts)
 ```
 
 `<site>` is the brand name (e.g. `langfuse`). `<slug>` is designlang's prefix for individual artifacts (e.g. `langfuse-com`).
