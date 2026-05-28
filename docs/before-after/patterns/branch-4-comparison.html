@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Branch 4: Pattern catalogue expansion</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f5f5f1; color: #1a1a1c; padding: 32px; line-height: 1.5; }
+  .mono { font-family: 'Geist Mono', monospace; }
+  .head { max-width: 1480px; margin: 0 auto 24px; }
+  .head h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.02em; }
+  .head .meta { color: #6a6a70; font-size: 13px; font-family: 'Geist Mono', monospace; }
+  .grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 16px; max-width: 1480px; margin: 0 auto; }
+  .col { background: #fff; border: 1px solid #e0e0d8; border-radius: 8px; padding: 24px; }
+  .col .badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; padding: 4px 10px; border-radius: 2px; display: inline-block; margin-bottom: 12px; }
+  .col.before .badge { background: #cc331414; color: #cc3314; }
+  .col.after .badge { background: #538a2e14; color: #538a2e; }
+  .col h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .col .sub { color: #6a6a70; font-size: 13px; margin-bottom: 18px; }
+  .pattern-list { display: grid; gap: 4px; font-size: 12.5px; }
+  .pattern-list .group-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #6a6a70; font-weight: 600; margin-top: 14px; margin-bottom: 6px; }
+  .pattern-list .group-label:first-child { margin-top: 0; }
+  .pattern-list .row { display: flex; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid #ececea; }
+  .pattern-list .num { font-family: 'Geist Mono', monospace; font-size: 11px; color: #a0a0a8; min-width: 22px; text-align: right; }
+  .pattern-list .name { flex: 1; }
+  .pattern-list .row.new { background: #538a2e0a; padding-left: 8px; padding-right: 8px; border-radius: 4px; border-bottom: 0; }
+  .pattern-list .row.new .num { color: #538a2e; font-weight: 600; }
+  .pattern-list .row.kept .name { color: #44444a; }
+  .pattern-list .tag { background: #538a2e; color: white; font-family: 'Geist Mono', monospace; font-size: 9px; padding: 1px 5px; border-radius: 2px; font-weight: 600; }
+  .demo-frame { background: #f5f5f1; border-radius: 6px; padding: 16px; margin-top: 14px; }
+  .demo-frame h3 { font-size: 11px; font-weight: 600; color: #6a6a70; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .demo-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center; }
+  .demo-row + .demo-pat { margin-top: 14px; }
+  .demo-pat { margin-bottom: 14px; padding: 10px; background: white; border-radius: 4px; border: 1px solid #e0e0d8; }
+  .demo-pat h4 { font-size: 11px; font-weight: 600; color: #1a1a1c; margin-bottom: 8px; }
+  /* Mini patterns */
+  .toast { background: #1a1a1c; color: white; padding: 10px 14px; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
+  .toast .dot { width: 8px; height: 8px; border-radius: 999px; background: #538a2e; }
+  .data-table { width: 100%; font-size: 11px; border-collapse: collapse; }
+  .data-table th { text-align: left; padding: 6px 8px; background: #f5f5f1; border-bottom: 2px solid #e0e0d8; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: #6a6a70; }
+  .data-table td { padding: 5px 8px; border-bottom: 1px solid #ececea; }
+  .data-table tr:nth-child(even) td { background: #fafafa; }
+  .pag { display: inline-flex; gap: 2px; align-items: center; font-size: 11px; }
+  .pag span { padding: 4px 8px; border: 1px solid #e0e0d8; border-radius: 2px; cursor: pointer; }
+  .pag span.curr { background: #1a1a1c; color: white; border-color: #1a1a1c; }
+  .pag span.dis { color: #a0a0a8; cursor: default; }
+  .crumb { font-size: 11px; color: #6a6a70; display: flex; gap: 4px; align-items: center; }
+  .crumb a { color: #0969da; text-decoration: none; }
+  .avatar-stack { display: inline-flex; }
+  .avatar { width: 28px; height: 28px; border-radius: 999px; background: #ce4a2c; color: white; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; margin-left: -6px; border: 2px solid white; }
+  .avatar:first-child { margin-left: 0; }
+  .switch { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
+  .switch .track { width: 32px; height: 18px; background: #538a2e; border-radius: 999px; position: relative; }
+  .switch .thumb { width: 14px; height: 14px; background: white; border-radius: 999px; position: absolute; right: 2px; top: 2px; }
+  .progress { height: 6px; background: #ececea; border-radius: 999px; overflow: hidden; }
+  .progress .bar { height: 100%; background: #1a1a1c; width: 60%; border-radius: 999px; }
+  .skeleton { background: linear-gradient(90deg, #ececea 25%, #f5f5f1 50%, #ececea 75%); background-size: 200% 100%; height: 10px; border-radius: 2px; animation: shimmer 1.5s infinite; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .banner { background: #fff8e1; border-left: 3px solid #e09d00; padding: 10px 14px; border-radius: 4px; font-size: 12px; color: #5d3a00; display: flex; gap: 10px; align-items: center; }
+  .slider { height: 6px; background: #ececea; border-radius: 999px; position: relative; }
+  .slider .fill { width: 40%; height: 100%; background: #1a1a1c; border-radius: 999px; }
+  .slider .thumb { position: absolute; left: 40%; top: -5px; width: 16px; height: 16px; background: white; border: 2px solid #1a1a1c; border-radius: 999px; transform: translateX(-50%); }
+  .stepper { display: flex; gap: 4px; font-size: 10.5px; }
+  .stepper .step { display: flex; align-items: center; gap: 4px; padding: 4px 6px; }
+  .stepper .step .num { width: 18px; height: 18px; border-radius: 999px; background: #ececea; color: #6a6a70; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; }
+  .stepper .step.done .num { background: #538a2e; color: white; }
+  .stepper .step.curr .num { background: #1a1a1c; color: white; }
+  .empty { text-align: center; padding: 20px; color: #6a6a70; font-size: 12px; }
+  .empty .ico { font-size: 30px; opacity: 0.4; margin-bottom: 4px; }
+  .annotation { margin-top: 16px; padding: 14px 16px; background: #faf9f5; border-radius: 6px; font-size: 12.5px; color: #44444a; line-height: 1.6; }
+  .annotation b { color: #1a1a1c; }
+  .annotation code { background: #fff; border: 1px solid #ececea; padding: 1px 5px; border-radius: 2px; font-family: 'Geist Mono', monospace; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>Component catalogue · 11 → 33 patterns</h1>
+  <div class="meta">Branch 4 · pattern-catalogue-expansion · catalogue grows from 11 fixed entries to 33 detection-driven entries</div>
+</div>
+
+<div class="grid">
+
+  <!-- BEFORE -->
+  <div class="col before">
+    <span class="badge">Before · 11 fixed patterns</span>
+    <h2>Catalogue</h2>
+    <p class="sub">Hardcoded list. Even if the source ships toasts, data tables, switches, sliders, or steppers, the skill doesn't render them.</p>
+    <div class="pattern-list">
+      <div class="row kept"><span class="num">1</span><span class="name">Buttons</span></div>
+      <div class="row kept"><span class="num">2</span><span class="name">Cards</span></div>
+      <div class="row kept"><span class="num">3</span><span class="name">Inputs</span></div>
+      <div class="row kept"><span class="num">4</span><span class="name">Links</span></div>
+      <div class="row kept"><span class="num">5</span><span class="name">Badges</span></div>
+      <div class="row kept"><span class="num">6</span><span class="name">Tabs</span></div>
+      <div class="row kept"><span class="num">7</span><span class="name">Accordions</span></div>
+      <div class="row kept"><span class="num">8</span><span class="name">Tooltips</span></div>
+      <div class="row kept"><span class="num">9</span><span class="name">Dropdowns</span></div>
+      <div class="row kept"><span class="num">10</span><span class="name">Navigation</span></div>
+      <div class="row kept"><span class="num">11</span><span class="name">Footer</span></div>
+    </div>
+
+    <div class="annotation">
+      <b>The gap:</b> typical enterprise design systems document 25–50 patterns. Material UI has DataGrid, Stepper, Snackbar, Speed Dial, Slider, Autocomplete. Carbon has Notifications, Data Tables, Pagination, Loading. Even langfuse.com has a modal pattern that today renders as a generic example.
+    </div>
+  </div>
+
+  <!-- AFTER -->
+  <div class="col after">
+    <span class="badge">After · 33 catalogue entries · detection-driven</span>
+    <h2>Catalogue grouped by role</h2>
+    <p class="sub">The page renders whichever entries fire their detection cue — never all 33 at once. Each catalogue entry has a templated HTML snippet inheriting the extracted theme via CSS custom properties.</p>
+
+    <div class="pattern-list">
+      <div class="group-label">Atoms</div>
+      <div class="row kept"><span class="num">1</span><span class="name">Buttons</span></div>
+      <div class="row kept"><span class="num">2</span><span class="name">Links</span></div>
+      <div class="row kept"><span class="num">3</span><span class="name">Inputs</span></div>
+      <div class="row new"><span class="num">4</span><span class="name">Textareas</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">5</span><span class="name">Selects / Comboboxes</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">6</span><span class="name">Checkboxes</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">7</span><span class="name">Switches / Toggles</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">8</span><span class="name">Radios</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">9</span><span class="name">Sliders / Range</span><span class="tag">NEW</span></div>
+      <div class="row kept"><span class="num">10</span><span class="name">Badges / Pills</span></div>
+      <div class="row new"><span class="num">11</span><span class="name">Tags / Chips</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">12</span><span class="name">Avatars</span><span class="tag">NEW</span></div>
+
+      <div class="group-label">Composites</div>
+      <div class="row kept"><span class="num">13</span><span class="name">Tabs</span></div>
+      <div class="row kept"><span class="num">14</span><span class="name">Accordions</span></div>
+      <div class="row kept"><span class="num">15</span><span class="name">Tooltips</span></div>
+      <div class="row kept"><span class="num">16</span><span class="name">Dropdowns / Menus</span></div>
+      <div class="row new"><span class="num">17</span><span class="name">Modals / Dialogs</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">18</span><span class="name">Drawers / Sheets</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">19</span><span class="name">Toasts / Snackbars</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">20</span><span class="name">Banners / Alerts</span><span class="tag">NEW</span></div>
+
+      <div class="group-label">Structures</div>
+      <div class="row kept"><span class="num">21</span><span class="name">Cards</span></div>
+      <div class="row new"><span class="num">22</span><span class="name">Data tables</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">23</span><span class="name">Pagination</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">24</span><span class="name">Breadcrumbs</span><span class="tag">NEW</span></div>
+      <div class="row kept"><span class="num">25</span><span class="name">Navigation</span></div>
+      <div class="row kept"><span class="num">26</span><span class="name">Footer</span></div>
+
+      <div class="group-label">Feedback &amp; status</div>
+      <div class="row new"><span class="num">27</span><span class="name">Progress bars</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">28</span><span class="name">Spinners / loaders</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">29</span><span class="name">Skeleton loaders</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">30</span><span class="name">Empty states</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">31</span><span class="name">Stepper / Wizard</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">32</span><span class="name">Date pickers</span><span class="tag">NEW</span></div>
+      <div class="row new"><span class="num">33</span><span class="name">Color pickers</span><span class="tag">NEW</span></div>
+    </div>
+
+    <div class="demo-frame">
+      <h3>A few of the new templates rendering live</h3>
+
+      <div class="demo-pat">
+        <h4>#19 Toast / Snackbar</h4>
+        <div class="toast"><span class="dot"></span> Trace ingested. View it in the dashboard.</div>
+      </div>
+
+      <div class="demo-pat">
+        <h4>#22 Data table</h4>
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Status</th><th>Latency</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td>gpt-4</td><td>OK</td><td>1.2s</td><td>$0.03</td></tr>
+            <tr><td>claude-opus</td><td>OK</td><td>0.8s</td><td>$0.05</td></tr>
+            <tr><td>gemini-pro</td><td>OK</td><td>1.1s</td><td>$0.02</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="demo-pat">
+        <h4>#23 Pagination · #24 Breadcrumbs</h4>
+        <div class="demo-row">
+          <div class="pag"><span class="dis">‹</span><span class="curr">1</span><span>2</span><span>3</span><span>…</span><span>12</span><span>›</span></div>
+        </div>
+        <div class="crumb"><a>Home</a> › <a>Components</a> › <a>Buttons</a> › <span>Primary</span></div>
+      </div>
+
+      <div class="demo-pat">
+        <h4>#7 Switch · #9 Slider · #27 Progress · #12 Avatars</h4>
+        <div class="demo-row">
+          <div class="switch"><div class="track"><div class="thumb"></div></div> Auto-save</div>
+        </div>
+        <div class="demo-row" style="margin-top:8px"><div style="width:160px"><div class="slider"><div class="fill"></div><div class="thumb"></div></div></div> 40%</div>
+        <div class="demo-row" style="margin-top:8px"><div style="width:160px"><div class="progress"><div class="bar"></div></div></div> 60% complete</div>
+        <div class="demo-row" style="margin-top:8px">
+          <div class="avatar-stack"><div class="avatar">TN</div><div class="avatar" style="background:#0969da">JD</div><div class="avatar" style="background:#538a2e">AK</div></div>
+          <span style="font-size:11px;color:#6a6a70">3 reviewers</span>
+        </div>
+      </div>
+
+      <div class="demo-pat">
+        <h4>#29 Skeletons · #30 Empty state · #20 Banner · #31 Stepper</h4>
+        <div class="demo-row" style="display:block">
+          <div class="skeleton" style="width:80%; margin-bottom:6px"></div>
+          <div class="skeleton" style="width:60%; margin-bottom:6px"></div>
+          <div class="skeleton" style="width:70%"></div>
+        </div>
+        <div class="banner" style="margin-top:10px">⚠ Approaching the 50k observation limit.</div>
+        <div class="stepper" style="margin-top:10px">
+          <div class="step done"><span class="num">✓</span> Account</div>
+          <div class="step done"><span class="num">✓</span> Connect</div>
+          <div class="step curr"><span class="num">3</span> Configure</div>
+          <div class="step"><span class="num">4</span> Done</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotation">
+      <b>The mechanic:</b> 33-pattern catalogue + per-pattern detection cue (DOM signals, ARIA roles, anatomy hints). The page renders the subset that fires. Templates live in <code>skills/extract-design-system/patterns/</code> as individual HTML snippets — each one uses <code>var(--ink)</code>, <code>var(--accent)</code>, <code>var(--radius-card)</code> so they inherit the extracted theme.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

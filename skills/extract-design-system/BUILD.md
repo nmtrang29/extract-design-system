@@ -268,27 +268,99 @@ When designlang reports `library: unknown` but one of these class patterns appea
 
 ---
 
-## 8. Components (live rendered, all 11 patterns)
+## 8. Components (live render every detected pattern)
 
-Render every detected pattern inside a **single preview frame** (the line-grid background). Each pattern becomes a `.comp-block` with `id="comp-<name>"`, a header (name + instance count + variants + sizes), and a live example.
+Render every pattern detected in `*-DESIGN.md`'s "Detected patterns" line + `*-anatomy.tsx` inside a **single preview frame** (the line-grid background). Each pattern becomes a `.comp-block` with `id="comp-<name>"`, a header (name + instance count + variants + sizes), and a live example.
 
-Skip patterns not in the extraction. For patterns with anatomy data, mirror the variants. For patterns without anatomy data, render plausible examples using the same extracted tokens.
+**The catalogue is the union of all known patterns** — render whichever are detected, skip the rest. Patterns with anatomy data mirror the variants; patterns without use a plausible templated example built from the extracted tokens.
 
-### 11 patterns
+### Full pattern catalogue (26 patterns)
 
-| # | Pattern | Live example uses |
-|---|---|---|
-| 1 | Buttons | 4 variants (primary, secondary, tertiary, outline) × 2 sizes. Use actual CTA verbs from `voice.json` as labels. |
-| 2 | Cards | 3 sample cards in a grid. Brand surface bg, soft shadow. |
-| 3 | Inputs | Default (with placeholder), focused (with accent-yellow focus ring), disabled. Labeled. |
-| 4 | Links | Underlined, ink color, hover state. |
-| 5 | Badges | 5+ variants (accent, solid, outline, muted, status dot). 2px radius. |
-| 6 | Tabs | Segmented control with active state. Inset on brand surface. |
-| 7 | Accordions | Use FAQ headings from `intent.json` if available. First item open. `<details>` with `+/−` indicator. |
-| 8 | Tooltips | Solid ink tooltip above a button with a caret. Static + anchored. |
-| 9 | Dropdowns | Trigger button + elevated menu with kbd shortcuts (from `voice.json` button patterns). |
-| 10 | Navigation | Horizontal bar: brand mark + menu + sign-in + primary CTA. Use real nav items from `intent.json` sections. |
-| 11 | Footer | 4-column grid (Brand + Product/Resources/Company + copyright). Real product names from voice patterns. |
+Grouped by role so the page-level ordering matches mental model:
+
+#### Atoms (single-element controls)
+
+| # | Pattern | Detection cue | Live example |
+|---|---|---|---|
+| 1 | **Buttons** | `<button>` density, `anatomy.tsx` Button export | 4 variants (primary, secondary, tertiary, outline) × 2 sizes. CTA verbs from `voice.json` as labels. |
+| 2 | **Links** | inline `<a>` with non-nav role | Underlined, ink color, hover state. |
+| 3 | **Inputs** | `<input>` types, `form-states.json` | Default (placeholder), focused (accent ring), disabled. Labeled. |
+| 4 | **Textareas** | `<textarea>` detected | Multi-line input with character count, 4-row default. |
+| 5 | **Selects / Comboboxes** | `<select>` or `role="combobox"` | Trigger button + popover with options. |
+| 6 | **Checkboxes** | `<input type="checkbox">` | Unchecked, checked, indeterminate states. |
+| 7 | **Switches / Toggles** | `role="switch"` or `<input type="checkbox" class*="switch">` | On/off with sliding thumb. |
+| 8 | **Radios** | `<input type="radio">` groups | A 3-option group with one selected. |
+| 9 | **Sliders / Range** | `<input type="range">` or `role="slider"` | Single-value horizontal slider with track + thumb + value bubble. |
+| 10 | **Badges / Pills** | repeated small bordered labels | 5+ variants (accent, solid, outline, muted, status dot). |
+| 11 | **Tags / Chips** | dismissible `<span>` clusters | With remove `×` button, optional avatar prefix. |
+| 12 | **Avatars** | `<img>` with circular crop near user-name text | 3 sizes (sm/md/lg), with status dot, monogram fallback. |
+
+#### Composites (multi-element controls)
+
+| # | Pattern | Detection cue | Live example |
+|---|---|---|---|
+| 13 | **Tabs** | `role="tablist"` or `[role="tab"]` cluster | Segmented control with active state. |
+| 14 | **Accordions** | `<details>` or `role="region"` toggle pattern | Use FAQ headings from `intent.json` if available. First item open. |
+| 15 | **Tooltips** | `role="tooltip"` or `data-tooltip` | Solid ink tooltip above a button with caret. |
+| 16 | **Dropdowns / Menus** | `role="menu"` + trigger | Trigger + elevated menu with kbd shortcuts. |
+| 17 | **Modals / Dialogs** | `<dialog>` or `role="dialog"` | Centered card with backdrop, title, body, action row. |
+| 18 | **Drawers / Sheets** | `role="dialog"` with `aria-orientation` or side-slide animation | Right-side panel, slide-in. |
+| 19 | **Toasts / Snackbars** | `role="status"` / `role="alert"` ephemeral elements | Bottom-anchored notification card with optional action button. |
+| 20 | **Banners / Alerts** | `role="banner"` or top-of-content callouts | Page-width status strip with icon + dismissible. |
+
+#### Structures (page-level patterns)
+
+| # | Pattern | Detection cue | Live example |
+|---|---|---|---|
+| 21 | **Cards** | repeating `<article>` / `<div>` with `border-radius` + padding pattern | 3 sample cards in a grid. |
+| 22 | **Data tables** | `<table>` with sortable headers / pagination | 4 rows × 5 columns with sort indicators + zebra striping. |
+| 23 | **Pagination** | `[aria-label*="pagination"]` or numeric link sequence | Prev / 1-5 / Next + ellipsis. |
+| 24 | **Breadcrumbs** | `[role="navigation"][aria-label*="breadcrumb"]` or chevron-separated link chain | Home / Section / Subsection / Current. |
+| 25 | **Navigation** | top-of-page `<nav>` with brand + links + CTA | Horizontal bar: brand mark + menu + sign-in + primary CTA. |
+| 26 | **Footer** | `<footer>` element | 4-column grid (Brand + Product/Resources/Company + copyright). |
+
+#### Feedback & status patterns (often without anatomy data)
+
+| # | Pattern | Detection cue | Live example |
+|---|---|---|---|
+| 27 | **Progress bar** | `role="progressbar"` (horizontal) | Determinate bar at 60% + indeterminate variant. |
+| 28 | **Spinner / loader** | `role="status"` with animation | Rotating ring at 24px and 16px. |
+| 29 | **Skeleton loaders** | `aria-hidden` placeholder bars with animation | 3 bars at different widths. |
+| 30 | **Empty states** | `[role="status"][aria-live]` with icon | Centered illustration + headline + CTA. |
+| 31 | **Stepper / Wizard** | `[role="tablist"]` ordered + step indicators | 4-step horizontal with completed / current / future states. |
+| 32 | **Date pickers** | `<input type="date">` or `role="grid"` calendars | Inline calendar view, current day highlighted. |
+| 33 | **Color pickers** | `<input type="color">` or color swatches grid | Hue strip + saturation/lightness square + hex input. |
+
+### Rendering rules
+
+- **Detection-driven inclusion**: only render patterns whose detection cue fires. The list above is the *catalogue*; the page renders the subset.
+- **Anatomy-driven variants**: if `anatomy.tsx` declares variants (`outline | primary | secondary`), render each variant. Otherwise use 1 plausible variant.
+- **Use real content** where possible: button labels from `voice.json.buttonPatterns`, nav links from `intent.json` sections, FAQ items from detected FAQ section headings.
+- **Snap radii** to the detected scale per the standard rule.
+- **Skip if no signal**: don't render an example for a pattern just because it's in the catalogue.
+
+### Pattern templates location
+
+Maintain a small folder of HTML snippets — one per catalogue entry — at `skills/extract-design-system/patterns/`:
+
+```
+patterns/
+├── 01-buttons.html
+├── 02-links.html
+├── ...
+├── 22-data-table.html
+├── 27-progress.html
+└── 33-color-picker.html
+```
+
+Each snippet uses CSS custom properties (`var(--ink)`, `var(--accent)`, `var(--radius-card)`, etc.) so it inherits the extracted theme automatically. The skill composes the final preview frame from the snippets the detection picks.
+
+### Sidebar sub-links
+
+When more than 11 patterns are rendered, the sidebar's `COMPONENTS` group could get crowded. Two acceptable layouts:
+
+- **All inline** (current): list every detected pattern under `COMPONENTS`. Sidebar scrolls if needed.
+- **Sub-grouped** (recommended for 15+): split into `Atoms`, `Composites`, `Structures`, `Feedback` sub-sections within `COMPONENTS`.
 
 ---
 
